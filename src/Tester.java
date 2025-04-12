@@ -16,7 +16,7 @@ public class Tester {
 
 	public static int TIMEOUT = 10;
 	public static boolean VERBOSE = false;
-	public static boolean haveHumanPlayer = true;
+	public static boolean haveHumanPlayer = false;
 
     public static int pieces;
 	public static int boardSettings;
@@ -49,8 +49,8 @@ public class Tester {
 				case 'v':
 					VERBOSE = true;
 					break;
-				case 'n':
-					haveHumanPlayer = false;
+				case 'g':
+					haveHumanPlayer = true;
 					break;
 				default:
 					throw new IllegalArgumentException("Illegal argument:  " + args[i]);
@@ -94,7 +94,7 @@ public class Tester {
 		System.err.println("OPTIONS:");
 		System.err.println("  -t <timeout>  Timeout in seconds. Default: " + TIMEOUT);
 		System.err.println("  -v            Verbose. Default: " + VERBOSE);
-		System.err.println("  -n            Without GUI. Default: " + haveHumanPlayer);
+		System.err.println("  -g            With GUI. Default: " + haveHumanPlayer);
 	}
 
 	public static void main(String[] args) {

@@ -7,6 +7,12 @@ public class GameController {
     public ArrayList<CheckersCell> validJump = new ArrayList<>();
     //Scanner scan = new Scanner(System.in);
 
+    public static enum GameState {
+        PlayerA_PLAYING, PlayerB_PLAYING, PlayerA_WON, PlayerB_WON
+    }
+    public static GameState currentState;
+    public static int level = 1; //minimax depth
+
     public GameController(Board b) {
         board = b;
     }
@@ -46,7 +52,7 @@ public class GameController {
 
     //get the selected move from the user and check whether the move is valid.
     //send the board.
-    public boolean isMoved(Board localBoard, CheckersCell p1, CheckersCell p2, Map<CheckersCell,ArrayList<CheckersCell>> map){
+    public boolean markMove(Board localBoard, CheckersCell p1, CheckersCell p2, Map<CheckersCell,ArrayList<CheckersCell>> map){
         for (Map.Entry<CheckersCell, ArrayList<CheckersCell>> key : map.entrySet()) {
             if(key.getKey().row == p1.row && key.getKey().column == p1.column){
                 for(int i = 0; i < key.getValue().size(); i++){
@@ -64,6 +70,12 @@ public class GameController {
             }
         }
         return false;
+    }
+
+    public void unmarkMove(Board localBoard, CheckersCell p1, CheckersCell p2){
+        int temp = localBoard.MainBoard[p1.row][p1.column];
+        localBoard.MainBoard[p1.row][p1.column] = localBoard.MainBoard[p2.row][p2.column];
+        localBoard.MainBoard[p2.row][p2.column] = temp;
     }
 
     public void movePiece(CheckersCell p1, CheckersCell p2){
@@ -88,6 +100,14 @@ public class GameController {
         // pointResult.addAll(0, validJump);
         pointResult.addAll(0, validJump);
         validJump.clear();
+
+        if (Tester.VERBOSE && !Tester.haveHumanPlayer) {
+            System.out.println("AvailableMoves");
+            for (CheckersCell cell : pointResult) {
+                System.out.println("(" + cell.row + ", " + cell.column + ")");
+            }
+            System.out.println("");
+        }
 
         return pointResult;
     }
@@ -221,7 +241,7 @@ public class GameController {
         }
     }
 
-    public boolean validSpace(int row, int column) { //make non playing players spaces accessible
+    public boolean validSpace(int row, int column) { //check if final position is valid (make non playing players spaces accessible only if the relative player is playing)
         if (board.MainBoard[row][column] == Board.EMPTY)
             return true;
 

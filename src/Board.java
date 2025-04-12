@@ -17,7 +17,7 @@ import java.util.*;
 
 public class Board {
 
-    public static int NONVALID = 0;
+    public static int NONVALID = 0; //for slot references
     public static int EMPTY = 1;
     public static int PLAYERA = 2;
     public static int PLAYERB = 3;

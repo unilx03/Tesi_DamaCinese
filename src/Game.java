@@ -1,14 +1,14 @@
 import java.util.ArrayList;
 import java.util.Map;
 
+/*
+  - Prevent home base stalling (forbid side areas as final destination, 
+  forbid backwards moving as final destination, implement new win condition by reaching adversary home turf)
+  - Complete Zobrist hashing implementation
+  - Save mirror state with same score
+*/
 
 public class Game {
-    public int level = 1; //minimax depth
-
-    private enum GameState {
-        PlayerA_PLAYING, PlayerB_PLAYING, PlayerA_WON, PlayerB_WON
-    }
-    private GameState currentState;
     private GameController gameController;
 
     private Board board;
@@ -24,7 +24,7 @@ public class Game {
         agentA = new Agent(Board.PLAYERA, Board.PLAYERB, gameController);
         agentB = new Agent(Board.PLAYERB, Board.PLAYERA, gameController);
         
-        currentState = GameState.PlayerA_PLAYING;
+        GameController.currentState = GameController.GameState.PlayerA_PLAYING;
 
         gameLoop();
     }
@@ -32,31 +32,56 @@ public class Game {
     public void gameLoop(){
         countMoves++;
 
-        if (currentState == GameState.PlayerA_PLAYING) {
-            agentA.minimax(board, level, true, -1000, 1000);
-            //gameController.undoMove(agentA.getFirstBest(), agentA.getSecondBest());
-
-            gameController.movePiece(agentA.getFirstBest(), agentA.getSecondBest());
-        }
-        else if (currentState == GameState.PlayerB_PLAYING) {
-            agentB.minimax(board, level, true, -1000, 1000);
-            //gameController.undoMove(agentB.getFirstBest(), agentB.getSecondBest());
-
-            gameController.movePiece(agentB.getFirstBest(), agentB.getSecondBest());
-        }
-
         if (Tester.VERBOSE) {
+            if (GameController.currentState == GameController.GameState.PlayerA_PLAYING)
+                System.out.println("Player A is playing with this board");
+            else if (GameController.currentState == GameController.GameState.PlayerB_PLAYING)
+                System.out.println("Player B is playing with this board");
+
             board.Print();
             System.out.println();
         }
+
+        if (GameController.currentState == GameController.  GameState.PlayerA_PLAYING) {
+            agentA.minimax(board, GameController.level, true, -1000, 1000);
+            //gameController.undoMove(agentA.getFirstBest(), agentA.getSecondBest());
+
+            if (Tester.VERBOSE) {
+                System.out.println("The chosen cells is (" + agentA.getInitialPosition() + ", " + agentA.getNewPosition() + ")");
+                System.out.println();
+            }
+
+            gameController.movePiece(agentA.getInitialPosition(), agentA.getNewPosition());
+
+            if (Tester.VERBOSE) {
+                board.Print();
+                System.out.println();
+            }
+        }
+        else if (GameController.currentState == GameController.GameState.PlayerB_PLAYING) {
+            agentB.minimax(board, GameController.level, true, -1000, 1000);
+            //gameController.undoMove(agentB.getFirstBest(), agentB.getSecondBest());
+
+            if (Tester.VERBOSE) {
+                System.out.println("The chosen cells is (" + agentB.getInitialPosition() + ", " + agentB.getNewPosition() + ")");
+            }
+
+            gameController.movePiece(agentB.getInitialPosition(), agentB.getNewPosition());
+
+            if (Tester.VERBOSE) {
+                board.Print();
+                System.out.println();
+            }
+        }
+        
         updateGameState();
 
-        if (currentState != GameState.PlayerA_WON && currentState != GameState.PlayerB_WON) {
+        if (GameController.currentState != GameController.GameState.PlayerA_WON && GameController.currentState != GameController.GameState.PlayerB_WON) {
             if (countMoves < 5)
                 gameLoop();
         }
         else
-            System.err.println(currentState);
+            System.err.println(GameController.currentState);
     }
 
     //check victory, otherwise switch playing player
@@ -88,11 +113,11 @@ public class Game {
         }*/
 
         if (track == Tester.pieces) {
-            currentState = GameState.PlayerB_WON;
+            GameController.currentState = GameController.GameState.PlayerB_WON;
             return true;
         }
         
-        currentState = (currentState == GameState.PlayerA_PLAYING) ? GameState.PlayerB_PLAYING : GameState.PlayerA_PLAYING;
+        GameController.currentState = (GameController.currentState == GameController.GameState.PlayerA_PLAYING) ? GameController.GameState.PlayerB_PLAYING : GameController.GameState.PlayerA_PLAYING;
         return false;
     }
 

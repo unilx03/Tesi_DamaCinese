@@ -7,6 +7,7 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Map;
 
+//gameplay with GUI, strintcly AI vs Human player
 public class GUIPanel extends JFrame
 {
     JRadioButton jRadioButton1;
@@ -34,18 +35,12 @@ public class GUIPanel extends JFrame
         EMPTY, VALID, INVALID, PLAYERA, PLAYERB
     }
     private final Seed[][] seedBoard; //for GUI representation
-
-    public int level = 1; //minimax depth
     private Seed pieceMoved;
 
     private boolean playerClick = true;
     private int[] firstMove = new int[2];
     private int[] boardfirstMove = new int[2];
 
-    private enum GameState {
-        PlayerA_PLAYING, PlayerB_PLAYING, PlayerA_WON, PlayerB_WON
-    }
-    private GameState currentState;
     private ArrayList<CheckersCell> moves;
     private GameController gameController;
 
@@ -118,7 +113,7 @@ public class GUIPanel extends JFrame
                 
                 System.out.println("Row Selected = " + boardRow + "\tColumn Selected = " + boardCol);
 
-                if (currentState != GameState.PlayerA_WON && currentState != GameState.PlayerB_WON) {
+                if (GameController.currentState != GameController.GameState.PlayerA_WON && GameController.currentState != GameController.GameState.PlayerB_WON) {
                     //the marbles chosen to be played with.
                     if (playerClick) {
                         pieceMoved = checkPiece(seedBoard, rowSelected, colSelected);
@@ -163,7 +158,7 @@ public class GUIPanel extends JFrame
                             Map<CheckersCell, ArrayList<CheckersCell>> m = obj.checkMove(Board.PLAYERA);
                             CheckersCell from = new CheckersCell(boardfirstMove[0], boardfirstMove[1]);
                             CheckersCell to = new CheckersCell(boardRow, boardCol);
-                            obj.isMoved(board,from,to,m);
+                            obj.markMove(board,from,to,m);
 
                             moves.clear();
                             seedBoard[firstMove[0]][firstMove[1]] = Seed.EMPTY;
@@ -173,25 +168,25 @@ public class GUIPanel extends JFrame
                             repaint();
                                 
                                 //AI
-                            if (currentState != GameState.PlayerA_WON && currentState != GameState.PlayerB_WON) {
-                                agentB.minimax(board, level, true, -1000, 1000);
-                                obj.undoMove(agentB.getFirstBest(), agentB.getSecondBest());
+                            if (GameController.currentState != GameController.GameState.PlayerA_WON && GameController.currentState != GameController.GameState.PlayerB_WON) {
+                                agentB.findNextMove(board, GameController.level);
+                                obj.undoMove(agentB.getInitialPosition(), agentB.getInitialPosition());
 
-                                int seedRowBest = agentB.getFirstBest().row;
+                                int seedRowBest = agentB.getInitialPosition().row;
                                 int seedColBest = 0;
-                                if(agentB.getFirstBest().column % 2 == 0)  
-                                    seedColBest = agentB.getFirstBest().column / 2;
+                                if(agentB.getInitialPosition().column % 2 == 0)  
+                                    seedColBest = agentB.getInitialPosition().column / 2;
                                 else 
-                                    seedColBest = (agentB.getFirstBest().column - 1) / 2;
+                                    seedColBest = (agentB.getInitialPosition().column - 1) / 2;
 
                                 Seed pieceMovedFrom = checkPiece(seedBoard, seedRowBest, seedColBest);
 
-                                int selectedRowSeed = agentB.getSecondBest().row;
+                                int selectedRowSeed = agentB.getInitialPosition().row;
                                 int selectedColSeed = 0;
-                                if (agentB.getSecondBest().column % 2 ==0)  
-                                    selectedColSeed = agentB.getSecondBest().column / 2;
+                                if (agentB.getInitialPosition().column % 2 ==0)  
+                                    selectedColSeed = agentB.getInitialPosition().column / 2;
                                 else 
-                                    selectedColSeed = (agentB.getSecondBest().column - 1) / 2;
+                                    selectedColSeed = (agentB.getInitialPosition().column - 1) / 2;
                                     
                                 seedBoard[seedRowBest][seedColBest] = Seed.EMPTY;
                                 seedBoard[selectedRowSeed][selectedColSeed] = pieceMovedFrom;
@@ -270,7 +265,7 @@ public class GUIPanel extends JFrame
             col = 0;
         }
         
-        currentState = GameState.PlayerA_PLAYING;
+        GameController.currentState = GameController.GameState.PlayerA_PLAYING;
     }
 
     public Seed checkPiece(Seed[][] boarding, int rowSelected, int colSelected) {
@@ -326,7 +321,7 @@ public class GUIPanel extends JFrame
         }
 
         if (track == Tester.pieces) {
-            currentState = GameState.PlayerA_WON;
+            GameController.currentState = GameController.GameState.PlayerA_WON;
             return true;
         }
             
@@ -342,11 +337,11 @@ public class GUIPanel extends JFrame
         }
 
         if (track == Tester.pieces) {
-            currentState = GameState.PlayerB_WON;
+            GameController.currentState = GameController.GameState.PlayerB_WON;
             return true;
         }
         
-        currentState = (currentState == GameState.PlayerA_PLAYING) ? GameState.PlayerB_PLAYING : GameState.PlayerA_PLAYING;
+        GameController.currentState = (GameController.currentState == GameController.GameState.PlayerA_PLAYING) ? GameController.GameState.PlayerB_PLAYING : GameController.GameState.PlayerA_PLAYING;
         return false;
     }
 
@@ -371,11 +366,11 @@ public class GUIPanel extends JFrame
     public boolean checkPresent(Seed[][] board, int row, int column, Seed match) {
         boolean check = false;
         
-        if (currentState == GameState.PlayerA_PLAYING) {
+        if (GameController.currentState == GameController.GameState.PlayerA_PLAYING) {
             if (board[row][column] == match && board[row][column] == Seed.PLAYERA)
                 check = true;
         }
-        else if (currentState == GameState.PlayerB_PLAYING) {
+        else if (GameController.currentState == GameController.GameState.PlayerB_PLAYING) {
             if (board[row][column] == match && board[row][column] == Seed.PLAYERB)
                 check = true;
         }
@@ -462,18 +457,18 @@ public class GUIPanel extends JFrame
             }
 
 
-            if (currentState != GameState.PlayerA_WON && currentState != GameState.PlayerB_WON) {
+            if (GameController.currentState != GameController.GameState.PlayerA_WON && GameController.currentState != GameController.GameState.PlayerB_WON) {
                 statusBar.setForeground(Color.BLACK);
-                if (currentState == GameState.PlayerA_PLAYING   )
+                if (GameController.currentState == GameController.GameState.PlayerA_PLAYING   )
                     statusBar.setText("Player A Turn");
                 else 
                     statusBar.setText("Player B Turn");
             } 
-            else if (currentState == GameState.PlayerA_WON) {
+            else if (GameController.currentState == GameController.GameState.PlayerA_WON) {
                 statusBar.setForeground(player1Color);
                 statusBar.setText("'Player A Won!");
             } 
-            else if (currentState == GameState.PlayerB_WON) {
+            else if (GameController.currentState == GameController.GameState.PlayerB_WON) {
                 statusBar.setForeground(player2Color);
                 statusBar.setText("'Player B Won!");
             }
