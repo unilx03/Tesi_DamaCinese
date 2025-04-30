@@ -1,32 +1,34 @@
 import java.util.*;
 
 /*
-    0 = non playable
-    1 = empty
-    2 = player A
-    3 = player B
-    4 = player C
-    5 = player D
-    6 = player E
-    7 = player F
+    NOV = non playable
+    EMP = empty
+    PLA = player A
+    PLB = player B
+    PLC = player C
+    PLD = player D
+    PLE = player E
+    PLF = player F
 
-    3 pieces (9x13)
-    6 pieces (13x19)
-    10 pieces (17x25)
+    PLB pieces (9x13)
+    PLE pieces (13x19)
+    EMPNOV pieces (17x25)
 */
 
 public class Board {
 
-    public static int NONVALID = 0; //for slot references
-    public static int EMPTY = 1;
-    public static int PLAYERA = 2;
-    public static int PLAYERB = 3;
-    /*public static int PLAYERC = 4;
-    public static int PLAYERD = 5;
-    public static int PLAYERE = 6;
-    public static int PLAYERF = 7;*/
+    public final static int NOV = 0; //for slot references
+    public final static int EMP = 1;
+    
+    public final static int PLA = 2;
+    public final static int PLB = 3;
+    public final static int PLC = 4;
+    public final static int PLD = 5;
+    public final static int PLE = 6;
+    public final static int PLF = 7;
 
     protected int[][] MainBoard;
+    protected int[] boardScore;
     
     public static class LastInfo{ //last piece movement recorded
         int startPointRow,startPointCol,secondPointRow,secondPointCol;
@@ -49,161 +51,268 @@ public class Board {
         }
     }
 
-    LastInfo lastInfo;
+    protected LinkedList<LastInfo> moveHistory;
 
-    public void setLastInfo(LastInfo lastInfo) {
-        this.lastInfo = lastInfo;
-    }
-
-    public Board(int pieces)
+    public Board()
     {
-        switch (pieces) {
+        switch (Tester.pieces) {
             case 3:
-                /*int[][] board3 = {
-                    {0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 3, 0, 3, 0, 0, 0, 0, 0},
-                    {4, 0, 4, 0, 1, 0, 1, 0, 1, 0, 6, 0, 6},
-                    {0, 4, 0, 1, 0, 1, 0, 1, 0, 1, 0, 6, 0},
-                    {0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0},
-                    {0, 7, 0, 1, 0, 1, 0, 1, 0, 1, 0, 5, 0},
-                    {7, 0, 7, 0, 1, 0, 1, 0, 1, 0, 5, 0, 5},
-                    {0, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0}
-                    };*/
                 int[][] board3 = {
-                    {0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 3, 0, 3, 0, 0, 0, 0, 0},
-                    {1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1},
-                    {0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0},
-                    {0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0},
-                    {0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0},
-                    {1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1},
-                    {0, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0}
+                    {NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, NOV, NOV, PLB, NOV, PLB, NOV, NOV, NOV, NOV, NOV},
+                    {PLC, NOV, PLC, NOV, EMP, NOV, EMP, NOV, EMP, NOV, PLE, NOV, PLE},
+                    {NOV, PLC, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, PLE, NOV},
+                    {NOV, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, NOV},
+                    {NOV, PLF, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, PLD, NOV},
+                    {PLF, NOV, PLF, NOV, EMP, NOV, EMP, NOV, EMP, NOV, PLD, NOV, PLD},
+                    {NOV, NOV, NOV, NOV, NOV, PLA, NOV, PLA, NOV, NOV, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV}
                     };
+                
+                /*int[][] board3 = {
+                    {NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, NOV, NOV, PLB, NOV, PLB, NOV, NOV, NOV, NOV, NOV},
+                    {EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP},
+                    {NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV},
+                    {NOV, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, NOV},
+                    {NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV},
+                    {EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP},
+                    {NOV, NOV, NOV, NOV, NOV, PLA, NOV, PLA, NOV, NOV, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV}
+                    };*/
 
                 MainBoard = board3;
                 break;
 
             case 6:
-                /*int[][] board6 = {
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 3, 0, 3, 0, 3, 0, 0, 0, 0, 0, 0, 0},
-                    {4, 0, 4, 0, 4, 0, 1, 0, 1, 0, 1, 0, 1, 0, 6, 0, 6, 0, 6},
-                    {0, 4, 0, 4, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 6, 0, 6, 0},
-                    {0, 0, 4, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 6, 0, 0},
-                    {0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0},
-                    {0, 0, 7, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 5, 0, 0},
-                    {0, 7, 0, 7, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 5, 0, 5, 0},
-                    {7, 0, 7, 0, 7, 0, 1, 0, 1, 0, 1, 0, 1, 0, 5, 0, 5, 0, 5},
-                    {0, 0, 0, 0, 0, 0, 0, 2, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-                    };*/
-
-                int[][] board6 = {
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 3, 0, 3, 0, 3, 0, 0, 0, 0, 0, 0, 0},
-                    {1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1},
-                    {0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0},
-                    {0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0},
-                    {0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0},
-                    {0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0},
-                    {0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0},
-                    {1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1},
-                    {0, 0, 0, 0, 0, 0, 0, 2, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+                int[][] board7 = {
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, PLB, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
+                    {PLC, NOV, PLC, NOV, PLC, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, PLE, NOV, PLE, NOV, PLE},
+                    {NOV, PLC, NOV, PLC, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, PLE, NOV, PLE, NOV},
+                    {NOV, NOV, PLC, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, PLE, NOV, NOV},
+                    {NOV, NOV, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, NOV, NOV},
+                    {NOV, NOV, PLF, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, PLD, NOV, NOV},
+                    {NOV, PLF, NOV, PLF, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, PLD, NOV, PLD, NOV},
+                    {PLF, NOV, PLF, NOV, PLF, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, PLD, NOV, PLD, NOV, PLD},
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, PLA, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV}
                     };
 
-                MainBoard = board6;
+                /*int[][] board7 = {
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, PLB, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
+                    {EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP},
+                    {NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV},
+                    {NOV, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, NOV},
+                    {NOV, NOV, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, NOV, NOV},
+                    {NOV, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, NOV},
+                    {NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV},
+                    {EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP},
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, PLA, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV}
+                    };*/
+
+                MainBoard = board7;
                 break;
 
             case 10:
-                /*int[][] board10 = {
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 3, 0, 3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {4, 0, 4, 0, 4, 0, 4, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 6, 0, 6, 0, 6, 0, 6},
-                    {0, 4, 0, 4, 0, 4, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 6, 0, 6, 0, 6, 0},
-                    {0, 0, 4, 0, 4, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 6, 0, 6, 0, 0},
-                    {0, 0, 0, 4, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 6, 0, 0, 0},
-                    {0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0},
-                    {0, 0, 0, 7, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 5, 0, 0, 0},
-                    {0, 0, 7, 0, 7, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 5, 0, 5, 0, 0},
-                    {0, 7, 0, 7, 0, 7, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 5, 0, 5, 0, 5, 0},
-                    {7, 0, 7, 0, 7, 0, 7, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 5, 0, 5, 0, 5, 0, 5},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-                };*/
-
                 int[][] board10 = {
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 3, 0, 3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1},
-                    {0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0},
-                    {0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0},
-                    {0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0},
-                    {0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0},
-                    {0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0},
-                    {0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0},
-                    {0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0},
-                    {1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, PLB, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, PLB, NOV, PLB, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
+                    {PLC, NOV, PLC, NOV, PLC, NOV, PLC, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, PLE, NOV, PLE, NOV, PLE, NOV, PLE},
+                    {NOV, PLC, NOV, PLC, NOV, PLC, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, PLE, NOV, PLE, NOV, PLE, NOV},
+                    {NOV, NOV, PLC, NOV, PLC, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, PLE, NOV, PLE, NOV, NOV},
+                    {NOV, NOV, NOV, PLC, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, PLE, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, PLF, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, PLD, NOV, NOV, NOV},
+                    {NOV, NOV, PLF, NOV, PLF, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, PLD, NOV, PLD, NOV, NOV},
+                    {NOV, PLF, NOV, PLF, NOV, PLF, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, PLD, NOV, PLD, NOV, PLD, NOV},
+                    {PLF, NOV, PLF, NOV, PLF, NOV, PLF, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, PLD, NOV, PLD, NOV, PLD, NOV, PLD},
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, PLA, NOV, PLA, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, PLA, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV}
                 };
+
+                /*int[][] board10 = {
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, PLB, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, PLB, NOV, PLB, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
+                    {EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP},
+                    {NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV},
+                    {NOV, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, NOV},
+                    {NOV, NOV, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, NOV, NOV},
+                    {NOV, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, NOV},
+                    {NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV},
+                    {EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP},
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, PLA, NOV, PLA, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, PLA, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
+                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV}
+                };*/
 
                 MainBoard = board10;
                 break;
         }
+        moveHistory = new LinkedList<LastInfo>();
+    }
+
+    public Board (Board b){
+        MainBoard = b.MainBoard.clone();
+        moveHistory = b.moveHistory;
+    }
+
+    public void adaptBoardToPlayer(){
+        switch (Tester.playerCount){
+            case 2:
+                for (int i = 0; i < getRowLength(); i++) {
+                    for (int j = 0; j < getColumnLength(); j++) {
+                        if (MainBoard[i][j] == Board.PLC || 
+                            MainBoard[i][j] == Board.PLD ||
+                            MainBoard[i][j] == Board.PLE ||
+                            MainBoard[i][j] == Board.PLF) {
+                                MainBoard[i][j] = Board.EMP;
+                            }
+                    }
+                }
+                break;
+
+            case 3:
+                for (int i = 0; i < getRowLength(); i++) {
+                    for (int j = 0; j < getColumnLength(); j++) {
+                        if (MainBoard[i][j] == Board.PLB || 
+                            MainBoard[i][j] == Board.PLD ||
+                            MainBoard[i][j] == Board.PLF) {
+                                MainBoard[i][j] = Board.EMP;
+                            }
+                    }
+                }
+                break;
+
+            case 4:
+                for (int i = 0; i < getRowLength(); i++) {
+                    for (int j = 0; j < getColumnLength(); j++) {
+                        if (MainBoard[i][j] == Board.PLE ||
+                            MainBoard[i][j] == Board.PLF) {
+                                MainBoard[i][j] = Board.EMP;
+                            }
+                    }
+                }
+                break;
+        }
+    }
+
+    public int getBoardScore(int agentPiece){
+        int index = 0;
+
+        switch (agentPiece){
+            case Board.PLA:
+                index = 0;
+                break;
+
+            case Board.PLB:
+                index = 1;
+                break;
+
+            case Board.PLC:
+                index = 2;
+                break;
+
+            case Board.PLD:
+                index = 3;
+                break;
+
+            case Board.PLE:
+                index = 4;
+                break;
+
+            case Board.PLF:
+                index = 5;
+                break;
+        }
+
+        return boardScore[index];
+    }
+
+    public void setBoardScore(int agentPiece, int score){
+        int index = 0;
+
+        switch (agentPiece){
+            case Board.PLA:
+                index = 0;
+                break;
+
+            case Board.PLB:
+                index = 1;
+                break;
+
+            case Board.PLC:
+                index = 2;
+                break;
+
+            case Board.PLD:
+                index = 3;
+                break;
+
+            case Board.PLE:
+                index = 4;
+                break;
+
+            case Board.PLF:
+                index = 5;
+                break;
+        }
+
+        boardScore[index] = score;
     }
 
     public void Print()
     {
-        for (int i = 0; i < Tester.ROWS[Tester.boardSettings]; i++)
+        for (int i = NOV; i < Tester.ROWS[Tester.boardSettings]; i++)
         {
-            for (int j = 0; j < Tester.COLUMNS[Tester.boardSettings]; j++)
+            for (int j = NOV; j < Tester.COLUMNS[Tester.boardSettings]; j++)
             {
                 char symbol = '-';
                 switch (MainBoard[i][j]) {
-                    case 0:
+                    case NOV:
                         symbol = '-';
                         break;
 
-                    case 1:
+                    case EMP:
                         symbol = 'W';
                         break;
 
-                    case 2:
+                    case PLA:
                         symbol = 'A';
                         break;
 
-                    case 3:
+                    case PLB:
                         symbol = 'B';
                         break;
 
-                    case 4:
+                    case PLC:
                         symbol = 'C';
                         break;
 
-                    case 5:
+                    case PLD:
                         symbol = 'D';
                         break;
 
-                    case 6:
+                    case PLE:
                         symbol = 'E';
                         break;
 
-                    case 7:
+                    case PLF:
                         symbol = 'F';
                         break;
                 }

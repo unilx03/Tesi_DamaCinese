@@ -32,7 +32,7 @@ public class GUIPanel extends JFrame
     public int[] CCArray; //how many playable pieces are present in each row
 
     public enum Seed {
-        EMPTY, VALID, INVALID, PLAYERA, PLAYERB
+        EMPTY, VALID, INVALID, PLAYERA, PLAYERB, PLAYERC, PLAYERD, PLAYERE, PLAYERF
     }
     private final Seed[][] seedBoard; //for GUI representation
     private Seed pieceMoved;
@@ -52,11 +52,11 @@ public class GUIPanel extends JFrame
     }
 
     public GUIPanel(){
-        Board board = new Board(Tester.pieces);
+        Board board = new Board();
+        board.adaptBoardToPlayer();
 
         GameController obj = new GameController(board);
-        Agent agentB = new Agent(Board.PLAYERB, Board.PLAYERA, obj);
-        Agent agentA = new Agent(Board.PLAYERA, Board.PLAYERB, obj);;
+        Agent agentB = new Agent(Board.PLB, Board.PLA, obj);
 
         switch (Tester.pieces) {
             case 3:
@@ -115,16 +115,16 @@ public class GUIPanel extends JFrame
 
                 if (GameController.currentState != GameController.GameState.PlayerA_WON && GameController.currentState != GameController.GameState.PlayerB_WON) {
                     //the marbles chosen to be played with.
-                    if (playerClick) {
+                    if (playerClick) { 
                         pieceMoved = checkPiece(seedBoard, rowSelected, colSelected);
                         gameController = new GameController(board);
                         //board.Print();
 
-                        if (checkPresent(seedBoard, rowSelected, colSelected, pieceMoved)) {
+                        if (checkPresent(seedBoard, rowSelected, colSelected, pieceMoved)) { //player click on own piece
                             //what marble to move with.
                             if (!moves.isEmpty())
                                 moves.clear();
-                            moves = gameController.availableSlots(boardRow, boardCol);
+                            moves = gameController.availableSlots(boardRow, boardCol, Board.PLA);
 
                             for (CheckersCell p : moves) {
                                 if (Tester.boardSettings != 1)
@@ -153,24 +153,27 @@ public class GUIPanel extends JFrame
                         //statusBar.setText("Computer's Turn");
                         deConsiderMoves();
 
-                        if (moveVALID(moves, rowSelected, colSelected)) {
+                        if (moveVALID(moves, rowSelected, colSelected)) {  //player select a valid empty cell for his movement, opponent agent move
                             //board update
-                            Map<CheckersCell, ArrayList<CheckersCell>> m = obj.checkMove(Board.PLAYERA);
+                            //Map<CheckersCell, ArrayList<CheckersCell>> m = obj.checkMove(Board.PLA);
+                            obj.checkMove(Board.PLA);
                             CheckersCell from = new CheckersCell(boardfirstMove[0], boardfirstMove[1]);
                             CheckersCell to = new CheckersCell(boardRow, boardCol);
-                            obj.markMove(board,from,to,m);
+                            
+                            obj.movePiece(board, from, to);
 
                             moves.clear();
-                            seedBoard[firstMove[0]][firstMove[1]] = Seed.EMPTY;
+                            //seedBoard[firstMove[0]][firstMove[1]] = Seed.EMPTY;
+                            seedBoard[firstMove[0]][firstMove[1]] = seedBoard[rowSelected][colSelected];
                             seedBoard[rowSelected][colSelected] = pieceMoved;
                             updateGameState(seedBoard);
 
                             repaint();
-                                
-                                //AI
+        
+                            //AI
                             if (GameController.currentState != GameController.GameState.PlayerA_WON && GameController.currentState != GameController.GameState.PlayerB_WON) {
-                                agentB.findNextMove(board, GameController.level);
-                                obj.undoMove(agentB.getInitialPosition(), agentB.getInitialPosition());
+                                agentB.findNextMove(board, Tester.maxDepth);
+                                obj.movePiece(board, agentB.getInitialPosition(), agentB.getNewPosition());
 
                                 int seedRowBest = agentB.getInitialPosition().row;
                                 int seedColBest = 0;
@@ -181,14 +184,15 @@ public class GUIPanel extends JFrame
 
                                 Seed pieceMovedFrom = checkPiece(seedBoard, seedRowBest, seedColBest);
 
-                                int selectedRowSeed = agentB.getInitialPosition().row;
+                                int selectedRowSeed = agentB.getNewPosition().row;
                                 int selectedColSeed = 0;
-                                if (agentB.getInitialPosition().column % 2 ==0)  
-                                    selectedColSeed = agentB.getInitialPosition().column / 2;
+                                if (agentB.getNewPosition().column % 2 ==0)  
+                                    selectedColSeed = agentB.getNewPosition().column / 2;
                                 else 
-                                    selectedColSeed = (agentB.getInitialPosition().column - 1) / 2;
+                                    selectedColSeed = (agentB.getNewPosition().column - 1) / 2;
                                     
                                 seedBoard[seedRowBest][seedColBest] = Seed.EMPTY;
+                                //seedBoard[seedRowBest][seedColBest] = seedBoard[selectedRowSeed][selectedColSeed];
                                 seedBoard[selectedRowSeed][selectedColSeed] = pieceMovedFrom;
                                 updateGameState(seedBoard);
                                     
@@ -279,20 +283,6 @@ public class GUIPanel extends JFrame
         else if (boarding[rowSelected][colSelected] == Seed.PLAYERB){
             selected = Seed.PLAYERB;
         }
-
-        /*if (player == Seed.Player) {
-            for (int i = 0; i < player1Pawns.length; i++) {
-                if (boarding[rowSelected][colSelected] == player1Pawns[i]) {
-                    selected = player1Pawns[i];
-                }
-            }
-        } else if (player == Seed.PC) {
-            for (int i = 0; i < player2Pawns.length; i++) {
-                if (boarding[rowSelected][colSelected] == player2Pawns[i]) {
-                    selected = player2Pawns[i];
-                }
-            }
-        }*/
 
         return selected;
     }
@@ -459,7 +449,7 @@ public class GUIPanel extends JFrame
 
             if (GameController.currentState != GameController.GameState.PlayerA_WON && GameController.currentState != GameController.GameState.PlayerB_WON) {
                 statusBar.setForeground(Color.BLACK);
-                if (GameController.currentState == GameController.GameState.PlayerA_PLAYING   )
+                if (GameController.currentState == GameController.GameState.PlayerA_PLAYING)
                     statusBar.setText("Player A Turn");
                 else 
                     statusBar.setText("Player B Turn");

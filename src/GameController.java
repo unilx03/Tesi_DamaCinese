@@ -1,17 +1,16 @@
 import java.util.*;
 
 public class GameController {
-    public int count;
-    public Board board;
-    public Map<CheckersCell, ArrayList<CheckersCell>> map = new HashMap<>();
-    public ArrayList<CheckersCell> validJump = new ArrayList<>();
-    //Scanner scan = new Scanner(System.in);
-
     public static enum GameState {
         PlayerA_PLAYING, PlayerB_PLAYING, PlayerA_WON, PlayerB_WON
     }
     public static GameState currentState;
-    public static int level = 1; //minimax depth
+    public Board board;
+
+    private int count;
+    private Map<CheckersCell, ArrayList<CheckersCell>> map = new HashMap<>();
+    private ArrayList<CheckersCell> validJump = new ArrayList<>();
+    //Scanner scan = new Scanner(System.in);
 
     public GameController(Board b) {
         board = b;
@@ -53,63 +52,49 @@ public class GameController {
     //get the selected move from the user and check whether the move is valid.
     //send the board.
     public boolean markMove(Board localBoard, CheckersCell p1, CheckersCell p2, Map<CheckersCell,ArrayList<CheckersCell>> map){
-        for (Map.Entry<CheckersCell, ArrayList<CheckersCell>> key : map.entrySet()) {
+        movePiece(localBoard, p1, p2);
+        Board.LastInfo lastInfo = new Board.LastInfo(p1.row, p1.column, p2.row, p2.column);
+        localBoard.moveHistory.add(lastInfo);
+        
+        /*for (Map.Entry<CheckersCell, ArrayList<CheckersCell>> key : map.entrySet()) {
             if(key.getKey().row == p1.row && key.getKey().column == p1.column){
                 for(int i = 0; i < key.getValue().size(); i++){
                     if(key.getValue().get(i).row == p2.row && key.getValue().get(i).column == p2.column){
-
-                        int piece = localBoard.MainBoard[key.getKey().row][key.getKey().column];
-                        localBoard.MainBoard[key.getKey().row][key.getKey().column] = Board.EMPTY;
+                        /*int piece = localBoard.MainBoard[key.getKey().row][key.getKey().column];
+                        localBoard.MainBoard[key.getKey().row][key.getKey().column] = Board.EMP;
                         localBoard.MainBoard[key.getValue().get(i).row][key.getValue().get(i).column] = piece;
                         
                         Board.LastInfo lastInfo = new Board.LastInfo(p1.row, p1.column, p2.row, p2.column);
-                        localBoard.setLastInfo(lastInfo);
+                        localBoard.moveHistory.add(lastInfo);
+
+                        movePiece(localBoard, p1, p2);
+                        Board.LastInfo lastInfo = new Board.LastInfo(p1.row, p1.column, p2.row, p2.column);
+                        localBoard.moveHistory.add(lastInfo);
                         return true;
                     }
                 }
             }
-        }
+        }*/
         return false;
     }
 
-    public void unmarkMove(Board localBoard, CheckersCell p1, CheckersCell p2){
-        int temp = localBoard.MainBoard[p1.row][p1.column];
-        localBoard.MainBoard[p1.row][p1.column] = localBoard.MainBoard[p2.row][p2.column];
-        localBoard.MainBoard[p2.row][p2.column] = temp;
-    }
+    public void unmarkMove(Board localBoard){
+        if (!board.moveHistory.isEmpty()) {
+            Board.LastInfo lastInfo = board.moveHistory.removeLast();
 
-    public void movePiece(CheckersCell p1, CheckersCell p2){
-        int piece = board.MainBoard[p1.row][p1.column];
-        board.MainBoard[p1.row][p1.column] = Board.EMPTY;
-        board.MainBoard[p2.row][p2.column] = piece;
-                        
-        Board.LastInfo lastInfo = new Board.LastInfo(p1.row, p1.column, p2.row, p2.column);
-        board.setLastInfo(lastInfo);
-    }
-
-    public void undoMove(CheckersCell p1, CheckersCell p2){
-        int temp = board.MainBoard[p1.row][p1.column];
-        board.MainBoard[p1.row][p1.column] = board.MainBoard[p2.row][p2.column];
-        board.MainBoard[p2.row][p2.column] = temp;
-    }
-
-    public ArrayList<CheckersCell> availableSlots(int row , int col)
-    {
-        ArrayList<CheckersCell> pointResult = validMoves(row, col);
-        validHops(row, col);
-        // pointResult.addAll(0, validJump);
-        pointResult.addAll(0, validJump);
-        validJump.clear();
-
-        if (Tester.VERBOSE && !Tester.haveHumanPlayer) {
-            System.out.println("AvailableMoves");
-            for (CheckersCell cell : pointResult) {
-                System.out.println("(" + cell.row + ", " + cell.column + ")");
-            }
-            System.out.println("");
+            int temp = localBoard.MainBoard[lastInfo.startPointRow][lastInfo.startPointCol];
+            localBoard.MainBoard[lastInfo.startPointRow][lastInfo.startPointCol] = localBoard.MainBoard[lastInfo.secondPointRow][lastInfo.secondPointCol];
+            localBoard.MainBoard[lastInfo.secondPointRow][lastInfo.secondPointCol] = temp;
         }
+    }
 
-        return pointResult;
+    public void movePiece(Board currentBoard, CheckersCell p1, CheckersCell p2){
+        int piece = currentBoard.MainBoard[p1.row][p1.column];
+        currentBoard.MainBoard[p1.row][p1.column] = currentBoard.MainBoard[p2.row][p2.column];
+        currentBoard.MainBoard[p2.row][p2.column] = piece;
+
+        /*Board.LastInfo lastInfo = new Board.LastInfo(p1.row, p1.column, p2.row, p2.column);
+        currentBoard.moveHistory.add(lastInfo);*/
     }
 
     //return all possible moves for every piece
@@ -120,24 +105,53 @@ public class GameController {
         for (int i = 0; i < board.getRowLength(); i++) {
             for(int j = 0; j < board.getColumnLength(); j++){
                 if(board.MainBoard[i][j] == boardPieceType) {
-                    CheckersCell p = new CheckersCell(i, j);
-                    map.put(p, availableSlots(i, j));
+                    CheckersCell p = new CheckersCell(i, j, boardPieceType);
+                    map.put(p, availableSlots(i, j, boardPieceType));
                 }
             }
         }
 
-        return map;
+        // Move ordering
+        List<Map.Entry<CheckersCell, ArrayList<CheckersCell>>> entryList = new ArrayList<>(map.entrySet());
+        // Sort by CheckersCell (keys) based on player
+        Collections.sort(entryList, Map.Entry.comparingByKey());
+        // Store in LinkedHashMap to maintain order
+        Map<CheckersCell, ArrayList<CheckersCell>> sortedMap = new LinkedHashMap<>();
+        for (Map.Entry<CheckersCell, ArrayList<CheckersCell>> entry : entryList) {
+            sortedMap.put(entry.getKey(), entry.getValue());
+        }
+
+        return sortedMap;
+    }
+
+    public ArrayList<CheckersCell> availableSlots(int row , int col, int player)
+    {
+        ArrayList<CheckersCell> pointResult = validMoves(row, col, player);
+        validHops(row, col, player);
+        // pointResult.addAll(0, validJump);
+        pointResult.addAll(0, validJump);
+        validJump.clear();
+
+        /*if (Tester.VERBOSE && !Tester.haveHumanPlayer) {
+            System.out.println("AvailableMoves");
+            for (CheckersCell cell : pointResult) {
+                System.out.println("(" + cell.row + ", " + cell.column + ")");
+            }
+            System.out.println("");
+        }*/
+
+        return pointResult;
     }
 
     //valid movements in nearby positions
-    public ArrayList<CheckersCell> validMoves(int row, int column) {
+    public ArrayList<CheckersCell> validMoves(int row, int column, int player) {
         count = 0;
         ArrayList<CheckersCell> points = new ArrayList<>();
 
         if (column > 1) {
             //Left
-            if(board.MainBoard[row][column - 2] != Board.NONVALID && board.MainBoard[row][column - 2] == Board.EMPTY) {
-                CheckersCell p = new CheckersCell(row, column - 2);
+            if(board.MainBoard[row][column - 2] != Board.NOV && validSpace(row, column - 2)) {
+                CheckersCell p = new CheckersCell(row, column - 2, board.MainBoard[row][column - 2]);
                 points.add(p);
             }
             else 
@@ -145,8 +159,8 @@ public class GameController {
         }
         if (column < (board.getColumnLength() - 2)) {
             //Right
-            if( board.MainBoard[row][column + 2] != Board.NONVALID && board.MainBoard[row][column + 2] == Board.EMPTY) {
-                CheckersCell p = new CheckersCell(row, column + 2);
+            if(board.MainBoard[row][column + 2] != Board.NOV && validSpace(row, column + 2)) {
+                CheckersCell p = new CheckersCell(row, column + 2, board.MainBoard[row][column + 2]);
                 points.add(p);
             }
             else 
@@ -155,16 +169,16 @@ public class GameController {
 
         if (row > 0) {
             //top Left
-            if (column > 0 && board.MainBoard[row - 1][column - 1] != Board.NONVALID && board.MainBoard[row - 1][column - 1] == Board.EMPTY) {
-                CheckersCell p = new CheckersCell(row - 1, column - 1);
+            if (column > 0 && board.MainBoard[row - 1][column - 1] != Board.NOV && validSpace(row - 1, column - 1)) {
+                CheckersCell p = new CheckersCell(row - 1, column - 1, board.MainBoard[row - 1][column - 1]);
                 points.add(p);
             }
             else 
                 count++;
 
             //top right
-            if (column < (board.getColumnLength() - 1) && board.MainBoard[row - 1][column + 1] != Board.NONVALID && board.MainBoard[row - 1][column + 1] == Board.EMPTY) {
-                CheckersCell p = new CheckersCell(row - 1, column + 1);
+            if (column < (board.getColumnLength() - 1) && board.MainBoard[row - 1][column + 1] != Board.NOV && validSpace(row - 1, column + 1)) {
+                CheckersCell p = new CheckersCell(row - 1, column + 1, board.MainBoard[row - 1][column + 1]);
                 points.add(p);
             }
             else 
@@ -173,16 +187,16 @@ public class GameController {
 
         if(row < (board.getRowLength() - 1)) {
             //Bottom right
-            if (column < (board.getColumnLength() - 1) && board.MainBoard[row + 1][column + 1] != Board.NONVALID && board.MainBoard[row + 1][column + 1] == Board.EMPTY) {
-                CheckersCell p = new CheckersCell(row + 1, column + 1);
+            if (column < (board.getColumnLength() - 1) && board.MainBoard[row + 1][column + 1] != Board.NOV && validSpace(row + 1, column + 1)) {
+                CheckersCell p = new CheckersCell(row + 1, column + 1, board.MainBoard[row + 1][column + 1]);
                 points.add(p);
             }
             else 
                 count++;
 
             //Bottom Left
-            if (column > 0 && board.MainBoard[row + 1][column - 1] != Board.NONVALID && board.MainBoard[row + 1][column - 1] == Board.EMPTY) {
-                CheckersCell p = new CheckersCell(row + 1, column - 1);
+            if (column > 0 && board.MainBoard[row + 1][column - 1] != Board.NOV && validSpace(row + 1, column - 1)) {
+                CheckersCell p = new CheckersCell(row + 1, column - 1, board.MainBoard[row + 1][column - 1]);
                 points.add(p);
             }
             else 
@@ -193,8 +207,8 @@ public class GameController {
     }
 
     //valid hops over another piece occupying a cell
-    public void validHops(int row, int column) {
-        validMoves(row, column);
+    public void validHops(int row, int column, int player) {
+        validMoves(row, column, player);
         if (count == 0) return;
 
         for (int i = 0; i < validJump.size(); i++) 
@@ -202,78 +216,115 @@ public class GameController {
                 return;
 
         if (validSpace(row, column)) {
-            CheckersCell p = new CheckersCell(row, column);
+            CheckersCell p = new CheckersCell(row, column, board.MainBoard[row][column]);
             validJump.add(p);
         }
 
         if (column > 3) {
             //Left
-            if (board.MainBoard[row][column - 2] != Board.NONVALID && board.MainBoard[row][column - 2] != Board.EMPTY)
-                if (board.MainBoard[row][column - 4] != Board.NONVALID && board.MainBoard[row][column - 4] == Board.EMPTY) 
-                    validHops(row, column - 4);
+            if (board.MainBoard[row][column - 2] != Board.NOV && !validSpace(row, column - 2))
+                if (board.MainBoard[row][column - 4] != Board.NOV && validSpace(row, column - 4)) 
+                    validHops(row, column - 4, player);
         }
         if (column < (board.getColumnLength() - 4)) {
             //Right
-            if (board.MainBoard[row][column + 2] != Board.NONVALID &&  board.MainBoard[row][column + 2] != Board.EMPTY)
-                if (board.MainBoard[row][column + 4] != Board.NONVALID &&  board.MainBoard[row][column + 4] == Board.EMPTY)
-                    validHops(row, column + 4);
+            if (board.MainBoard[row][column + 2] != Board.NOV && !validSpace(row, column + 2))
+                if (board.MainBoard[row][column + 4] != Board.NOV && validSpace(row, column + 4))
+                    validHops(row, column + 4, player);
         }
 
         if (row > 1) {
             //top Left
-            if(column > 1 && board.MainBoard[row - 1][column - 1] != Board.NONVALID && board.MainBoard[row - 1][column - 1] != Board.EMPTY)
-                if(board.MainBoard[row - 2][column - 2] != Board.NONVALID && board.MainBoard[row - 2][column - 2] == Board.EMPTY)
-                    validHops(row - 2, column - 2);
+            if(column > 1 && board.MainBoard[row - 1][column - 1] != Board.NOV && !validSpace(row - 1, column - 1))
+                if(board.MainBoard[row - 2][column - 2] != Board.NOV && validSpace(row - 2, column - 2))
+                    validHops(row - 2, column - 2, player);
             //top right
-            if(column < (board.getColumnLength() - 2) && board.MainBoard[row - 1][column + 1] != Board.NONVALID && board.MainBoard[row - 1][column + 1] != Board.EMPTY)
-                if(board.MainBoard[row - 2][column + 2] != Board.NONVALID && board.MainBoard[row - 2][column + 2] == Board.EMPTY)
-                    validHops(row - 2, column + 2);
+            if(column < (board.getColumnLength() - 2) && board.MainBoard[row - 1][column + 1] != Board.NOV && !validSpace(row - 1, column + 1))
+                if(board.MainBoard[row - 2][column + 2] != Board.NOV && validSpace(row - 2, column + 2))
+                    validHops(row - 2, column + 2, player);
         }
         if (row < (board.getRowLength() - 2)) {
             //Bottom Right
-            if(column < (board.getColumnLength() - 2) &&  board.MainBoard[row + 1][column + 1] != Board.NONVALID && board.MainBoard[row + 1][column + 1] != Board.EMPTY)
-                if(board.MainBoard[row + 2][column + 2] != Board.NONVALID && board.MainBoard[row + 2][column + 2] == Board.EMPTY)
-                    validHops(row + 2, column + 2);
+            if(column < (board.getColumnLength() - 2) &&  board.MainBoard[row + 1][column + 1] != Board.NOV && !validSpace(row + 1, column + 1))
+                if(board.MainBoard[row + 2][column + 2] != Board.NOV && validSpace(row + 2, column + 2))
+                    validHops(row + 2, column + 2, player);
             //Bottom Left
-            if(column > 1 && board.MainBoard[row + 1][column - 1] != Board.NONVALID && board.MainBoard[row + 1][column - 1] != Board.EMPTY)
-                if(board.MainBoard[row + 2][column - 2] != Board.NONVALID && board.MainBoard[row + 2][column - 2] == Board.EMPTY)
-                    validHops(row + 2, column - 2);
+            if(column > 1 && board.MainBoard[row + 1][column - 1] != Board.NOV && !validSpace(row + 1, column - 1))
+                if(board.MainBoard[row + 2][column - 2] != Board.NOV && validSpace(row + 2, column - 2))
+                    validHops(row + 2, column - 2, player);
         }
     }
 
     public boolean validSpace(int row, int column) { //check if final position is valid (make non playing players spaces accessible only if the relative player is playing)
-        if (board.MainBoard[row][column] == Board.EMPTY)
-            return true;
+        return board.MainBoard[row][column] == Board.EMP;
+        /*switch (Tester.playerCount) {
+            case 2:
+                if (board.MainBoard[row][column] == Board.EMP || 
+                    board.MainBoard[row][column] == Board.PLC || 
+                    board.MainBoard[row][column] == Board.PLD ||
+                    board.MainBoard[row][column] == Board.PLE ||
+                    board.MainBoard[row][column] == Board.PLF)
+                    return true;
+                break;
+            
+            case 3:
+                if (board.MainBoard[row][column] == Board.EMP || 
+                board.MainBoard[row][column] == Board.PLB || 
+                board.MainBoard[row][column] == Board.PLD ||
+                board.MainBoard[row][column] == Board.PLF)
+                    return true;
+                break;
 
-        return false;
+            case 4:
+                if (board.MainBoard[row][column] == Board.EMP || 
+                board.MainBoard[row][column] == Board.PLE ||
+                board.MainBoard[row][column] == Board.PLF)
+                    return true;
+                break;
+        }
+
+        return false;*/
     }
 
-    public int checkWinner(){
-        // (1) player A is win
-        // (2) player B is win
+    public int checkWinner(Board currentBoard){
         // (0) continue game
+        // (Board piece) winner is corresponding player, for now works just for two players
 
-        int count = 0;
-        for(int i = 0; i < (2 + Tester.boardSettings); i++){
-            for(int j = 0; j < board.getColumnLength(); j++){
-                if(board.MainBoard[i][j] != Board.NONVALID && board.MainBoard[i][j] == Board.PLAYERA) 
-                    count++;
+        int trackOwn = 0;
+        int trackOpponent = 0;
+
+        //if goal spaced is filled and there's a t least one piece of the player, the player wins (prevent base stalling)
+        for(int row = 0; row < (2 + Tester.boardSettings); row++){
+            for(int column = 0; column < currentBoard.MainBoard[0].length; column++){
+                if (currentBoard.MainBoard[row][column] == Board.PLA) {
+                    trackOwn++;
+                }
+                else if (currentBoard.MainBoard[row][column] == Board.PLB) {
+                    trackOpponent++;
+                }
             }
         }
 
-        if(count == board.getPlayerPieces()) 
-            return 1;
+        if ((trackOwn + trackOpponent) == Tester.pieces && trackOwn > 0)
+            return Board.PLA;
 
-        count = 0;
-        for(int i = (board.getRowLength() - (2 + Tester.boardSettings)); i < board.getRowLength(); i++){
-            for(int j = 0; j < board.getColumnLength(); j++){
-                if(board.MainBoard[i][j] != Board.NONVALID && board.MainBoard[i][j] == Board.PLAYERB) 
-                    count++;
+        trackOwn = 0;
+        trackOpponent = 0;
+
+        //if goal spaced is filled and there's at least one piece of the player, the player wins (prevent base stalling)
+        for(int row = (currentBoard.getRowLength() - (2 + Tester.boardSettings)); row < currentBoard.MainBoard.length ; row++){
+            for(int column = 0; column < currentBoard.getColumnLength(); column++){
+                if (currentBoard.MainBoard[row][column] == Board.PLB) {
+                    trackOwn++;
+                }
+                else if (currentBoard.MainBoard[row][column] == Board.PLA) {
+                    trackOpponent++;
+                }
             }
         }
-         
-        if (count == board.getPlayerPieces()) 
-            return 2;
+
+        if ((trackOwn + trackOpponent) == Tester.pieces && trackOwn > 0)
+            return Board.PLB;
 
         return 0;
     }
