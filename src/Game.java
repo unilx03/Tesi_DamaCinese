@@ -83,7 +83,7 @@ public class Game {
 
     //check victory, otherwise switch playing player
     public boolean updateGameState() {
-        switch (gameController.checkWinner(board)){
+        switch (gameController.checkBoardState(board)){
             case Board.PLA:
                 GameController.currentState = GameController.GameState.PlayerA_WON;
                 return true;
@@ -92,8 +92,8 @@ public class Game {
                 GameController.currentState = GameController.GameState.PlayerB_WON;
                 return true;
 
-            case 0:
             default:
+                //System.out.println(GameController.currentState);
                 GameController.currentState = (GameController.currentState == GameController.GameState.PlayerA_PLAYING) ? GameController.GameState.PlayerB_PLAYING : GameController.GameState.PlayerA_PLAYING;
                 return false;
         }

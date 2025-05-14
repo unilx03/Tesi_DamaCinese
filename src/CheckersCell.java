@@ -24,14 +24,29 @@ public class CheckersCell implements Comparable<CheckersCell>{
 
     @Override
     public String toString() {
-        return " [" + row +"," + column + "] ";
+        return " [" + row +", " + column + "] ";
     }
+
+	@Override
+	public int hashCode() {
+		return 31 * row + column;
+	}
+
+	@Override
+	public boolean equals(Object obj){
+		if (this == obj) return true;
+		if (obj == null || getClass() != obj.getClass()) return false;
+
+		CheckersCell other = (CheckersCell) obj;
+		return this.row == other.row && this.column == other.column;
+	}
 
 	//order moves from closest to farthest piece to the goal, game tree exploration starting from best move
 	//later decide to prioritize pieces closest to center or closest to advancing to finish goal
 	public int compareTo(CheckersCell piece) 
 	{
-		//sort to avoid adding a reverse after sort
+		//to fix with better check of player piece type
+		//sorted to avoid adding a reverse after sort
 		switch (state){
 			case Board.PLA: //going bottom to up
 				if (this.row < piece.row) //this cell's row is lower than compare, order in the final list to be at the end

@@ -11,7 +11,7 @@ public class AgentRandom extends Agent{
     }
 
     public void findNextMove(Board board, int depth){
-        allMoves = gameController.checkMove(agentPiece);
+        Map<CheckersCell, ArrayList<CheckersCell>> allMoves = gameController.checkMove(agentPiece);
 
         Random rand = new Random(System.currentTimeMillis());
 

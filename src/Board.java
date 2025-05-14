@@ -27,8 +27,12 @@ public class Board {
     public final static int PLE = 6;
     public final static int PLF = 7;
 
+    protected Hashtable<Long, Integer> transpositionTables;
+    protected long[][][] zobristTable;
+    protected long currentHash;
+
     protected int[][] MainBoard;
-    protected int[] boardScore;
+    //protected int[] boardScore;
     
     public static class LastInfo{ //last piece movement recorded
         int startPointRow,startPointCol,secondPointRow,secondPointCol;
@@ -48,6 +52,22 @@ public class Board {
             this.startPointCol = startPointCol;
             this.secondPointRow = secondPointRow;
             this.secondPointCol = secondPointCol;
+        }
+
+        @Override
+        public boolean equals(Object obj){
+            if (this == obj) return true;
+            if (obj == null || getClass() != obj.getClass()) return false;
+
+            LastInfo other = (LastInfo) obj;
+            return this.startPointRow == other.startPointRow && this.startPointCol == other.startPointCol &&
+                    this.secondPointRow == other.secondPointRow && this.secondPointCol == other.secondPointCol;
+        }
+
+        //check if current move has inverted start and dest from other
+        public boolean reverseMove(LastInfo other){
+            return this.startPointRow == other.secondPointRow && this.startPointCol == other.secondPointCol &&
+                    this.secondPointRow == other.startPointRow && this.secondPointCol == other.startPointCol;
         }
     }
 
@@ -165,13 +185,18 @@ public class Board {
                 break;
         }
         moveHistory = new LinkedList<LastInfo>();
+
+        adaptBoardToPlayer();
+        initializeZobristTable();
+        transpositionTables = new Hashtable<Long, Integer>();
     }
 
-    public Board (Board b){
+    /*public Board (Board b){
         MainBoard = b.MainBoard.clone();
         moveHistory = b.moveHistory;
-    }
+    }*/
 
+    //set other non-playing player spaces to empty
     public void adaptBoardToPlayer(){
         switch (Tester.playerCount){
             case 2:
@@ -212,7 +237,7 @@ public class Board {
         }
     }
 
-    public int getBoardScore(int agentPiece){
+    /*public int getBoardScore(int agentPiece){
         int index = 0;
 
         switch (agentPiece){
@@ -274,6 +299,70 @@ public class Board {
         }
 
         boardScore[index] = score;
+    }*/
+
+    private void initializeZobristTable() {
+        Random rand = new Random(System.currentTimeMillis());
+        this.zobristTable = new long[Tester.ROWS[Tester.boardSettings]][Tester.COLUMNS[Tester.boardSettings]][Tester.playerCount + 1];
+
+        for(int i = 0; i < getRowLength(); ++i) {
+            for(int j = 0; j < getColumnLength(); ++j) {
+                for(int k = 0; k < Tester.playerCount; ++k) {
+                    this.zobristTable[i][j][k] = rand.nextLong();
+                }
+            }
+        }
+
+        currentHash = 0;
+        for (int i = 0; i < getRowLength(); i++){
+            for (int j = 0; j < getColumnLength(); j++) {
+                //non valid spaces with value 0 don't affect hash with xor operation
+                currentHash ^= zobristTable[i][j][getHashTableIndex(MainBoard[i][j])];
+            }
+        }
+    }
+
+    public int getHashTableIndex(int pieceValue){
+        int index = 0;
+        switch (pieceValue) {
+            case Board.EMP:
+                index = 0;
+                break;
+
+            case Board.PLA:
+                index = 1;
+                break;
+
+            case Board.PLB:
+                index = 2;
+                break;
+
+            case Board.PLC:
+                index = 3;
+                break;
+
+            case Board.PLD:
+                index = 4;
+                break;
+
+            case Board.PLE:
+                index = 5;
+                break;
+
+            case Board.PLF:
+                index = 6;
+                break;
+        }
+
+        return index;
+    }
+
+    public void updateHashCode(CheckersCell piece){
+        currentHash ^= zobristTable[piece.row][piece.column][getHashTableIndex(MainBoard[piece.row][piece.column])];
+    }
+
+    public long hashValue() {
+        return currentHash;
     }
 
     public void Print()
@@ -320,6 +409,7 @@ public class Board {
             }
             System.out.println();
         }
+        System.out.println();
     }
 
     public int getRowLength(){

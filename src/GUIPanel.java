@@ -166,7 +166,8 @@ public class GUIPanel extends JFrame
                             //seedBoard[firstMove[0]][firstMove[1]] = Seed.EMPTY;
                             seedBoard[firstMove[0]][firstMove[1]] = seedBoard[rowSelected][colSelected];
                             seedBoard[rowSelected][colSelected] = pieceMoved;
-                            updateGameState(seedBoard);
+                            //updateGameState(seedBoard);
+                            updateGameState(board);
 
                             repaint();
         
@@ -194,7 +195,8 @@ public class GUIPanel extends JFrame
                                 seedBoard[seedRowBest][seedColBest] = Seed.EMPTY;
                                 //seedBoard[seedRowBest][seedColBest] = seedBoard[selectedRowSeed][selectedColSeed];
                                 seedBoard[selectedRowSeed][selectedColSeed] = pieceMovedFrom;
-                                updateGameState(seedBoard);
+                                //updateGameState(seedBoard);
+                                updateGameState(board);
                                     
                                 playerClick = true;
                                 repaint();
@@ -298,8 +300,25 @@ public class GUIPanel extends JFrame
         return possibility;
     }
 
+    public boolean updateGameState(Board board) {
+        switch (gameController.checkBoardState(board)){
+            case Board.PLA:
+                GameController.currentState = GameController.GameState.PlayerA_WON;
+                return true;
+
+            case Board.PLB:
+                GameController.currentState = GameController.GameState.PlayerB_WON;
+                return true;
+
+            default:
+                //System.out.println(GameController.currentState);
+                GameController.currentState = (GameController.currentState == GameController.GameState.PlayerA_PLAYING) ? GameController.GameState.PlayerB_PLAYING : GameController.GameState.PlayerA_PLAYING;
+                return false;
+        }
+    }
+
     //check victory, otherwise switch playing player
-    public boolean updateGameState(Seed[][] board) {
+    /*public boolean updateGameState(Seed[][] board) {
         int track = 0;
 
         for(int row = 0; row < (2 + Tester.boardSettings); row++){
@@ -333,7 +352,7 @@ public class GUIPanel extends JFrame
         
         GameController.currentState = (GameController.currentState == GameController.GameState.PlayerA_PLAYING) ? GameController.GameState.PlayerB_PLAYING : GameController.GameState.PlayerA_PLAYING;
         return false;
-    }
+    }*/
 
     //show possible moves
     public void considerMoves(ArrayList<CheckersCell> moves) {
@@ -355,6 +374,8 @@ public class GUIPanel extends JFrame
 
     public boolean checkPresent(Seed[][] board, int row, int column, Seed match) {
         boolean check = false;
+        if (row < 0 || row >= Tester.ROWS[Tester.boardSettings] || column < 0 || column >= Tester.COLUMNS[Tester.boardSettings])
+            return check;
         
         if (GameController.currentState == GameController.GameState.PlayerA_PLAYING) {
             if (board[row][column] == match && board[row][column] == Seed.PLAYERA)

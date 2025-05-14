@@ -2,7 +2,7 @@ import java.util.*;
 
 public class GameController {
     public static enum GameState {
-        PlayerA_PLAYING, PlayerB_PLAYING, PlayerA_WON, PlayerB_WON
+        PlayerA_PLAYING, PlayerB_PLAYING, PlayerA_WON, PlayerB_WON, Draw
     }
     public static GameState currentState;
     public Board board;
@@ -10,72 +10,17 @@ public class GameController {
     private int count;
     private Map<CheckersCell, ArrayList<CheckersCell>> map = new HashMap<>();
     private ArrayList<CheckersCell> validJump = new ArrayList<>();
-    //Scanner scan = new Scanner(System.in);
 
     public GameController(Board b) {
         board = b;
     }
 
-    /* Without GUI
-    public boolean Game(Player obj) {
-        System.out.println("\n");
-        board.Print();
-
-        Map<CheckersCell,ArrayList<CheckersCell>> m = checkMove(obj);
-
-        System.out.println("Available Moves");
-        System.out.println(m);
-        System.out.print("Row1 : ");
-        int row = scan.nextInt();
-        System.out.print("Col1 : ");
-        int col = scan.nextInt();
-        System.out.print("Row2 : ");
-        int row2 = scan.nextInt();
-        System.out.print("Col2 : ");
-        int col2 = scan.nextInt();
-
-        CheckersCell temp1 = new CheckersCell(row,col);
-        CheckersCell temp2 = new CheckersCell(row2,col2);
-        boolean checkValidMove = isMoved(board, temp1, temp2, m);
-
-        if(checkValidMove)
-        {
-            return true;
-        }
-        else {
-            System.out.println("Not Valid");
-            return false;
-        }
-    }
-     */
-
     //get the selected move from the user and check whether the move is valid.
     //send the board.
-    public boolean markMove(Board localBoard, CheckersCell p1, CheckersCell p2, Map<CheckersCell,ArrayList<CheckersCell>> map){
+    public void markMove(Board localBoard, CheckersCell p1, CheckersCell p2){
         movePiece(localBoard, p1, p2);
         Board.LastInfo lastInfo = new Board.LastInfo(p1.row, p1.column, p2.row, p2.column);
         localBoard.moveHistory.add(lastInfo);
-        
-        /*for (Map.Entry<CheckersCell, ArrayList<CheckersCell>> key : map.entrySet()) {
-            if(key.getKey().row == p1.row && key.getKey().column == p1.column){
-                for(int i = 0; i < key.getValue().size(); i++){
-                    if(key.getValue().get(i).row == p2.row && key.getValue().get(i).column == p2.column){
-                        /*int piece = localBoard.MainBoard[key.getKey().row][key.getKey().column];
-                        localBoard.MainBoard[key.getKey().row][key.getKey().column] = Board.EMP;
-                        localBoard.MainBoard[key.getValue().get(i).row][key.getValue().get(i).column] = piece;
-                        
-                        Board.LastInfo lastInfo = new Board.LastInfo(p1.row, p1.column, p2.row, p2.column);
-                        localBoard.moveHistory.add(lastInfo);
-
-                        movePiece(localBoard, p1, p2);
-                        Board.LastInfo lastInfo = new Board.LastInfo(p1.row, p1.column, p2.row, p2.column);
-                        localBoard.moveHistory.add(lastInfo);
-                        return true;
-                    }
-                }
-            }
-        }*/
-        return false;
     }
 
     public void unmarkMove(Board localBoard){
@@ -85,6 +30,9 @@ public class GameController {
             int temp = localBoard.MainBoard[lastInfo.startPointRow][lastInfo.startPointCol];
             localBoard.MainBoard[lastInfo.startPointRow][lastInfo.startPointCol] = localBoard.MainBoard[lastInfo.secondPointRow][lastInfo.secondPointCol];
             localBoard.MainBoard[lastInfo.secondPointRow][lastInfo.secondPointCol] = temp;
+
+            //localBoard.updateHashCode(new CheckersCell(lastInfo.secondPointRow, lastInfo.secondPointCol));
+            //localBoard.updateHashCode(new CheckersCell(lastInfo.startPointRow, lastInfo.startPointCol));
         }
     }
 
@@ -93,13 +41,16 @@ public class GameController {
         currentBoard.MainBoard[p1.row][p1.column] = currentBoard.MainBoard[p2.row][p2.column];
         currentBoard.MainBoard[p2.row][p2.column] = piece;
 
+        //xor out old position, xor in new position
+        //currentBoard.updateHashCode(p1);
+        //currentBoard.updateHashCode(p2);
+
         /*Board.LastInfo lastInfo = new Board.LastInfo(p1.row, p1.column, p2.row, p2.column);
         currentBoard.moveHistory.add(lastInfo);*/
     }
 
     //return all possible moves for every piece
     public Map<CheckersCell, ArrayList<CheckersCell>> checkMove(int boardPieceType) {
-        //ArrayList<CheckersCell> pointResult;
         map = new HashMap<>();
         
         for (int i = 0; i < board.getRowLength(); i++) {
@@ -111,6 +62,9 @@ public class GameController {
             }
         }
 
+        return map;
+        
+        /*
         // Move ordering
         List<Map.Entry<CheckersCell, ArrayList<CheckersCell>>> entryList = new ArrayList<>(map.entrySet());
         // Sort by CheckersCell (keys) based on player
@@ -122,13 +76,14 @@ public class GameController {
         }
 
         return sortedMap;
+        */
     }
 
     public ArrayList<CheckersCell> availableSlots(int row , int col, int player)
     {
         ArrayList<CheckersCell> pointResult = validMoves(row, col, player);
-        validHops(row, col, player);
-        // pointResult.addAll(0, validJump);
+        validHops(row, col, row, col, player);
+
         pointResult.addAll(0, validJump);
         validJump.clear();
 
@@ -150,7 +105,7 @@ public class GameController {
 
         if (column > 1) {
             //Left
-            if(board.MainBoard[row][column - 2] != Board.NOV && validSpace(row, column - 2)) {
+            if(board.MainBoard[row][column - 2] != Board.NOV && validSpace(row, column, row, column - 2)) {
                 CheckersCell p = new CheckersCell(row, column - 2, board.MainBoard[row][column - 2]);
                 points.add(p);
             }
@@ -159,7 +114,7 @@ public class GameController {
         }
         if (column < (board.getColumnLength() - 2)) {
             //Right
-            if(board.MainBoard[row][column + 2] != Board.NOV && validSpace(row, column + 2)) {
+            if(board.MainBoard[row][column + 2] != Board.NOV && validSpace(row, column, row, column + 2)) {
                 CheckersCell p = new CheckersCell(row, column + 2, board.MainBoard[row][column + 2]);
                 points.add(p);
             }
@@ -169,7 +124,7 @@ public class GameController {
 
         if (row > 0) {
             //top Left
-            if (column > 0 && board.MainBoard[row - 1][column - 1] != Board.NOV && validSpace(row - 1, column - 1)) {
+            if (column > 0 && board.MainBoard[row - 1][column - 1] != Board.NOV && validSpace(row, column, row - 1, column - 1)) {
                 CheckersCell p = new CheckersCell(row - 1, column - 1, board.MainBoard[row - 1][column - 1]);
                 points.add(p);
             }
@@ -177,7 +132,7 @@ public class GameController {
                 count++;
 
             //top right
-            if (column < (board.getColumnLength() - 1) && board.MainBoard[row - 1][column + 1] != Board.NOV && validSpace(row - 1, column + 1)) {
+            if (column < (board.getColumnLength() - 1) && board.MainBoard[row - 1][column + 1] != Board.NOV && validSpace(row, column, row - 1, column + 1)) {
                 CheckersCell p = new CheckersCell(row - 1, column + 1, board.MainBoard[row - 1][column + 1]);
                 points.add(p);
             }
@@ -187,7 +142,7 @@ public class GameController {
 
         if(row < (board.getRowLength() - 1)) {
             //Bottom right
-            if (column < (board.getColumnLength() - 1) && board.MainBoard[row + 1][column + 1] != Board.NOV && validSpace(row + 1, column + 1)) {
+            if (column < (board.getColumnLength() - 1) && board.MainBoard[row + 1][column + 1] != Board.NOV && validSpace(row, column, row + 1, column + 1)) {
                 CheckersCell p = new CheckersCell(row + 1, column + 1, board.MainBoard[row + 1][column + 1]);
                 points.add(p);
             }
@@ -195,7 +150,7 @@ public class GameController {
                 count++;
 
             //Bottom Left
-            if (column > 0 && board.MainBoard[row + 1][column - 1] != Board.NOV && validSpace(row + 1, column - 1)) {
+            if (column > 0 && board.MainBoard[row + 1][column - 1] != Board.NOV && validSpace(row, column, row + 1, column - 1)) {
                 CheckersCell p = new CheckersCell(row + 1, column - 1, board.MainBoard[row + 1][column - 1]);
                 points.add(p);
             }
@@ -207,125 +162,201 @@ public class GameController {
     }
 
     //valid hops over another piece occupying a cell
-    public void validHops(int row, int column, int player) {
-        validMoves(row, column, player);
+    public void validHops(int originalRow, int originalColumn, int row, int column, int player) {
+        //validMoves(row, column, player);
         if (count == 0) return;
 
+        //check if jump can already be made with fewer hops
         for (int i = 0; i < validJump.size(); i++) 
             if(validJump.get(i).row == row && validJump.get(i).column == column) 
                 return;
 
-        if (validSpace(row, column)) {
+        //if space valid, add as possible move
+        if (validSpace(originalRow, originalColumn, row, column)) {
             CheckersCell p = new CheckersCell(row, column, board.MainBoard[row][column]);
             validJump.add(p);
         }
 
+        //search for new hop positions
         if (column > 3) {
             //Left
-            if (board.MainBoard[row][column - 2] != Board.NOV && !validSpace(row, column - 2))
-                if (board.MainBoard[row][column - 4] != Board.NOV && validSpace(row, column - 4)) 
-                    validHops(row, column - 4, player);
+            if (board.MainBoard[row][column - 2] != Board.NOV && !validSpace(originalRow, originalColumn, row, column - 2))
+                if (board.MainBoard[row][column - 4] != Board.NOV && validSpace(originalRow, originalColumn, row, column - 4)) 
+                    validHops(originalRow, originalColumn, row, column - 4, player);
         }
         if (column < (board.getColumnLength() - 4)) {
             //Right
-            if (board.MainBoard[row][column + 2] != Board.NOV && !validSpace(row, column + 2))
-                if (board.MainBoard[row][column + 4] != Board.NOV && validSpace(row, column + 4))
-                    validHops(row, column + 4, player);
+            if (board.MainBoard[row][column + 2] != Board.NOV && !validSpace(originalRow, originalColumn, row, column + 2))
+                if (board.MainBoard[row][column + 4] != Board.NOV && validSpace(originalRow, originalColumn, row, column + 4))
+                    validHops(originalRow, originalColumn, row, column + 4, player);
         }
 
         if (row > 1) {
             //top Left
-            if(column > 1 && board.MainBoard[row - 1][column - 1] != Board.NOV && !validSpace(row - 1, column - 1))
-                if(board.MainBoard[row - 2][column - 2] != Board.NOV && validSpace(row - 2, column - 2))
-                    validHops(row - 2, column - 2, player);
+            if(column > 1 && board.MainBoard[row - 1][column - 1] != Board.NOV && !validSpace(originalRow, originalColumn, row - 1, column - 1))
+                if(board.MainBoard[row - 2][column - 2] != Board.NOV && validSpace(originalRow, originalColumn, row - 2, column - 2))
+                    validHops(originalRow, originalColumn, row - 2, column - 2, player);
             //top right
-            if(column < (board.getColumnLength() - 2) && board.MainBoard[row - 1][column + 1] != Board.NOV && !validSpace(row - 1, column + 1))
-                if(board.MainBoard[row - 2][column + 2] != Board.NOV && validSpace(row - 2, column + 2))
-                    validHops(row - 2, column + 2, player);
+            if(column < (board.getColumnLength() - 2) && board.MainBoard[row - 1][column + 1] != Board.NOV && !validSpace(originalRow, originalColumn, row - 1, column + 1))
+                if(board.MainBoard[row - 2][column + 2] != Board.NOV && validSpace(originalRow, originalColumn, row - 2, column + 2))
+                    validHops(originalRow, originalColumn, row - 2, column + 2, player);
         }
         if (row < (board.getRowLength() - 2)) {
             //Bottom Right
-            if(column < (board.getColumnLength() - 2) &&  board.MainBoard[row + 1][column + 1] != Board.NOV && !validSpace(row + 1, column + 1))
-                if(board.MainBoard[row + 2][column + 2] != Board.NOV && validSpace(row + 2, column + 2))
-                    validHops(row + 2, column + 2, player);
+            if(column < (board.getColumnLength() - 2) &&  board.MainBoard[row + 1][column + 1] != Board.NOV && !validSpace(originalRow, originalColumn, row + 1, column + 1))
+                if(board.MainBoard[row + 2][column + 2] != Board.NOV && validSpace(originalRow, originalColumn, row + 2, column + 2))
+                    validHops(originalRow, originalColumn, row + 2, column + 2, player);
             //Bottom Left
-            if(column > 1 && board.MainBoard[row + 1][column - 1] != Board.NOV && !validSpace(row + 1, column - 1))
-                if(board.MainBoard[row + 2][column - 2] != Board.NOV && validSpace(row + 2, column - 2))
-                    validHops(row + 2, column - 2, player);
+            if(column > 1 && board.MainBoard[row + 1][column - 1] != Board.NOV && !validSpace(originalRow, originalColumn, row + 1, column - 1))
+                if(board.MainBoard[row + 2][column - 2] != Board.NOV && validSpace(originalRow, originalColumn, row + 2, column - 2))
+                    validHops(originalRow, originalColumn, row + 2, column - 2, player);
         }
     }
 
-    public boolean validSpace(int row, int column) { //check if final position is valid (make non playing players spaces accessible only if the relative player is playing)
-        return board.MainBoard[row][column] == Board.EMP;
-        /*switch (Tester.playerCount) {
+    //check if position is valid (make non playing players spaces accessible only if the relative player is playing)
+    public boolean validSpace(int oldRow, int oldColumn, int newRow, int newColumn) { 
+        //return board.MainBoard[row][column] == Board.EMP;
+
+        //a piece inside the goal zone can only move inside it
+        if (checkPieceInsideGoalZone(oldRow, oldColumn, board.MainBoard[oldRow][oldColumn]) && 
+            !checkPieceInsideGoalZone(newRow, newColumn, board.MainBoard[oldRow][oldColumn]))
+            return false;
+
+        switch (Tester.playerCount) {
             case 2:
-                if (board.MainBoard[row][column] == Board.EMP || 
+                /*if (board.MainBoard[row][column] == Board.EMP || 
                     board.MainBoard[row][column] == Board.PLC || 
                     board.MainBoard[row][column] == Board.PLD ||
                     board.MainBoard[row][column] == Board.PLE ||
                     board.MainBoard[row][column] == Board.PLF)
+                    return true;*/
+
+                if (board.MainBoard[newRow][newColumn] == Board.EMP)
                     return true;
                 break;
             
+            //adapt to forbid pieces to stay in other player initial and final zone, only for traversal
             case 3:
-                if (board.MainBoard[row][column] == Board.EMP || 
-                board.MainBoard[row][column] == Board.PLB || 
-                board.MainBoard[row][column] == Board.PLD ||
-                board.MainBoard[row][column] == Board.PLF)
-                    return true;
+                
                 break;
 
             case 4:
-                if (board.MainBoard[row][column] == Board.EMP || 
-                board.MainBoard[row][column] == Board.PLE ||
-                board.MainBoard[row][column] == Board.PLF)
-                    return true;
+                
                 break;
         }
 
-        return false;*/
+        return false;
     }
 
-    public int checkWinner(Board currentBoard){
+    public boolean checkPieceInsideGoalZone (int row, int column, int playerPiece){
+        switch (playerPiece) {
+            case Board.PLA:
+                if (row < (2 + Tester.boardSettings))
+                    return true;
+                break;
+
+            case Board.PLB:
+                if (row >= (board.getRowLength() - (2 + Tester.boardSettings)))
+                    return true;
+                break;
+
+            /*case Board.PLC:
+                if (true)
+                    return true;
+                break;
+
+            case Board.PLD:
+                if (true)
+                    return true;
+                break;
+
+            case Board.PLE:
+                if (true)
+                    return true;
+                break;
+
+            case Board.PLF:
+                if (true)
+                    return true;
+                break;
+                */
+        }
+        return false;
+    }
+
+    public int checkBoardState(Board currentBoard){
         // (0) continue game
-        // (Board piece) winner is corresponding player, for now works just for two players
+        // (-1) draw situation
+        // (Board piece) winner is corresponding player
 
         int trackOwn = 0;
         int trackOpponent = 0;
 
+        //Player A check
         //if goal spaced is filled and there's a t least one piece of the player, the player wins (prevent base stalling)
         for(int row = 0; row < (2 + Tester.boardSettings); row++){
             for(int column = 0; column < currentBoard.MainBoard[0].length; column++){
                 if (currentBoard.MainBoard[row][column] == Board.PLA) {
                     trackOwn++;
                 }
-                else if (currentBoard.MainBoard[row][column] == Board.PLB) {
+                else if (currentBoard.MainBoard[row][column] != Board.PLA && 
+                        currentBoard.MainBoard[row][column] != Board.NOV &&
+                        currentBoard.MainBoard[row][column] != Board.EMP) {
                     trackOpponent++;
                 }
             }
         }
 
-        if ((trackOwn + trackOpponent) == Tester.pieces && trackOwn > 0)
+        if ((trackOwn + trackOpponent) == Tester.pieces && trackOwn > 0) {
+            //this.currentState = GameState.PlayerA_WON;
             return Board.PLA;
+        }
 
         trackOwn = 0;
         trackOpponent = 0;
 
+        //Player B check
         //if goal spaced is filled and there's at least one piece of the player, the player wins (prevent base stalling)
         for(int row = (currentBoard.getRowLength() - (2 + Tester.boardSettings)); row < currentBoard.MainBoard.length ; row++){
             for(int column = 0; column < currentBoard.getColumnLength(); column++){
                 if (currentBoard.MainBoard[row][column] == Board.PLB) {
                     trackOwn++;
                 }
-                else if (currentBoard.MainBoard[row][column] == Board.PLA) {
+                else if (currentBoard.MainBoard[row][column] != Board.PLB && 
+                        currentBoard.MainBoard[row][column] != Board.NOV &&
+                        currentBoard.MainBoard[row][column] != Board.EMP) {
                     trackOpponent++;
                 }
             }
         }
 
-        if ((trackOwn + trackOpponent) == Tester.pieces && trackOwn > 0)
+        if ((trackOwn + trackOpponent) == Tester.pieces && trackOwn > 0) {
+            //this.currentState = GameState.PlayerB_WON;
             return Board.PLB;
+        }
+
+        //check if draw situation is present
+        if (checkDraw(currentBoard))
+            return -1;
 
         return 0;
+    }
+
+    public boolean checkDraw(Board localBoard){
+        if (localBoard.moveHistory.size() >= 6) {
+            Board.LastInfo lastMove1 = localBoard.moveHistory.get(localBoard.moveHistory.size() - 1);
+            Board.LastInfo lastMove2 = localBoard.moveHistory.get(localBoard.moveHistory.size() - 2);
+
+            //check if both player haven't changed move and are going back and forth
+            if (lastMove1.equals(localBoard.moveHistory.get(localBoard.moveHistory.size() - 5)) &&
+                lastMove1.reverseMove(localBoard.moveHistory.get(localBoard.moveHistory.size() - 3))) {
+                if (lastMove2.equals(localBoard.moveHistory.get(localBoard.moveHistory.size() - 6)) &&
+                    lastMove2.reverseMove(localBoard.moveHistory.get(localBoard.moveHistory.size() - 4))) {
+                        return true;
+                }
+            }
+        }
+
+        return false;
     }
 }
