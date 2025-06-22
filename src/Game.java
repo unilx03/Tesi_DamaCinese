@@ -15,8 +15,8 @@ public class Game {
         board.adaptBoardToPlayer();
 
         gameController = new GameController(board);
-        agentA = new Agent(Board.PLA, Board.PLB, gameController);
-        agentB = new Agent(Board.PLB, Board.PLA, gameController);
+        agentA = new Agent(Board.PLA, gameController);
+        agentB = new Agent(Board.PLB, gameController);
         //agentB = new AgentRandom(Board.PLB, Board.PLA, gameController);
         
         GameController.currentState = GameController.GameState.PlayerA_PLAYING;
@@ -27,7 +27,7 @@ public class Game {
     public void gameLoop(){
         countMoves++;
 
-        if (Tester.VERBOSE) {
+        if (Tester.verbose) {
             if (GameController.currentState == GameController.GameState.PlayerA_PLAYING)
                 System.out.println("Player A is playing with this board");
             else if (GameController.currentState == GameController.GameState.PlayerB_PLAYING)
@@ -40,14 +40,14 @@ public class Game {
         if (GameController.currentState == GameController.GameState.PlayerA_PLAYING) {
             agentA.findNextMove(board, Tester.maxDepth);
 
-            if (Tester.VERBOSE) {
+            if (Tester.verbose) {
                 System.out.println("\nThe chosen cells is (" + agentA.getInitialPosition() + ", " + agentA.getNewPosition() + ")");
                 System.out.println();
             }
 
             gameController.movePiece(board, agentA.getInitialPosition(), agentA.getNewPosition());
 
-            if (Tester.VERBOSE) {
+            if (Tester.verbose) {
                 board.Print();
                 System.out.println();
             }
@@ -55,14 +55,14 @@ public class Game {
         else if (GameController.currentState == GameController.GameState.PlayerB_PLAYING) {
             agentB.findNextMove(board, Tester.maxDepth);
 
-            if (Tester.VERBOSE) {
+            if (Tester.verbose) {
                 System.out.println("\nThe chosen cells is (" + agentB.getInitialPosition() + ", " + agentB.getNewPosition() + ")");
                 System.out.println();
             }
 
             gameController.movePiece(board, agentB.getInitialPosition(), agentB.getNewPosition());
 
-            if (Tester.VERBOSE) {
+            if (Tester.verbose) {
                 board.Print();
                 System.out.println();
             }

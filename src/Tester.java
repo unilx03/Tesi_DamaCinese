@@ -10,12 +10,14 @@ import java.util.concurrent.TimeoutException;*/
 public class Tester {
     public static final int[] ROWS = {9, 13, 17};
 	public static final int[] COLUMNS = {13, 19, 25};
-    public static final int[] COLS = {7, 10, 13};
+    public static final int[] COLS = {7, 10, 13}; //width for GUI
     public static final int[] PLAYER_PIECES = {3, 6, 10};
     public static final int[] PIECES_ROWS = {2, 3, 4};
 
-	public static boolean VERBOSE = false;
+	public static boolean verbose = false;
 	public static boolean haveHumanPlayer = false;
+	public static boolean considerHeuristics = true;
+	public static boolean considerTranspositionTables = true;
 
     public static int pieces;
 	public static int boardSettings;
@@ -35,11 +37,19 @@ public class Tester {
 				char c = (args[i].length() != 2 ? 'x' : args[i].charAt(1));
 				switch (c) {
 					case 'v':
-						VERBOSE = true;
+						verbose = true;
 						break;
 
 					case 'g':
 						haveHumanPlayer = true;
+						break;
+
+					case 'h':
+						considerHeuristics = false;
+						break;
+
+					case 't':
+						considerTranspositionTables = false;
 						break;
 
 					default:
@@ -100,7 +110,7 @@ public class Tester {
 		try {
 			maxDepth = Integer.parseInt(L.get(2));
 			if (maxDepth == 0)
-				maxDepth = 1000;
+				maxDepth = 100;
 
 		} catch (NumberFormatException e) {
 			throw new IllegalArgumentException("Illegal integer format for Max Depth argument: " + pieces);
@@ -110,8 +120,10 @@ public class Tester {
 	private static void printUsage() {
 		System.err.println("Usage: Tester [OPTIONS] <Player Count> <Pieces> <Max Depth>");
 		System.err.println("OPTIONS:");
-		System.err.println("  -v            Verbose. Default: " + VERBOSE);
-		System.err.println("  -g            With GUI (Human Player against Agent). Default: " + haveHumanPlayer);
+		System.err.println("  -g            Play Chinese Checkers With GUI (Human Player against Agents). Default: " + haveHumanPlayer);
+		System.err.println("  -v            Enable verbose results. Default: " + verbose);
+		System.err.println("  -h            Disable Heuristic evaluation for Move Ordering. Default: " + considerHeuristics);
+		System.err.println("  -t            Disable Transposition Tables. Default: " + considerTranspositionTables);
 	}
 
 	public static void main(String[] args) {
@@ -130,15 +142,28 @@ public class Tester {
 		if (haveHumanPlayer)
         	new GUIPanel(); //GUI gameplay
 		else {
-			//new Game(); //Without GUI gameplay, only AI
+			//Without GUI gameplay, only AI
+			//new Game();
 
 			Board board = new Board();
-			if (Tester.VERBOSE)
+			if (Tester.verbose)
 				board.Print();
 
 			GameController gameController = new GameController(board);
-			Agent agent = new Agent(Board.PLA, Board.PLB, gameController);
-			agent.exploreGameTree(board, Tester.maxDepth);
+			Agent agent = new Agent(Board.PLA, gameController);
+
+			switch (playerCount) {
+				case 2:
+					agent.exploreGameTree2(board, Tester.maxDepth);
+					break;
+
+				case 3:
+				case 4:
+				case 6:
+					agent.exploreGameTreeN(board, Tester.maxDepth);
+					break;
+			}
+			
 		}
 	}
 

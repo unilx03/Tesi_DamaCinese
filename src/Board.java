@@ -334,23 +334,67 @@ public class Board {
                 break;
 
             case Board.PLB:
-                index = 2;
+                switch (Tester.playerCount){
+                    case 2:
+                        index = 2;
+                        break;
+
+                    case 4:
+                        index = 3;
+                        break;
+
+                    case 6:
+                        index = 4;
+                        break;
+                }
                 break;
 
             case Board.PLC:
-                index = 3;
+                switch (Tester.playerCount){
+                    case 3:
+                        index = 3;
+                        break;
+
+                    case 4:
+                        index = 4;
+                        break;
+
+                    case 6:
+                        index = 5;
+                        break;
+                }
                 break;
 
             case Board.PLD:
-                index = 4;
+                switch (Tester.playerCount){
+                    case 4:
+                        index = 2;
+                        break;
+
+                    case 6:
+                        index = 2;
+                        break;
+                }
                 break;
 
             case Board.PLE:
-                index = 5;
+                switch (Tester.playerCount){
+                    case 3:
+                        index = 2;
+                        break;
+
+                    case 6:
+                        index = 3;
+                        break;
+                }
                 break;
 
             case Board.PLF:
-                index = 6;
+                switch (Tester.playerCount){
+                    case 6:
+                        index = 6;
+                        break;
+                }
                 break;
         }
 

@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -21,13 +22,14 @@ public class GUIPanel extends JFrame
 
     public final int CELL_SIZE = 45;
     public final int SYMBOL_STROKE_WIDTH = 4;
-    private final Color player1Color= new Color(128,0,255);
-    private final Color player2Color= new Color(0,204,102);
-    /*private final Color player3Color= new Color(255,0,21);
-    private final Color player4Color= new Color(123,255,0);
-    private final Color player5Color= new Color(255,145,0);
-    private final Color player6Color= new Color(21,0,255);*/
-    private final Color backgroundColor= new Color(255,255,255);
+
+    private final Color player1Color = new Color(128,0,255);
+    private final Color player2Color = new Color(0,204,102);
+    private final Color player3Color = new Color(255,0,21);
+    private final Color player4Color = new Color(255, 196, 0);
+    private final Color player5Color = new Color(255,145,0);
+    private final Color player6Color = new Color(21,0,255);
+    private final Color backgroundColor = new Color(255,255,255);
     
     public int[] CCArray; //how many playable pieces are present in each row
 
@@ -56,8 +58,33 @@ public class GUIPanel extends JFrame
         board.adaptBoardToPlayer();
 
         GameController obj = new GameController(board);
-        Agent agentB = new Agent(Board.PLB, Board.PLA, obj);
+       
+        Agent[] agents = new Agent[5];
+        switch (Tester.playerCount){
+            case 2:
+                agents[0] = new Agent(Board.PLB, obj);
+                break;
 
+            case 3:
+                agents[0] = new Agent(Board.PLE, obj);
+                agents[1] = new Agent(Board.PLC, obj);
+                break;
+
+            case 4:
+                agents[0] = new Agent(Board.PLD, obj);
+                agents[1] = new Agent(Board.PLB, obj);
+                agents[2] = new Agent(Board.PLC, obj);
+                break;
+
+            case 6:
+                agents[0] = new Agent(Board.PLD, obj);
+                agents[1] = new Agent(Board.PLE, obj);
+                agents[2] = new Agent(Board.PLB, obj);
+                agents[3] = new Agent(Board.PLC, obj);
+                agents[4] = new Agent(Board.PLF, obj);
+                break;
+        }
+        
         switch (Tester.pieces) {
             case 3:
                 int[] ccArray3 = {1, 2, 7, 6, 5, 6, 7, 2, 1};
@@ -113,7 +140,7 @@ public class GUIPanel extends JFrame
                 
                 System.out.println("Row Selected = " + boardRow + "\tColumn Selected = " + boardCol);
 
-                if (GameController.currentState != GameController.GameState.PlayerA_WON && GameController.currentState != GameController.GameState.PlayerB_WON) {
+                if (checkContinuePlaying()) {
                     //the marbles chosen to be played with.
                     if (playerClick) { 
                         pieceMoved = checkPiece(seedBoard, rowSelected, colSelected);
@@ -171,43 +198,42 @@ public class GUIPanel extends JFrame
 
                             repaint();
         
-                            //AI
-                            if (GameController.currentState != GameController.GameState.PlayerA_WON && GameController.currentState != GameController.GameState.PlayerB_WON) {
-                                agentB.findNextMove(board, Tester.maxDepth);
-                                obj.movePiece(board, agentB.getInitialPosition(), agentB.getNewPosition());
+                            //AI make moves
+                            if (checkContinuePlaying()) {
+                                for (int i = 0; i < Tester.playerCount - 1; i++){
+                                    agents[i].findNextMove(board, Tester.maxDepth);
+                                    obj.movePiece(board, agents[i].getInitialPosition(), agents[i].getNewPosition());
 
-                                int seedRowBest = agentB.getInitialPosition().row;
-                                int seedColBest = 0;
-                                if(agentB.getInitialPosition().column % 2 == 0)  
-                                    seedColBest = agentB.getInitialPosition().column / 2;
-                                else 
-                                    seedColBest = (agentB.getInitialPosition().column - 1) / 2;
+                                    int seedRowBest = agents[i].getInitialPosition().row;
+                                    int seedColBest = 0;
+                                    if(agents[i].getInitialPosition().column % 2 == 0)  
+                                        seedColBest = agents[i].getInitialPosition().column / 2;
+                                    else 
+                                        seedColBest = (agents[i].getInitialPosition().column - 1) / 2;
 
-                                Seed pieceMovedFrom = checkPiece(seedBoard, seedRowBest, seedColBest);
+                                    Seed pieceMovedFrom = checkPiece(seedBoard, seedRowBest, seedColBest);
 
-                                int selectedRowSeed = agentB.getNewPosition().row;
-                                int selectedColSeed = 0;
-                                if (agentB.getNewPosition().column % 2 ==0)  
-                                    selectedColSeed = agentB.getNewPosition().column / 2;
-                                else 
-                                    selectedColSeed = (agentB.getNewPosition().column - 1) / 2;
-                                    
-                                seedBoard[seedRowBest][seedColBest] = Seed.EMPTY;
-                                //seedBoard[seedRowBest][seedColBest] = seedBoard[selectedRowSeed][selectedColSeed];
-                                seedBoard[selectedRowSeed][selectedColSeed] = pieceMovedFrom;
-                                //updateGameState(seedBoard);
-                                updateGameState(board);
-                                    
-                                playerClick = true;
-                                repaint();
+                                    int selectedRowSeed = agents[i].getNewPosition().row;
+                                    int selectedColSeed = 0;
+                                    if (agents[i].getNewPosition().column % 2 ==0)  
+                                        selectedColSeed = agents[i].getNewPosition().column / 2;
+                                    else 
+                                        selectedColSeed = (agents[i].getNewPosition().column - 1) / 2;
+                                        
+                                    seedBoard[seedRowBest][seedColBest] = Seed.EMPTY;
+                                    //seedBoard[seedRowBest][seedColBest] = seedBoard[selectedRowSeed][selectedColSeed];
+                                    seedBoard[selectedRowSeed][selectedColSeed] = pieceMovedFrom;
+                                    //updateGameState(seedBoard);
+                                    updateGameState(board);
+
+                                    repaint();
+                                }
                             }
                         }
+
                         pieceMoved = Seed.INVALID;
                         playerClick = true;
                     }
-                }
-                else {
-                    initGame();
                 }
 
                 repaint();
@@ -252,6 +278,7 @@ public class GUIPanel extends JFrame
             }
         }
 
+        //Set PlayerA pieces
         for (int row = Tester.ROWS[Tester.boardSettings] - 1; row > (Tester.ROWS[Tester.boardSettings] - (Tester.PIECES_ROWS[Tester.boardSettings] + 1)); row--) {
             col = halfColumn - (CCArray[row] - (CCArray[row] % 2)) / 2;
             for (int i = 0; i < CCArray[row]; i++) {
@@ -262,6 +289,7 @@ public class GUIPanel extends JFrame
             col = 0;
         }
 
+        //Set PlayerB pieces
         for (int row = 0; row < Tester.PIECES_ROWS[Tester.boardSettings]; row++) {
             col = halfColumn - (CCArray[row] - (CCArray[row] % 2)) / 2;
             for (int i = 0; i < CCArray[row]; i++) {
@@ -269,6 +297,81 @@ public class GUIPanel extends JFrame
                 col++;
             }
             col = 0;
+        }
+
+        int sideRepetition = 2 + Tester.boardSettings;
+        int[] startCol;
+        if (Tester.boardSettings != 1)
+            startCol = new int[]{0, 1, 1, 2};
+        else
+            startCol = new int[]{0, 1, 1};
+
+        //Set PlayerC pieces
+        for (int row = 0; row < 2 + Tester.boardSettings; row++) {
+            for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
+                if (Tester.boardSettings != 1) {
+                    if (row % 2 == 0)
+                        seedBoard[2 + Tester.boardSettings + row][startCol[row] + colIncrease] = Seed.PLAYERC;
+                    else
+                        seedBoard[2 + Tester.boardSettings + row][startCol[row] + colIncrease - 1] = Seed.PLAYERC;
+                }
+                else {
+                    seedBoard[2 + Tester.boardSettings + row][startCol[row] + colIncrease] = Seed.PLAYERC;
+                }
+            }
+            sideRepetition--;
+        }
+
+        sideRepetition = 2 + Tester.boardSettings;
+        //Set PlayerF pieces
+        for (int row = 0; row < 2 + Tester.boardSettings; row++) {
+            for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
+                if (Tester.boardSettings != 1) {
+                    if (row % 2 == 0)
+                        seedBoard[Tester.ROWS[Tester.boardSettings] - 3 - Tester.boardSettings - row][startCol[row] + colIncrease] = Seed.PLAYERF;
+                    else
+                        seedBoard[Tester.ROWS[Tester.boardSettings] - 3 - Tester.boardSettings - row][startCol[row] + colIncrease - 1] = Seed.PLAYERF;
+                }
+                else {
+                    seedBoard[Tester.ROWS[Tester.boardSettings] - 3 - Tester.boardSettings - row][startCol[row] + colIncrease] = Seed.PLAYERF;
+                }
+                
+            }
+            sideRepetition--;
+        }
+
+        sideRepetition = 2 + Tester.boardSettings;
+        //Set PlayerE pieces
+        for (int row = 0; row < 2 + Tester.boardSettings; row++) {
+            for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
+                if (Tester.boardSettings != 1) {
+                    seedBoard[2 + Tester.boardSettings + row][Tester.COLS[Tester.boardSettings] - 1 - startCol[row] - colIncrease] = Seed.PLAYERE;
+                }
+                else {
+                    if (row % 2 == 0)
+                        seedBoard[2 + Tester.boardSettings + row][Tester.COLS[Tester.boardSettings] - 1 - startCol[row] - colIncrease] = Seed.PLAYERE;
+                    else
+                        seedBoard[2 + Tester.boardSettings + row][Tester.COLS[Tester.boardSettings] - startCol[row] - colIncrease] = Seed.PLAYERE;
+                }
+            }
+            sideRepetition--;
+        }
+
+        sideRepetition = 2 + Tester.boardSettings;
+        //Set PlayerD pieces
+        for (int row = 0; row < 2 + Tester.boardSettings; row++) {
+            for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
+                if (Tester.boardSettings != 1) {
+                    seedBoard[Tester.ROWS[Tester.boardSettings] - 3 - Tester.boardSettings - row][Tester.COLS[Tester.boardSettings] - 1 - startCol[row] - colIncrease] = Seed.PLAYERD;
+                }
+                else {
+                    if (row % 2 == 0)
+                        seedBoard[Tester.ROWS[Tester.boardSettings] - 3 - Tester.boardSettings - row][Tester.COLS[Tester.boardSettings] - 1 - startCol[row] - colIncrease] = Seed.PLAYERD;
+                    else
+                        seedBoard[Tester.ROWS[Tester.boardSettings] - 3 - Tester.boardSettings - row][Tester.COLS[Tester.boardSettings] - startCol[row] - colIncrease] = Seed.PLAYERD;
+                }
+            }
+            sideRepetition--;
         }
         
         GameController.currentState = GameController.GameState.PlayerA_PLAYING;
@@ -279,14 +382,48 @@ public class GUIPanel extends JFrame
         if (rowSelected >= Tester.ROWS[Tester.boardSettings] || colSelected >= Tester.COLS[Tester.boardSettings]) //overflow mouse selected position
             return selected;
 
-        if (boarding[rowSelected][colSelected] == Seed.PLAYERA) {
-            selected = Seed.PLAYERA;
-        }
-        else if (boarding[rowSelected][colSelected] == Seed.PLAYERB){
-            selected = Seed.PLAYERB;
+        switch (boarding[rowSelected][colSelected]){
+            case PLAYERA:
+                selected = Seed.PLAYERA;
+                break;
+
+            case PLAYERB:
+                selected = Seed.PLAYERB;
+                break;
+
+            case PLAYERC:
+                selected = Seed.PLAYERC;
+                break;
+
+            case PLAYERD:
+                selected = Seed.PLAYERD;
+                break;
+
+            case PLAYERE:
+                selected = Seed.PLAYERE;
+                break;
+
+            case PLAYERF:
+                selected = Seed.PLAYERF;
+                break;
+
+            default:
+                break;
         }
 
         return selected;
+    }
+
+    public boolean checkContinuePlaying(){
+        if (GameController.currentState != GameController.GameState.PlayerA_WON && 
+            GameController.currentState != GameController.GameState.PlayerB_WON &&
+            GameController.currentState != GameController.GameState.PlayerC_WON && 
+            GameController.currentState != GameController.GameState.PlayerD_WON && 
+            GameController.currentState != GameController.GameState.PlayerE_WON && 
+            GameController.currentState != GameController.GameState.PlayerF_WON)
+            return true;
+        
+        return false;
     }
 
     public boolean moveVALID(ArrayList<CheckersCell> moves, int rowSelected, int colSelected) {
@@ -310,49 +447,132 @@ public class GUIPanel extends JFrame
                 GameController.currentState = GameController.GameState.PlayerB_WON;
                 return true;
 
+            case Board.PLC:
+                GameController.currentState = GameController.GameState.PlayerC_WON;
+                return true;
+            
+            case Board.PLD:
+                GameController.currentState = GameController.GameState.PlayerD_WON;
+                return true;
+
+            case Board.PLE:
+                GameController.currentState = GameController.GameState.PlayerE_WON;
+                return true;
+
+            case Board.PLF:
+                GameController.currentState = GameController.GameState.PlayerF_WON;
+                return true;
+
             default:
-                //System.out.println(GameController.currentState);
-                GameController.currentState = (GameController.currentState == GameController.GameState.PlayerA_PLAYING) ? GameController.GameState.PlayerB_PLAYING : GameController.GameState.PlayerA_PLAYING;
+                switch (GameController.currentState){
+                    case PlayerA_PLAYING:
+                        switch (Tester.playerCount){
+                            case 2:
+                                GameController.currentState = GameController.GameState.PlayerB_PLAYING;
+                                break;
+
+                            case 3:
+                                GameController.currentState = GameController.GameState.PlayerE_PLAYING;
+                                break;
+
+                            case 4:
+                                GameController.currentState = GameController.GameState.PlayerD_PLAYING;
+                                break;
+
+                            case 6:
+                                GameController.currentState = GameController.GameState.PlayerD_PLAYING;
+                                break;
+
+                            default:
+                                break;
+                        }
+                        break;
+
+                    case PlayerB_PLAYING:
+                        switch (Tester.playerCount){
+                            case 2:
+                                GameController.currentState = GameController.GameState.PlayerA_PLAYING;
+                                break;
+
+                            case 4:
+                                GameController.currentState = GameController.GameState.PlayerC_PLAYING;
+                                break;
+
+                            case 6:
+                                GameController.currentState = GameController.GameState.PlayerC_PLAYING;
+                                break;
+
+                            default:
+                                break;
+                        }
+                        break;
+
+                    case PlayerC_PLAYING:
+                        switch (Tester.playerCount){
+                            case 3:
+                                GameController.currentState = GameController.GameState.PlayerA_PLAYING;
+                                break;
+
+                            case 4:
+                                GameController.currentState = GameController.GameState.PlayerA_PLAYING;
+                                break;
+
+                            case 6:
+                                GameController.currentState = GameController.GameState.PlayerF_PLAYING;
+                                break;
+
+                            default:
+                                break;
+                        }
+                        break;
+
+                    case PlayerD_PLAYING:
+                        switch (Tester.playerCount){
+                            case 4:
+                                GameController.currentState = GameController.GameState.PlayerB_PLAYING;
+                                break;
+
+                            case 6:
+                                GameController.currentState = GameController.GameState.PlayerE_PLAYING;
+                                break;
+
+                            default:
+                                break;
+                        }
+                        break;
+
+                    case PlayerE_PLAYING:
+                        switch (Tester.playerCount){
+                            case 3:
+                                GameController.currentState = GameController.GameState.PlayerC_PLAYING;
+                                break;
+
+                            case 6:
+                                GameController.currentState = GameController.GameState.PlayerB_PLAYING;
+                                break;
+
+                            default:
+                                break;
+                        }
+                        break;
+
+                    case PlayerF_PLAYING:
+                        switch (Tester.playerCount){
+                            case 6:
+                                GameController.currentState = GameController.GameState.PlayerA_PLAYING;
+                                break;
+
+                            default:
+                                break;
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
                 return false;
         }
     }
-
-    //check victory, otherwise switch playing player
-    /*public boolean updateGameState(Seed[][] board) {
-        int track = 0;
-
-        for(int row = 0; row < (2 + Tester.boardSettings); row++){
-            for(int column = 0; column < board[0].length; column++){
-                if (board[row][column] == Seed.PLAYERA) {
-                    track++;
-                }
-            }
-        }
-
-        if (track == Tester.pieces) {
-            GameController.currentState = GameController.GameState.PlayerA_WON;
-            return true;
-        }
-            
-
-        track = 0;
-
-        for(int row = (board.length - (2 + Tester.boardSettings)); row < board.length ; row++){
-            for(int column = 0; column < board[0].length; column++){
-                if (board[row][column] == Seed.PLAYERB) {
-                    track++;
-                }
-            }
-        }
-
-        if (track == Tester.pieces) {
-            GameController.currentState = GameController.GameState.PlayerB_WON;
-            return true;
-        }
-        
-        GameController.currentState = (GameController.currentState == GameController.GameState.PlayerA_PLAYING) ? GameController.GameState.PlayerB_PLAYING : GameController.GameState.PlayerA_PLAYING;
-        return false;
-    }*/
 
     //show possible moves
     public void considerMoves(ArrayList<CheckersCell> moves) {
@@ -374,16 +594,42 @@ public class GUIPanel extends JFrame
 
     public boolean checkPresent(Seed[][] board, int row, int column, Seed match) {
         boolean check = false;
-        if (row < 0 || row >= Tester.ROWS[Tester.boardSettings] || column < 0 || column >= Tester.COLUMNS[Tester.boardSettings])
+        if (row < 0 || row >= Tester.ROWS[Tester.boardSettings] || column < 0 || column >= Tester.COLS[Tester.boardSettings])
             return check;
         
-        if (GameController.currentState == GameController.GameState.PlayerA_PLAYING) {
-            if (board[row][column] == match && board[row][column] == Seed.PLAYERA)
-                check = true;
-        }
-        else if (GameController.currentState == GameController.GameState.PlayerB_PLAYING) {
-            if (board[row][column] == match && board[row][column] == Seed.PLAYERB)
-                check = true;
+        switch (GameController.currentState) {
+            case PlayerA_PLAYING:
+                if (board[row][column] == match && board[row][column] == Seed.PLAYERA)
+                    check = true;
+                break;
+
+            case PlayerB_PLAYING:
+                if (board[row][column] == match && board[row][column] == Seed.PLAYERB)
+                    check = true;
+                break;
+
+            case PlayerC_PLAYING:
+                if (board[row][column] == match && board[row][column] == Seed.PLAYERC)
+                    check = true;
+                break;
+
+            case PlayerD_PLAYING:
+                if (board[row][column] == match && board[row][column] == Seed.PLAYERD)
+                    check = true;
+                break;
+
+            case PlayerE_PLAYING:
+                if (board[row][column] == match && board[row][column] == Seed.PLAYERE)
+                    check = true;
+                break;
+
+            case PlayerF_PLAYING:
+                if (board[row][column] == match && board[row][column] == Seed.PLAYERF)
+                    check = true;
+                break;
+
+            default:
+                break;
         }
 
         return check;
@@ -430,6 +676,8 @@ public class GUIPanel extends JFrame
                     }
                     int xPlot = (((CCArray[yPlot] - (CCArray[yPlot] % 2)) / 2) - plotOffset) + xFill;
 
+                    boolean toAddBorder = false; //none playing pieces trace black border
+
                     if (seedBoard[yVal][xFill] == Seed.PLAYERA) {
                         g2d.setColor(player1Color);
                         g.drawOval(((CANVAS_WIDTH / 2) - (((CCArray[yPlot]) % 2) * CELL_SIZE / 2)) - (CELL_SIZE * (((CCArray[yPlot]) - (CCArray[yPlot] % 2)) / 2)) +
@@ -439,11 +687,63 @@ public class GUIPanel extends JFrame
                     }
 
                     if (seedBoard[yVal][xFill] == Seed.PLAYERB) {
-                        g2d.setColor(player2Color);
-                        g.drawOval(((CANVAS_WIDTH / 2) - (((CCArray[yPlot]) % 2) * CELL_SIZE / 2)) - (CELL_SIZE * (((CCArray[yPlot]) - (CCArray[yPlot] % 2)) / 2)) +
-                                ((CELL_SIZE) * xPlot), CELL_SIZE * yPlot, CELL_SIZE, CELL_SIZE);
-                        g.fillOval(((CANVAS_WIDTH / 2) - (((CCArray[yPlot]) % 2) * CELL_SIZE / 2)) - (CELL_SIZE * (((CCArray[yPlot]) - (CCArray[yPlot] % 2)) / 2)) +
-                                ((CELL_SIZE) * xPlot), CELL_SIZE * yPlot, CELL_SIZE, CELL_SIZE);
+                        if (Tester.playerCount != 3) {
+                            g2d.setColor(player2Color);
+                            g.drawOval(((CANVAS_WIDTH / 2) - (((CCArray[yPlot]) % 2) * CELL_SIZE / 2)) - (CELL_SIZE * (((CCArray[yPlot]) - (CCArray[yPlot] % 2)) / 2)) +
+                                    ((CELL_SIZE) * xPlot), CELL_SIZE * yPlot, CELL_SIZE, CELL_SIZE);
+                            g.fillOval(((CANVAS_WIDTH / 2) - (((CCArray[yPlot]) % 2) * CELL_SIZE / 2)) - (CELL_SIZE * (((CCArray[yPlot]) - (CCArray[yPlot] % 2)) / 2)) +
+                                    ((CELL_SIZE) * xPlot), CELL_SIZE * yPlot, CELL_SIZE, CELL_SIZE);
+                        }
+                        else
+                            toAddBorder = true;
+                    }
+
+                    if (seedBoard[yVal][xFill] == Seed.PLAYERC) {
+                        if (Tester.playerCount != 2) {
+                            g2d.setColor(player3Color);
+                            g.drawOval(((CANVAS_WIDTH / 2) - (((CCArray[yPlot]) % 2) * CELL_SIZE / 2)) - (CELL_SIZE * (((CCArray[yPlot]) - (CCArray[yPlot] % 2)) / 2)) +
+                                    ((CELL_SIZE) * xPlot), CELL_SIZE * yPlot, CELL_SIZE, CELL_SIZE);
+                            g.fillOval(((CANVAS_WIDTH / 2) - (((CCArray[yPlot]) % 2) * CELL_SIZE / 2)) - (CELL_SIZE * (((CCArray[yPlot]) - (CCArray[yPlot] % 2)) / 2)) +
+                                    ((CELL_SIZE) * xPlot), CELL_SIZE * yPlot, CELL_SIZE, CELL_SIZE);
+                        }
+                        else
+                            toAddBorder = true;
+                    }
+
+                    if (seedBoard[yVal][xFill] == Seed.PLAYERD) {
+                        if (Tester.playerCount != 2 && Tester.playerCount != 3) {
+                            g2d.setColor(player4Color);
+                            g.drawOval(((CANVAS_WIDTH / 2) - (((CCArray[yPlot]) % 2) * CELL_SIZE / 2)) - (CELL_SIZE * (((CCArray[yPlot]) - (CCArray[yPlot] % 2)) / 2)) +
+                                    ((CELL_SIZE) * xPlot), CELL_SIZE * yPlot, CELL_SIZE, CELL_SIZE);
+                            g.fillOval(((CANVAS_WIDTH / 2) - (((CCArray[yPlot]) % 2) * CELL_SIZE / 2)) - (CELL_SIZE * (((CCArray[yPlot]) - (CCArray[yPlot] % 2)) / 2)) +
+                                    ((CELL_SIZE) * xPlot), CELL_SIZE * yPlot, CELL_SIZE, CELL_SIZE);
+                        }
+                        else
+                            toAddBorder = true;
+                    }
+
+                    if (seedBoard[yVal][xFill] == Seed.PLAYERE) {
+                        if (Tester.playerCount != 2 && Tester.playerCount != 4) {
+                            g2d.setColor(player5Color);
+                            g.drawOval(((CANVAS_WIDTH / 2) - (((CCArray[yPlot]) % 2) * CELL_SIZE / 2)) - (CELL_SIZE * (((CCArray[yPlot]) - (CCArray[yPlot] % 2)) / 2)) +
+                                    ((CELL_SIZE) * xPlot), CELL_SIZE * yPlot, CELL_SIZE, CELL_SIZE);
+                            g.fillOval(((CANVAS_WIDTH / 2) - (((CCArray[yPlot]) % 2) * CELL_SIZE / 2)) - (CELL_SIZE * (((CCArray[yPlot]) - (CCArray[yPlot] % 2)) / 2)) +
+                                    ((CELL_SIZE) * xPlot), CELL_SIZE * yPlot, CELL_SIZE, CELL_SIZE);
+                        }
+                        else
+                            toAddBorder = true;
+                    }
+
+                    if (seedBoard[yVal][xFill] == Seed.PLAYERF) {
+                        if (Tester.playerCount != 2 && Tester.playerCount != 3 && Tester.playerCount != 4) {
+                            g2d.setColor(player6Color);
+                            g.drawOval(((CANVAS_WIDTH / 2) - (((CCArray[yPlot]) % 2) * CELL_SIZE / 2)) - (CELL_SIZE * (((CCArray[yPlot]) - (CCArray[yPlot] % 2)) / 2)) +
+                                    ((CELL_SIZE) * xPlot), CELL_SIZE * yPlot, CELL_SIZE, CELL_SIZE);
+                            g.fillOval(((CANVAS_WIDTH / 2) - (((CCArray[yPlot]) % 2) * CELL_SIZE / 2)) - (CELL_SIZE * (((CCArray[yPlot]) - (CCArray[yPlot] % 2)) / 2)) +
+                                    ((CELL_SIZE) * xPlot), CELL_SIZE * yPlot, CELL_SIZE, CELL_SIZE);
+                        }
+                        else
+                            toAddBorder = true;
                     }
 
                     if (seedBoard[yVal][xFill] == Seed.VALID) {
@@ -454,12 +754,13 @@ public class GUIPanel extends JFrame
                                 ((CELL_SIZE) * xPlot), CELL_SIZE * yPlot, CELL_SIZE, CELL_SIZE);
                     }
 
-                    if (seedBoard[yVal][xFill] == Seed.EMPTY) {
+                    if (seedBoard[yVal][xFill] == Seed.EMPTY || toAddBorder) {
                         g2d.setColor(Color.WHITE);
                         g.drawOval(((CANVAS_WIDTH / 2) - (((CCArray[yPlot]) % 2) * CELL_SIZE / 2)) - (CELL_SIZE * (((CCArray[yPlot]) - (CCArray[yPlot] % 2)) / 2)) +
                                 ((CELL_SIZE) * xPlot), CELL_SIZE * yPlot, CELL_SIZE, CELL_SIZE);
                         g.fillOval(((CANVAS_WIDTH / 2) - (((CCArray[yPlot]) % 2) * CELL_SIZE / 2)) - (CELL_SIZE * (((CCArray[yPlot]) - (CCArray[yPlot] % 2)) / 2)) +
                                 ((CELL_SIZE) * xPlot), CELL_SIZE * yPlot, CELL_SIZE, CELL_SIZE);
+                                
                         g2d.setColor(Color.BLACK);
                         g.drawOval(((CANVAS_WIDTH / 2) - (((CCArray[yPlot]) % 2) * CELL_SIZE / 2)) - (CELL_SIZE * (((CCArray[yPlot]) - (CCArray[yPlot] % 2)) / 2)) +
                                 ((CELL_SIZE) * xPlot), CELL_SIZE * yPlot, CELL_SIZE, CELL_SIZE);
@@ -468,12 +769,42 @@ public class GUIPanel extends JFrame
             }
 
 
-            if (GameController.currentState != GameController.GameState.PlayerA_WON && GameController.currentState != GameController.GameState.PlayerB_WON) {
+            if (GameController.currentState != GameController.GameState.PlayerA_WON && 
+                GameController.currentState != GameController.GameState.PlayerB_WON &&
+                GameController.currentState != GameController.GameState.PlayerC_WON &&
+                GameController.currentState != GameController.GameState.PlayerD_WON &&
+                GameController.currentState != GameController.GameState.PlayerE_WON &&
+                GameController.currentState != GameController.GameState.PlayerF_WON) {
+
                 statusBar.setForeground(Color.BLACK);
-                if (GameController.currentState == GameController.GameState.PlayerA_PLAYING)
-                    statusBar.setText("Player A Turn");
-                else 
-                    statusBar.setText("Player B Turn");
+                switch (GameController.currentState) {
+                    case PlayerA_PLAYING:
+                        statusBar.setText("Player A Turn");
+                        break;
+
+                    case PlayerB_PLAYING:
+                        statusBar.setText("Player B Turn");
+                        break;
+
+                    case PlayerC_PLAYING:
+                        statusBar.setText("Player C Turn");
+                        break;
+                        
+                    case PlayerD_PLAYING:
+                        statusBar.setText("Player D Turn");
+                        break;
+
+                    case PlayerE_PLAYING:
+                        statusBar.setText("Player E Turn");
+                        break;
+
+                    case PlayerF_PLAYING:
+                        statusBar.setText("Player F Turn");
+                        break;
+
+                    default:
+                        break;
+                }
             } 
             else if (GameController.currentState == GameController.GameState.PlayerA_WON) {
                 statusBar.setForeground(player1Color);
@@ -482,6 +813,22 @@ public class GUIPanel extends JFrame
             else if (GameController.currentState == GameController.GameState.PlayerB_WON) {
                 statusBar.setForeground(player2Color);
                 statusBar.setText("'Player B Won!");
+            }
+            else if (GameController.currentState == GameController.GameState.PlayerC_WON) {
+                statusBar.setForeground(player3Color);
+                statusBar.setText("'Player C Won!");
+            }
+            else if (GameController.currentState == GameController.GameState.PlayerD_WON) {
+                statusBar.setForeground(player4Color);
+                statusBar.setText("'Player D Won!");
+            }
+            else if (GameController.currentState == GameController.GameState.PlayerE_WON) {
+                statusBar.setForeground(player5Color);
+                statusBar.setText("'Player E Won!");
+            }
+            else if (GameController.currentState == GameController.GameState.PlayerF_WON) {
+                statusBar.setForeground(player6Color);
+                statusBar.setText("'Player F Won!");
             }
         }
     }

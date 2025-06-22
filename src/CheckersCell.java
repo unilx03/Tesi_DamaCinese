@@ -41,6 +41,37 @@ public class CheckersCell implements Comparable<CheckersCell>{
 		return this.row == other.row && this.column == other.column;
 	}
 
+	public int distanceToGoal(){
+		CheckersCell goalTarget;
+		switch (state){
+			case Board.PLA: //going bottom to up
+				goalTarget = new CheckersCell(0, Tester.COLUMNS[Tester.boardSettings] / 2);
+				return (int)Math.sqrt(Math.pow(goalTarget.row - this.row, 2) + Math.pow(goalTarget.column - this.column, 2));
+
+			case Board.PLB: //going top to bottom
+				goalTarget = new CheckersCell(Tester.ROWS[Tester.boardSettings] - 1, Tester.COLUMNS[Tester.boardSettings] / 2);
+				return (int)Math.sqrt(Math.pow(goalTarget.row - this.row, 2) + Math.pow(goalTarget.column - this.column, 2));
+
+			case Board.PLC: //top left to bottom right
+				goalTarget = new CheckersCell(Tester.ROWS[Tester.boardSettings] - 3 - Tester.boardSettings, Tester.COLUMNS[Tester.boardSettings] - 1);
+				return (int)Math.sqrt(Math.pow(goalTarget.row - this.row, 2) + Math.pow(goalTarget.column - this.column, 2));
+
+			case Board.PLD: //bottom right to top left
+				goalTarget = new CheckersCell(2 + Tester.boardSettings, 0);
+				return (int)Math.sqrt(Math.pow(goalTarget.row - this.row, 2) + Math.pow(goalTarget.column - this.column, 2));
+
+			case Board.PLE: //top right to bottom left
+				goalTarget = new CheckersCell(Tester.ROWS[Tester.boardSettings] - 3 - Tester.boardSettings, 0);
+				return (int)Math.sqrt(Math.pow(goalTarget.row - this.row, 2) + Math.pow(goalTarget.column - this.column, 2));
+
+			case Board.PLF: //bottom left to top right
+				goalTarget = new CheckersCell(2 + Tester.boardSettings, Tester.COLUMNS[Tester.boardSettings] - 1);
+				return (int)Math.sqrt(Math.pow(goalTarget.row - this.row, 2) + Math.pow(goalTarget.column - this.column, 2));
+		}
+
+		return 0;
+	}
+
 	//order moves from closest to farthest piece to the goal, game tree exploration starting from best move
 	//later decide to prioritize pieces closest to center or closest to advancing to finish goal
 	public int compareTo(CheckersCell piece) 

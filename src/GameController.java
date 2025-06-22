@@ -2,7 +2,9 @@ import java.util.*;
 
 public class GameController {
     public static enum GameState {
-        PlayerA_PLAYING, PlayerB_PLAYING, PlayerA_WON, PlayerB_WON, Draw
+        PlayerA_PLAYING, PlayerB_PLAYING, PlayerC_PLAYING, PlayerD_PLAYING, PlayerE_PLAYING, PlayerF_PLAYING,
+        PlayerA_WON, PlayerB_WON, PlayerC_WON, PlayerD_WON, PlayerE_WON, PlayerF_WON, 
+        Draw
     }
     public static GameState currentState;
     public Board board;
@@ -82,13 +84,13 @@ public class GameController {
     public ArrayList<CheckersCell> availableSlots(int row , int col, int player)
     {
         ArrayList<CheckersCell> pointResult = validMoves(row, col, player);
-        validHops(row, col, row, col, player);
+        validHops(row, col, row, col, player, false);
 
         pointResult.addAll(0, validJump);
         validJump.clear();
 
-        /*if (Tester.VERBOSE && !Tester.haveHumanPlayer) {
-            System.out.println("AvailableMoves");
+        /*if (Tester.verbose && !Tester.haveHumanPlayer) {
+            System.out.println("AvailableMoves for player " + player);
             for (CheckersCell cell : pointResult) {
                 System.out.println("(" + cell.row + ", " + cell.column + ")");
             }
@@ -162,17 +164,24 @@ public class GameController {
     }
 
     //valid hops over another piece occupying a cell
-    public void validHops(int originalRow, int originalColumn, int row, int column, int player) {
+    //special hop condition: other playing area for hopping, can't stay
+    public void validHops(int originalRow, int originalColumn, int row, int column, int player, boolean checkingSpecialHopCondition) {
         //validMoves(row, column, player);
-        if (count == 0) return;
+        //if (count == 0) return; //if previous validMoves doesn't give movement options
 
-        //check if jump can already be made with fewer hops
+        if (row < 0 || row >= Tester.ROWS[Tester.boardSettings])
+            return;
+        else if (column < 0 || column >= Tester.COLUMNS[Tester.boardSettings])
+            return;
+
+        //check if jump can already be made with fewer hops, so already in validJump moves
         for (int i = 0; i < validJump.size(); i++) 
             if(validJump.get(i).row == row && validJump.get(i).column == column) 
                 return;
 
         //if space valid, add as possible move
-        if (validSpace(originalRow, originalColumn, row, column)) {
+        //adding initial position to validJumps prevents back and forth recursive hop calls
+        if (validSpace(originalRow, originalColumn, row, column) && !checkingSpecialHopCondition) {
             CheckersCell p = new CheckersCell(row, column, board.MainBoard[row][column]);
             validJump.add(p);
         }
@@ -180,106 +189,303 @@ public class GameController {
         //search for new hop positions
         if (column > 3) {
             //Left
-            if (board.MainBoard[row][column - 2] != Board.NOV && !validSpace(originalRow, originalColumn, row, column - 2))
-                if (board.MainBoard[row][column - 4] != Board.NOV && validSpace(originalRow, originalColumn, row, column - 4)) 
-                    validHops(originalRow, originalColumn, row, column - 4, player);
+            if (board.MainBoard[row][column - 2] != Board.NOV && isPlayingPiece(row, column - 2)) {
+                if (board.MainBoard[row][column - 4] != Board.NOV) {
+                    if (validSpace(originalRow, originalColumn, row, column - 4))
+                        validHops(originalRow, originalColumn, row, column - 4, player, false);
+                    else if (board.MainBoard[row][column - 4] == Board.EMP && !checkingSpecialHopCondition) //empty otherwise jumps over present player pieces
+                        validHops(originalRow, originalColumn, row, column - 4, player, true);
+                }
+            }
         }
+
         if (column < (board.getColumnLength() - 4)) {
             //Right
-            if (board.MainBoard[row][column + 2] != Board.NOV && !validSpace(originalRow, originalColumn, row, column + 2))
-                if (board.MainBoard[row][column + 4] != Board.NOV && validSpace(originalRow, originalColumn, row, column + 4))
-                    validHops(originalRow, originalColumn, row, column + 4, player);
+            if (board.MainBoard[row][column + 2] != Board.NOV && isPlayingPiece(row, column + 2)) {
+                if (board.MainBoard[row][column + 4] != Board.NOV) {
+                    if (validSpace(originalRow, originalColumn, row, column + 4))
+                        validHops(originalRow, originalColumn, row, column + 4, player, false);
+                    else if (board.MainBoard[row][column + 4] == Board.EMP && !checkingSpecialHopCondition)
+                        validHops(originalRow, originalColumn, row, column + 4, player, true);
+                }
+            }
         }
 
         if (row > 1) {
             //top Left
-            if(column > 1 && board.MainBoard[row - 1][column - 1] != Board.NOV && !validSpace(originalRow, originalColumn, row - 1, column - 1))
-                if(board.MainBoard[row - 2][column - 2] != Board.NOV && validSpace(originalRow, originalColumn, row - 2, column - 2))
-                    validHops(originalRow, originalColumn, row - 2, column - 2, player);
+            if(column > 1 && board.MainBoard[row - 1][column - 1] != Board.NOV && isPlayingPiece(row - 1, column - 1)) {
+                if(board.MainBoard[row - 2][column - 2] != Board.NOV) {
+                    if (validSpace(originalRow, originalColumn, row - 2, column - 2))
+                        validHops(originalRow, originalColumn, row - 2, column - 2, player, false);
+                    else if (board.MainBoard[row - 2][column - 2] == Board.EMP && !checkingSpecialHopCondition)
+                        validHops(originalRow, originalColumn, row - 2, column - 2, player, true);
+                }
+            }
+
             //top right
-            if(column < (board.getColumnLength() - 2) && board.MainBoard[row - 1][column + 1] != Board.NOV && !validSpace(originalRow, originalColumn, row - 1, column + 1))
-                if(board.MainBoard[row - 2][column + 2] != Board.NOV && validSpace(originalRow, originalColumn, row - 2, column + 2))
-                    validHops(originalRow, originalColumn, row - 2, column + 2, player);
+            if(column < (board.getColumnLength() - 2) && board.MainBoard[row - 1][column + 1] != Board.NOV && isPlayingPiece(row - 1, column + 1)) {
+                if(board.MainBoard[row - 2][column + 2] != Board.NOV) {
+                    if (validSpace(originalRow, originalColumn, row - 2, column + 2))
+                        validHops(originalRow, originalColumn, row - 2, column + 2, player, false);
+                    else if (board.MainBoard[row - 2][column + 2] == Board.EMP && !checkingSpecialHopCondition)
+                        validHops(originalRow, originalColumn, row - 2, column + 2, player, true);
+                }
+            }
         }
+
         if (row < (board.getRowLength() - 2)) {
             //Bottom Right
-            if(column < (board.getColumnLength() - 2) &&  board.MainBoard[row + 1][column + 1] != Board.NOV && !validSpace(originalRow, originalColumn, row + 1, column + 1))
-                if(board.MainBoard[row + 2][column + 2] != Board.NOV && validSpace(originalRow, originalColumn, row + 2, column + 2))
-                    validHops(originalRow, originalColumn, row + 2, column + 2, player);
+            if(column < (board.getColumnLength() - 2) &&  board.MainBoard[row + 1][column + 1] != Board.NOV && isPlayingPiece(row + 1, column + 1)) {
+                if(board.MainBoard[row + 2][column + 2] != Board.NOV) {
+                    if (validSpace(originalRow, originalColumn, row + 2, column + 2))
+                        validHops(originalRow, originalColumn, row + 2, column + 2, player, false);
+                    else if (board.MainBoard[row + 2][column + 2] == Board.EMP && !checkingSpecialHopCondition)
+                        validHops(originalRow, originalColumn, row + 2, column + 2, player, true);
+                }
+            }
+
             //Bottom Left
-            if(column > 1 && board.MainBoard[row + 1][column - 1] != Board.NOV && !validSpace(originalRow, originalColumn, row + 1, column - 1))
-                if(board.MainBoard[row + 2][column - 2] != Board.NOV && validSpace(originalRow, originalColumn, row + 2, column - 2))
-                    validHops(originalRow, originalColumn, row + 2, column - 2, player);
+            if(column > 1 && board.MainBoard[row + 1][column - 1] != Board.NOV && isPlayingPiece(row + 1, column - 1)) {
+                if(board.MainBoard[row + 2][column - 2] != Board.NOV) {
+                    if (validSpace(originalRow, originalColumn, row + 2, column - 2))
+                        validHops(originalRow, originalColumn, row + 2, column - 2, player, false);
+                    else if (board.MainBoard[row + 2][column - 2] == Board.EMP && !checkingSpecialHopCondition)
+                        validHops(originalRow, originalColumn, row + 2, column - 2, player, true);
+                }
+            }
         }
+    }
+
+    public boolean isPlayingPiece(int row, int column){ //near playable piece, can hop if destination is valid
+        if (board.MainBoard[row][column] == Board.PLA ||
+            board.MainBoard[row][column] == Board.PLB || 
+            board.MainBoard[row][column] == Board.PLC || 
+            board.MainBoard[row][column] == Board.PLD || 
+            board.MainBoard[row][column] == Board.PLE || 
+            board.MainBoard[row][column] == Board.PLF )
+            return true;
+        
+        return false;
     }
 
     //check if position is valid (make non playing players spaces accessible only if the relative player is playing)
     public boolean validSpace(int oldRow, int oldColumn, int newRow, int newColumn) { 
-        //return board.MainBoard[row][column] == Board.EMP;
-
+        // may cause issues with the recursive check of passage in other areas
         //a piece inside the goal zone can only move inside it
-        if (checkPieceInsideGoalZone(oldRow, oldColumn, board.MainBoard[oldRow][oldColumn]) && 
-            !checkPieceInsideGoalZone(newRow, newColumn, board.MainBoard[oldRow][oldColumn]))
+        if (checkPieceInsideZone(oldRow, oldColumn, getPlayerGoalZone(board.MainBoard[oldRow][oldColumn])) && 
+            !checkPieceInsideZone(newRow, newColumn, getPlayerGoalZone(board.MainBoard[oldRow][oldColumn])))
             return false;
 
         switch (Tester.playerCount) {
             case 2:
-                /*if (board.MainBoard[row][column] == Board.EMP || 
-                    board.MainBoard[row][column] == Board.PLC || 
-                    board.MainBoard[row][column] == Board.PLD ||
-                    board.MainBoard[row][column] == Board.PLE ||
-                    board.MainBoard[row][column] == Board.PLF)
-                    return true;*/
-
                 if (board.MainBoard[newRow][newColumn] == Board.EMP)
                     return true;
                 break;
             
             //adapt to forbid pieces to stay in other player initial and final zone, only for traversal
             case 3:
-                
+                if (board.MainBoard[newRow][newColumn] == Board.EMP) {
+                    //Player C and E cannot enter Player A initial area
+                    if (checkPieceInsideZone(newRow, newColumn, Board.PLA) &&
+                        board.MainBoard[oldRow][oldColumn] != Board.PLA)
+                        return false;
+
+                    //Player A and C cannot enter Player E initial area
+                    if (checkPieceInsideZone(newRow, newColumn, Board.PLE) &&
+                        board.MainBoard[oldRow][oldColumn] != Board.PLE)
+                        return false;
+
+                    //Player A and E cannot enter Player C initial area
+                    if (checkPieceInsideZone(newRow, newColumn, Board.PLC) &&
+                        board.MainBoard[oldRow][oldColumn] != Board.PLC)
+                        return false;
+
+                    //only Player A can rest inside the opposite destination as Player B initial area, check if other pieces are trying to get into that area
+                    if (checkPieceInsideZone(newRow, newColumn, getPlayerGoalZone(Board.PLA)) &&
+                        board.MainBoard[oldRow][oldColumn] != Board.PLA)
+                        return false;
+
+                    //Player E -> Player F initial area
+                    if (checkPieceInsideZone(newRow, newColumn, getPlayerGoalZone(Board.PLE)) &&
+                        board.MainBoard[oldRow][oldColumn] != Board.PLE)
+                        return false;
+
+                    //Player C -> Player D initial area
+                    if (checkPieceInsideZone(newRow, newColumn, getPlayerGoalZone(Board.PLC)) &&
+                        board.MainBoard[oldRow][oldColumn] != Board.PLC)
+                        return false;
+
+                    return true;
+                }
                 break;
 
             case 4:
-                
+                if (board.MainBoard[newRow][newColumn] == Board.EMP) {
+                    //Player A -> Player B initial area, Player D and C cannot enter Player A target area
+                    if (checkPieceInsideZone(newRow, newColumn, getPlayerGoalZone(Board.PLA)) &&
+                        board.MainBoard[oldRow][oldColumn] != Board.PLB &&
+                        board.MainBoard[oldRow][oldColumn] != Board.PLA)
+                        return false;
+
+                    //Player D -> Player C initial area, Player A and B cannot enter Player D target area
+                    if (checkPieceInsideZone(newRow, newColumn, getPlayerGoalZone(Board.PLD)) &&
+                        board.MainBoard[oldRow][oldColumn] != Board.PLC &&
+                        board.MainBoard[oldRow][oldColumn] != Board.PLD)
+                        return false;
+
+                    //Player B -> Player A initial area, Player D and C cannot enter Player B target area
+                    if (checkPieceInsideZone(newRow, newColumn, getPlayerGoalZone(Board.PLB)) &&
+                        board.MainBoard[oldRow][oldColumn] != Board.PLA &&
+                        board.MainBoard[oldRow][oldColumn] != Board.PLB)
+                        return false;
+
+                    //Player C -> Player D initial area, Player A and B cannot enter Player C target area
+                    if (checkPieceInsideZone(newRow, newColumn, getPlayerGoalZone(Board.PLC)) &&
+                        board.MainBoard[oldRow][oldColumn] != Board.PLD &&
+                        board.MainBoard[oldRow][oldColumn] != Board.PLC)
+                        return false;
+
+                    return true;
+                }
+                break;
+
+            case 6:
+                if (board.MainBoard[newRow][newColumn] == Board.EMP) {
+                    //Player A -> Player B initial area, Aside from Player A, no one can access Player A target area
+                    if (checkPieceInsideZone(newRow, newColumn, getPlayerGoalZone(Board.PLA)) &&
+                        board.MainBoard[oldRow][oldColumn] != Board.PLA &&
+                        board.MainBoard[oldRow][oldColumn] != Board.PLB)
+                        return false;
+
+                    //Player D -> Player C initial area, Aside from Player D, no one can access Player D target area
+                    if (checkPieceInsideZone(newRow, newColumn, getPlayerGoalZone(Board.PLD)) &&
+                        board.MainBoard[oldRow][oldColumn] != Board.PLD &&
+                        board.MainBoard[oldRow][oldColumn] != Board.PLC)
+                        return false;
+
+                    //Player E -> Player F initial area, Aside from Player E, no one can access Player E target area
+                    if (checkPieceInsideZone(newRow, newColumn, getPlayerGoalZone(Board.PLE)) &&
+                        board.MainBoard[oldRow][oldColumn] != Board.PLE &&
+                        board.MainBoard[oldRow][oldColumn] != Board.PLF)
+                        return false;
+
+                    //Player B -> Player A initial area, Aside from Player B, no one can access Player B target area
+                    if (checkPieceInsideZone(newRow, newColumn, getPlayerGoalZone(Board.PLB)) &&
+                        board.MainBoard[oldRow][oldColumn] != Board.PLB &&
+                        board.MainBoard[oldRow][oldColumn] != Board.PLA)
+                        return false;
+
+                    //Player C -> Player D initial area, Aside from Player C, no one can access Player C target area
+                    if (checkPieceInsideZone(newRow, newColumn, getPlayerGoalZone(Board.PLC)) &&
+                        board.MainBoard[oldRow][oldColumn] != Board.PLC &&
+                        board.MainBoard[oldRow][oldColumn] != Board.PLD)
+                        return false;
+
+                    //Player F -> Player E initial area, Aside from Player F, no one can access Player F target area
+                    if (checkPieceInsideZone(newRow, newColumn, getPlayerGoalZone(Board.PLF)) &&
+                        board.MainBoard[oldRow][oldColumn] != Board.PLF &&
+                        board.MainBoard[oldRow][oldColumn] != Board.PLE)
+                        return false;
+
+                    return true;
+                }
                 break;
         }
 
         return false;
     }
 
-    public boolean checkPieceInsideGoalZone (int row, int column, int playerPiece){
+    public int getPlayerGoalZone(int player){
+        switch (player){
+            case Board.PLA:
+                return Board.PLB;
+
+            case Board.PLB:
+                return Board.PLA;
+
+            case Board.PLC:
+                return Board.PLD;
+
+            case Board.PLD:
+                return Board.PLC;
+
+            case Board.PLE:
+                return Board.PLF;
+
+            case Board.PLF:
+                return Board.PLE;
+
+            default:
+                return -1;
+        }
+    }
+
+    public boolean checkPieceInsideZone (int row, int column, int playerPiece){
+        int sideRepetition = 2 + Tester.boardSettings;
+        int[] startCol = {0, 1, 2, 3};
+
         switch (playerPiece) {
             case Board.PLA:
+                if (row >= (board.getRowLength() - (2 + Tester.boardSettings)))
+                        return true;
+                break;
+
+            case Board.PLB:
                 if (row < (2 + Tester.boardSettings))
                     return true;
                 break;
 
-            case Board.PLB:
-                if (row >= (board.getRowLength() - (2 + Tester.boardSettings)))
-                    return true;
-                break;
+            case Board.PLC:
+                for (int checkRow = 0; checkRow < 2 + Tester.boardSettings; checkRow++) {
+                    for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
+                        int rowIndex = 2 + Tester.boardSettings + checkRow;
+                        int colIndex = startCol[checkRow] + (colIncrease * 2);
 
-            /*case Board.PLC:
-                if (true)
-                    return true;
-                break;
-
-            case Board.PLD:
-                if (true)
-                    return true;
-                break;
-
-            case Board.PLE:
-                if (true)
-                    return true;
+                        if (rowIndex == row && colIndex == column)
+                            return true;
+                    }
+                    sideRepetition--;
+                }
                 break;
 
             case Board.PLF:
-                if (true)
-                    return true;
+                for (int checkRow = 0; checkRow < 2 + Tester.boardSettings; checkRow++) {
+                    for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
+                        int rowIndex = Tester.ROWS[Tester.boardSettings] - 3 - Tester.boardSettings - checkRow;
+                        int colIndex = startCol[checkRow] + (colIncrease * 2);
+
+                        if (rowIndex == row && colIndex == column)
+                            return true;
+                    }
+                    sideRepetition--;
+                }
                 break;
-                */
+
+            case Board.PLE:
+                for (int checkRow = 0; checkRow < 2 + Tester.boardSettings; checkRow++) {
+                    for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
+                        int rowIndex = 2 + Tester.boardSettings + checkRow;
+                        int colIndex = Tester.COLUMNS[Tester.boardSettings] - 1 - startCol[checkRow] - (colIncrease * 2);
+
+                        if (rowIndex == row && colIndex == column)
+                            return true;
+                    }
+                    sideRepetition--;
+                }
+                break;
+
+            case Board.PLD:
+                for (int checkRow = 0; checkRow < 2 + Tester.boardSettings; checkRow++) {
+                    for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
+                        int rowIndex = Tester.ROWS[Tester.boardSettings] - 3 - Tester.boardSettings - checkRow;
+                        int colIndex = Tester.COLUMNS[Tester.boardSettings] - 1 - startCol[checkRow] - (colIncrease * 2);
+
+                        if (rowIndex == row && colIndex == column)
+                            return true;
+                    }
+                    sideRepetition--;
+                }
+                break;
         }
         return false;
     }
@@ -289,19 +495,19 @@ public class GameController {
         // (-1) draw situation
         // (Board piece) winner is corresponding player
 
-        int trackOwn = 0;
-        int trackOpponent = 0;
-
-        //Player A check
         //if goal spaced is filled and there's a t least one piece of the player, the player wins (prevent base stalling)
+
+        int trackOwn = 0;
+        int trackOpponent = 0; //opposite player that stays in its initial area
+
+        //Player A check if pieces are in Player B area
         for(int row = 0; row < (2 + Tester.boardSettings); row++){
             for(int column = 0; column < currentBoard.MainBoard[0].length; column++){
                 if (currentBoard.MainBoard[row][column] == Board.PLA) {
                     trackOwn++;
                 }
-                else if (currentBoard.MainBoard[row][column] != Board.PLA && 
-                        currentBoard.MainBoard[row][column] != Board.NOV &&
-                        currentBoard.MainBoard[row][column] != Board.EMP) {
+                else if (currentBoard.MainBoard[row][column] != Board.NOV &&
+                        currentBoard.MainBoard[row][column] == Board.PLB) {
                     trackOpponent++;
                 }
             }
@@ -312,19 +518,19 @@ public class GameController {
             return Board.PLA;
         }
 
+        /////////////////////////////////////////////////////////////////////////////////////////////////
+
         trackOwn = 0;
         trackOpponent = 0;
 
-        //Player B check
-        //if goal spaced is filled and there's at least one piece of the player, the player wins (prevent base stalling)
+        //Player B check if pieces are in Player A area
         for(int row = (currentBoard.getRowLength() - (2 + Tester.boardSettings)); row < currentBoard.MainBoard.length ; row++){
             for(int column = 0; column < currentBoard.getColumnLength(); column++){
                 if (currentBoard.MainBoard[row][column] == Board.PLB) {
                     trackOwn++;
                 }
-                else if (currentBoard.MainBoard[row][column] != Board.PLB && 
-                        currentBoard.MainBoard[row][column] != Board.NOV &&
-                        currentBoard.MainBoard[row][column] != Board.EMP) {
+                else if (currentBoard.MainBoard[row][column] != Board.NOV &&
+                        currentBoard.MainBoard[row][column] == Board.PLA) {
                     trackOpponent++;
                 }
             }
@@ -335,6 +541,122 @@ public class GameController {
             return Board.PLB;
         }
 
+        /////////////////////////////////////////////////////////////////////////////////////////////////
+
+        int sideRepetition = 2 + Tester.boardSettings;
+        int[] startCol = {0, 1, 2, 3};
+
+        trackOwn = 0;
+        trackOpponent = 0;
+
+        //Player C check if pieces are in Player D area
+        for (int row = 0; row < 2 + Tester.boardSettings; row++) {
+            for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
+                int rowIndex = Tester.ROWS[Tester.boardSettings] - 3 - Tester.boardSettings - row;
+                int colIndex = Tester.COLUMNS[Tester.boardSettings] - 1 - startCol[row] - (colIncrease * 2);
+
+                if (currentBoard.MainBoard[rowIndex][colIndex] == Board.PLC) {
+                    trackOwn++;
+                }
+                else if (currentBoard.MainBoard[rowIndex][colIndex] != Board.NOV &&
+                        currentBoard.MainBoard[rowIndex][colIndex] == Board.PLD) {
+                    trackOpponent++;
+                }
+            }
+            sideRepetition--;
+        }
+
+        if ((trackOwn + trackOpponent) == Tester.pieces && trackOwn > 0) {
+            //this.currentState = GameState.PlayerC_WON;
+            return Board.PLC;
+        }
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////
+
+        trackOwn = 0;
+        trackOpponent = 0;
+
+        sideRepetition = 2 + Tester.boardSettings;
+        //Player F check if pieces are in Player E area
+        for (int row = 0; row < 2 + Tester.boardSettings; row++) {
+            for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
+                int rowIndex = 2 + Tester.boardSettings + row;
+                int colIndex = Tester.COLUMNS[Tester.boardSettings] - 1 - startCol[row] - (colIncrease * 2);
+
+                if (currentBoard.MainBoard[rowIndex][colIndex] == Board.PLF) {
+                    trackOwn++;
+                }
+                else if (currentBoard.MainBoard[rowIndex][colIndex] != Board.NOV &&
+                        currentBoard.MainBoard[rowIndex][colIndex] == Board.PLE) {
+                    trackOpponent++;
+                }
+            }
+            sideRepetition--;
+        }
+
+        if ((trackOwn + trackOpponent) == Tester.pieces && trackOwn > 0) {
+            //this.currentState = GameState.PlayerF_WON;
+            return Board.PLF;
+        }
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////
+        
+        trackOwn = 0;
+        trackOpponent = 0;
+
+        sideRepetition = 2 + Tester.boardSettings;
+        //Player E check if pieces are in Player F area
+        for (int row = 0; row < 2 + Tester.boardSettings; row++) {
+            for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
+                int rowIndex = Tester.ROWS[Tester.boardSettings] - 3 - Tester.boardSettings - row;
+                int colIndex = startCol[row] + (colIncrease * 2);
+
+                if (currentBoard.MainBoard[rowIndex][colIndex] == Board.PLE) {
+                    trackOwn++;
+                }
+                else if (currentBoard.MainBoard[rowIndex][colIndex] != Board.NOV &&
+                        currentBoard.MainBoard[rowIndex][colIndex] == Board.PLF) {
+                    trackOpponent++;
+                }
+            }
+            sideRepetition--;
+        }
+
+        if ((trackOwn + trackOpponent) == Tester.pieces && trackOwn > 0) {
+            //this.currentState = GameState.PlayerE_WON;
+            return Board.PLE;
+        }
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////
+
+        trackOwn = 0;
+        trackOpponent = 0;
+
+        sideRepetition = 2 + Tester.boardSettings;
+        //Player D check if pieces are in Player C area
+        for (int row = 0; row < 2 + Tester.boardSettings; row++) {
+            for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
+                int rowIndex = 2 + Tester.boardSettings + row;
+                int colIndex = startCol[row] + (colIncrease * 2);
+
+                if (currentBoard.MainBoard[rowIndex][colIndex] == Board.PLD) {
+                    trackOwn++;
+                }
+                else if (currentBoard.MainBoard[rowIndex][colIndex] != Board.NOV &&
+                        currentBoard.MainBoard[rowIndex][colIndex] == Board.PLC) {
+                    trackOpponent++;
+                }
+            }
+            sideRepetition--;
+        }
+
+        if ((trackOwn + trackOpponent) == Tester.pieces && trackOwn > 0) {
+            //this.currentState = GameState.PlayerD_WON;
+            return Board.PLD;
+        }
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////
+
         //check if draw situation is present
         if (checkDraw(currentBoard))
             return -1;
@@ -342,12 +664,12 @@ public class GameController {
         return 0;
     }
 
-    public boolean checkDraw(Board localBoard){
-        if (localBoard.moveHistory.size() >= 6) {
+    public boolean checkDraw(Board localBoard){ 
+        /*if (localBoard.moveHistory.size() >= 6) { //in two player games
             Board.LastInfo lastMove1 = localBoard.moveHistory.get(localBoard.moveHistory.size() - 1);
             Board.LastInfo lastMove2 = localBoard.moveHistory.get(localBoard.moveHistory.size() - 2);
 
-            //check if both player haven't changed move and are going back and forth
+            //check if both player haven't changed move and are going back and forth within 6 moves
             if (lastMove1.equals(localBoard.moveHistory.get(localBoard.moveHistory.size() - 5)) &&
                 lastMove1.reverseMove(localBoard.moveHistory.get(localBoard.moveHistory.size() - 3))) {
                 if (lastMove2.equals(localBoard.moveHistory.get(localBoard.moveHistory.size() - 6)) &&
@@ -355,6 +677,29 @@ public class GameController {
                         return true;
                 }
             }
+        }*/
+
+        int moveCountToCheck = 3 * Tester.playerCount; //every player moves forward, every player moves back, every player moves forward with the same evaluation
+        if (localBoard.moveHistory.size() >= 3 * Tester.playerCount) { //generic
+            Board.LastInfo lastMove1 = localBoard.moveHistory.get(localBoard.moveHistory.size() - 1);
+            Board.LastInfo lastMove2 = localBoard.moveHistory.get(localBoard.moveHistory.size() - 2);
+
+            List<Board.LastInfo> lastMoves = localBoard.moveHistory.subList(
+                localBoard.moveHistory.size() - moveCountToCheck,
+                localBoard.moveHistory.size()
+            );
+
+            int identicalCounter = 0;
+            // Loop through each player's last two moves
+            for (int i = 0; i < Tester.playerCount; i++) {
+                if (lastMoves.get(2 * Tester.playerCount + i).equals(lastMoves.get(i)) &&
+                lastMoves.get(2 * Tester.playerCount + i).reverseMove(lastMoves.get(Tester.playerCount + i))) {
+                    identicalCounter++;
+                }
+            }
+
+            if (identicalCounter == Tester.playerCount)
+                return true;
         }
 
         return false;

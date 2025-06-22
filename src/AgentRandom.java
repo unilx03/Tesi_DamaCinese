@@ -6,8 +6,8 @@ import java.util.Map;
 import java.util.Random;
 
 public class AgentRandom extends Agent{
-    public AgentRandom(int agentPiece, int enemyPiece, GameController gameController) {
-        super(agentPiece, enemyPiece, gameController);
+    public AgentRandom(int agentPiece, GameController gameController) {
+        super(agentPiece, gameController);
     }
 
     public void findNextMove(Board board, int depth){
