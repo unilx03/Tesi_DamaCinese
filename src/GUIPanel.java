@@ -187,7 +187,7 @@ public class GUIPanel extends JFrame
                             CheckersCell from = new CheckersCell(boardfirstMove[0], boardfirstMove[1]);
                             CheckersCell to = new CheckersCell(boardRow, boardCol);
                             
-                            obj.movePiece(board, from, to);
+                            obj.movePiece(board, new CheckersMove(from, to));
 
                             moves.clear();
                             //seedBoard[firstMove[0]][firstMove[1]] = Seed.EMPTY;
@@ -202,23 +202,26 @@ public class GUIPanel extends JFrame
                             if (checkContinuePlaying()) {
                                 for (int i = 0; i < Tester.playerCount - 1; i++){
                                     agents[i].findNextMove(board, Tester.maxDepth);
-                                    obj.movePiece(board, agents[i].getInitialPosition(), agents[i].getNewPosition());
+                                    obj.movePiece(board, agents[i].getSelectedMove());
 
-                                    int seedRowBest = agents[i].getInitialPosition().row;
+                                    CheckersCell p1 = agents[i].getSelectedMove().getOldCell();
+                                    CheckersCell p2 = agents[i].getSelectedMove().getNewCell();
+
+                                    int seedRowBest = p1.row;
                                     int seedColBest = 0;
-                                    if(agents[i].getInitialPosition().column % 2 == 0)  
-                                        seedColBest = agents[i].getInitialPosition().column / 2;
+                                    if(p1.column % 2 == 0)  
+                                        seedColBest = p1.column / 2;
                                     else 
-                                        seedColBest = (agents[i].getInitialPosition().column - 1) / 2;
+                                        seedColBest = (p1.column - 1) / 2;
 
                                     Seed pieceMovedFrom = checkPiece(seedBoard, seedRowBest, seedColBest);
 
-                                    int selectedRowSeed = agents[i].getNewPosition().row;
+                                    int selectedRowSeed = p2.row;
                                     int selectedColSeed = 0;
-                                    if (agents[i].getNewPosition().column % 2 ==0)  
-                                        selectedColSeed = agents[i].getNewPosition().column / 2;
+                                    if (p2.column % 2 ==0)  
+                                        selectedColSeed = p2.column / 2;
                                     else 
-                                        selectedColSeed = (agents[i].getNewPosition().column - 1) / 2;
+                                        selectedColSeed = (p2.column - 1) / 2;
                                         
                                     seedBoard[seedRowBest][seedColBest] = Seed.EMPTY;
                                     //seedBoard[seedRowBest][seedColBest] = seedBoard[selectedRowSeed][selectedColSeed];

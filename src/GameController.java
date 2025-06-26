@@ -3,14 +3,12 @@ import java.util.*;
 public class GameController {
     public static enum GameState {
         PlayerA_PLAYING, PlayerB_PLAYING, PlayerC_PLAYING, PlayerD_PLAYING, PlayerE_PLAYING, PlayerF_PLAYING,
-        PlayerA_WON, PlayerB_WON, PlayerC_WON, PlayerD_WON, PlayerE_WON, PlayerF_WON, 
-        Draw
+        PlayerA_WON, PlayerB_WON, PlayerC_WON, PlayerD_WON, PlayerE_WON, PlayerF_WON, DRAW
     }
     public static GameState currentState;
     public Board board;
 
     private int count;
-    private Map<CheckersCell, ArrayList<CheckersCell>> map = new HashMap<>();
     private ArrayList<CheckersCell> validJump = new ArrayList<>();
 
     public GameController(Board b) {
@@ -20,65 +18,65 @@ public class GameController {
     //get the selected move from the user and check whether the move is valid.
     //send the board.
     public void markMove(Board localBoard, CheckersCell p1, CheckersCell p2){
-        movePiece(localBoard, p1, p2);
-        Board.LastInfo lastInfo = new Board.LastInfo(p1.row, p1.column, p2.row, p2.column);
-        localBoard.moveHistory.add(lastInfo);
+        movePiece(localBoard, new CheckersMove(p1, p2));
+        
+        CheckersMove lastMove = new CheckersMove(p1, p2);
+        localBoard.moveHistory.add(lastMove);
     }
 
     public void unmarkMove(Board localBoard){
         if (!board.moveHistory.isEmpty()) {
-            Board.LastInfo lastInfo = board.moveHistory.removeLast();
+            CheckersMove lastMove = board.moveHistory.removeLast();
 
-            int temp = localBoard.MainBoard[lastInfo.startPointRow][lastInfo.startPointCol];
-            localBoard.MainBoard[lastInfo.startPointRow][lastInfo.startPointCol] = localBoard.MainBoard[lastInfo.secondPointRow][lastInfo.secondPointCol];
-            localBoard.MainBoard[lastInfo.secondPointRow][lastInfo.secondPointCol] = temp;
+            int temp = localBoard.MainBoard[lastMove.oldRow][lastMove.oldColumn];
+            localBoard.MainBoard[lastMove.oldRow][lastMove.oldColumn] = localBoard.MainBoard[lastMove.newRow][lastMove.newColumn];
+            localBoard.MainBoard[lastMove.newRow][lastMove.newColumn] = temp;
 
-            //localBoard.updateHashCode(new CheckersCell(lastInfo.secondPointRow, lastInfo.secondPointCol));
-            //localBoard.updateHashCode(new CheckersCell(lastInfo.startPointRow, lastInfo.startPointCol));
+            //update player piece position (reverse because searches on old coordinates)
+            CheckersMove reverseLastMove = lastMove;
+            reverseLastMove.reverseMove();
+            localBoard.updatePlayerPiece(reverseLastMove, localBoard.MainBoard[reverseLastMove.oldRow][reverseLastMove.oldColumn]);
+
+            if (Tester.considerTranspositionTables) {
+                localBoard.updateHashCode(lastMove.getNewCell());
+                localBoard.updateHashCode(lastMove.getOldCell());
+            }
         }
     }
 
-    public void movePiece(Board currentBoard, CheckersCell p1, CheckersCell p2){
-        int piece = currentBoard.MainBoard[p1.row][p1.column];
-        currentBoard.MainBoard[p1.row][p1.column] = currentBoard.MainBoard[p2.row][p2.column];
-        currentBoard.MainBoard[p2.row][p2.column] = piece;
+    public void movePiece(Board currentBoard, CheckersMove move){
+        int piece = currentBoard.MainBoard[move.oldRow][move.oldColumn];
+        currentBoard.MainBoard[move.oldRow][move.oldColumn] = currentBoard.MainBoard[move.newRow][move.newColumn];
+        currentBoard.MainBoard[move.newRow][move.newColumn] = piece;
+
+        //update player piece position
+        currentBoard.updatePlayerPiece(move, currentBoard.MainBoard[move.oldRow][move.oldColumn]);
 
         //xor out old position, xor in new position
-        //currentBoard.updateHashCode(p1);
-        //currentBoard.updateHashCode(p2);
-
-        /*Board.LastInfo lastInfo = new Board.LastInfo(p1.row, p1.column, p2.row, p2.column);
-        currentBoard.moveHistory.add(lastInfo);*/
+        if (Tester.considerTranspositionTables) {
+            currentBoard.updateHashCode(move.getOldCell());
+            currentBoard.updateHashCode(move.getNewCell());
+        }
     }
 
     //return all possible moves for every piece
-    public Map<CheckersCell, ArrayList<CheckersCell>> checkMove(int boardPieceType) {
-        map = new HashMap<>();
-        
+    public List<CheckersMove> checkMove(int boardPieceType) {
+        List<CheckersMove> legalMoves = new ArrayList<>();
+
         for (int i = 0; i < board.getRowLength(); i++) {
             for(int j = 0; j < board.getColumnLength(); j++){
                 if(board.MainBoard[i][j] == boardPieceType) {
-                    CheckersCell p = new CheckersCell(i, j, boardPieceType);
-                    map.put(p, availableSlots(i, j, boardPieceType));
+                    ArrayList<CheckersCell> destinations = availableSlots(i, j, boardPieceType);
+
+                    for (CheckersCell dest : destinations) {
+                        CheckersMove move = new CheckersMove(i, j, dest.row, dest.column);
+                        legalMoves.add(move);
+                    }
                 }
             }
         }
 
-        return map;
-        
-        /*
-        // Move ordering
-        List<Map.Entry<CheckersCell, ArrayList<CheckersCell>>> entryList = new ArrayList<>(map.entrySet());
-        // Sort by CheckersCell (keys) based on player
-        Collections.sort(entryList, Map.Entry.comparingByKey());
-        // Store in LinkedHashMap to maintain order
-        Map<CheckersCell, ArrayList<CheckersCell>> sortedMap = new LinkedHashMap<>();
-        for (Map.Entry<CheckersCell, ArrayList<CheckersCell>> entry : entryList) {
-            sortedMap.put(entry.getKey(), entry.getValue());
-        }
-
-        return sortedMap;
-        */
+        return legalMoves;
     }
 
     public ArrayList<CheckersCell> availableSlots(int row , int col, int player)
@@ -174,7 +172,7 @@ public class GameController {
         else if (column < 0 || column >= Tester.COLUMNS[Tester.boardSettings])
             return;
 
-        //check if jump can already be made with fewer hops, so already in validJump moves
+        //check if jump can already be made with fewer hops, so already in validJump moves, prevents other anomalies
         for (int i = 0; i < validJump.size(); i++) 
             if(validJump.get(i).row == row && validJump.get(i).column == column) 
                 return;
@@ -681,10 +679,7 @@ public class GameController {
 
         int moveCountToCheck = 3 * Tester.playerCount; //every player moves forward, every player moves back, every player moves forward with the same evaluation
         if (localBoard.moveHistory.size() >= 3 * Tester.playerCount) { //generic
-            Board.LastInfo lastMove1 = localBoard.moveHistory.get(localBoard.moveHistory.size() - 1);
-            Board.LastInfo lastMove2 = localBoard.moveHistory.get(localBoard.moveHistory.size() - 2);
-
-            List<Board.LastInfo> lastMoves = localBoard.moveHistory.subList(
+            List<CheckersMove> lastMoves = localBoard.moveHistory.subList(
                 localBoard.moveHistory.size() - moveCountToCheck,
                 localBoard.moveHistory.size()
             );
@@ -693,7 +688,7 @@ public class GameController {
             // Loop through each player's last two moves
             for (int i = 0; i < Tester.playerCount; i++) {
                 if (lastMoves.get(2 * Tester.playerCount + i).equals(lastMoves.get(i)) &&
-                lastMoves.get(2 * Tester.playerCount + i).reverseMove(lastMoves.get(Tester.playerCount + i))) {
+                lastMoves.get(2 * Tester.playerCount + i).reverseMoveEquals(lastMoves.get(Tester.playerCount + i))) {
                     identicalCounter++;
                 }
             }

@@ -16,7 +16,7 @@ public class Tester {
 
 	public static boolean verbose = false;
 	public static boolean haveHumanPlayer = false;
-	public static boolean considerHeuristics = true;
+	public static boolean considerMoveOrdering = true;
 	public static boolean considerTranspositionTables = true;
 
     public static int pieces;
@@ -44,8 +44,8 @@ public class Tester {
 						haveHumanPlayer = true;
 						break;
 
-					case 'h':
-						considerHeuristics = false;
+					case 'm':
+						considerMoveOrdering = false;
 						break;
 
 					case 't':
@@ -122,9 +122,85 @@ public class Tester {
 		System.err.println("OPTIONS:");
 		System.err.println("  -g            Play Chinese Checkers With GUI (Human Player against Agents). Default: " + haveHumanPlayer);
 		System.err.println("  -v            Enable verbose results. Default: " + verbose);
-		System.err.println("  -h            Disable Heuristic evaluation for Move Ordering. Default: " + considerHeuristics);
+		System.err.println("  -m            Disable Move Ordering. Default: " + considerTranspositionTables);
 		System.err.println("  -t            Disable Transposition Tables. Default: " + considerTranspositionTables);
 	}
+
+	//ex. for 3 players we have PLA, PLE, PLC, convert Player to their index based on how many players are playing and not their piece value, avoid going out of bounds of array made with length of player count
+    public static int getPlayerIndex(int player){
+        int index = 0;
+        switch (player) {
+            case Board.PLA:
+                index = 0;
+                break;
+
+            case Board.PLB:
+                switch (playerCount){
+                    case 2:
+                        index = 1;
+                        break;
+
+                    case 4:
+                        index = 2;
+                        break;
+
+                    case 6:
+                        index = 3;
+                        break;
+                }
+                break;
+
+            case Board.PLC:
+                switch (playerCount){
+                    case 3:
+                        index = 2;
+                        break;
+
+                    case 4:
+                        index = 3;
+                        break;
+
+                    case 6:
+                        index = 4;
+                        break;
+                }
+                break;
+
+            case Board.PLD:
+                switch (playerCount){
+                    case 4:
+                        index = 1;
+                        break;
+
+                    case 6:
+                        index = 1;
+                        break;
+                }
+                break;
+
+            case Board.PLE:
+                switch (playerCount){
+                    case 3:
+                        index = 1;
+                        break;
+
+                    case 6:
+                        index = 2;
+                        break;
+                }
+                break;
+
+            case Board.PLF:
+                switch (playerCount){
+                    case 6:
+                        index = 5;
+                        break;
+                }
+                break;
+        }
+
+        return index;
+    }
 
 	public static void main(String[] args) {
 		if (args.length == 0) {
@@ -143,7 +219,6 @@ public class Tester {
         	new GUIPanel(); //GUI gameplay
 		else {
 			//Without GUI gameplay, only AI
-			//new Game();
 
 			Board board = new Board();
 			if (Tester.verbose)
@@ -152,17 +227,7 @@ public class Tester {
 			GameController gameController = new GameController(board);
 			Agent agent = new Agent(Board.PLA, gameController);
 
-			switch (playerCount) {
-				case 2:
-					agent.exploreGameTree2(board, Tester.maxDepth);
-					break;
-
-				case 3:
-				case 4:
-				case 6:
-					agent.exploreGameTreeN(board, Tester.maxDepth);
-					break;
-			}
+			agent.exploreGameTree(board, Tester.maxDepth);
 			
 		}
 	}

@@ -27,51 +27,14 @@ public class Board {
     public final static int PLE = 6;
     public final static int PLF = 7;
 
-    protected Hashtable<Long, Integer> transpositionTables;
+    protected Hashtable<Long, ArrayList<Integer>> transpositionTables;
     protected long[][][] zobristTable;
     protected long currentHash;
 
     protected int[][] MainBoard;
-    //protected int[] boardScore;
-    
-    public static class LastInfo{ //last piece movement recorded
-        int startPointRow,startPointCol,secondPointRow,secondPointCol;
+    protected List<ArrayList<CheckersCell>> playerPieces;
 
-        @Override
-        public String toString() {
-            return "LastInfo{" +
-                    "startPointRow=" + startPointRow +
-                    ", startPointCol=" + startPointCol +
-                    ", secondPointRow=" + secondPointRow +
-                    ", secondPointCol=" + secondPointCol +
-                    '}';
-        }
-
-        public LastInfo(int startPointRow, int startPointCol, int secondPointRow, int secondPointCol) {
-            this.startPointRow = startPointRow;
-            this.startPointCol = startPointCol;
-            this.secondPointRow = secondPointRow;
-            this.secondPointCol = secondPointCol;
-        }
-
-        @Override
-        public boolean equals(Object obj){
-            if (this == obj) return true;
-            if (obj == null || getClass() != obj.getClass()) return false;
-
-            LastInfo other = (LastInfo) obj;
-            return this.startPointRow == other.startPointRow && this.startPointCol == other.startPointCol &&
-                    this.secondPointRow == other.secondPointRow && this.secondPointCol == other.secondPointCol;
-        }
-
-        //check if current move has inverted start and dest from other
-        public boolean reverseMove(LastInfo other){
-            return this.startPointRow == other.secondPointRow && this.startPointCol == other.secondPointCol &&
-                    this.secondPointRow == other.startPointRow && this.secondPointCol == other.startPointCol;
-        }
-    }
-
-    protected LinkedList<LastInfo> moveHistory;
+    protected LinkedList<CheckersMove> moveHistory;
 
     public Board()
     {
@@ -184,11 +147,19 @@ public class Board {
                 MainBoard = board10;
                 break;
         }
-        moveHistory = new LinkedList<LastInfo>();
+        playerPieces = new ArrayList<>();
+        for (int i = 0; i < Tester.playerCount; i++){
+            playerPieces.add(new ArrayList<CheckersCell>());
+        }
+
+        moveHistory = new LinkedList<CheckersMove>();
 
         adaptBoardToPlayer();
-        initializeZobristTable();
-        transpositionTables = new Hashtable<Long, Integer>();
+
+        if (Tester.considerTranspositionTables) {
+            initializeZobristTable();
+            transpositionTables = new Hashtable<Long, ArrayList<Integer>>();
+        }
     }
 
     /*public Board (Board b){
@@ -196,18 +167,28 @@ public class Board {
         moveHistory = b.moveHistory;
     }*/
 
-    //set other non-playing player spaces to empty
+    //set other non-playing player spaces to empty, also set playerPieces
     public void adaptBoardToPlayer(){
         switch (Tester.playerCount){
             case 2:
                 for (int i = 0; i < getRowLength(); i++) {
                     for (int j = 0; j < getColumnLength(); j++) {
-                        if (MainBoard[i][j] == Board.PLC || 
-                            MainBoard[i][j] == Board.PLD ||
-                            MainBoard[i][j] == Board.PLE ||
-                            MainBoard[i][j] == Board.PLF) {
+                        switch (MainBoard[i][j]) {
+                            case Board.PLA:
+                                playerPieces.get(Tester.getPlayerIndex(Board.PLA)).add(new CheckersCell(i, j, Board.PLA));
+                                break;
+
+                            case Board.PLB:
+                                playerPieces.get(Tester.getPlayerIndex(Board.PLB)).add(new CheckersCell(i, j, Board.PLB));
+                                break;
+
+                            case Board.PLC:
+                            case Board.PLD:
+                            case Board.PLE:
+                            case Board.PLF:
                                 MainBoard[i][j] = Board.EMP;
-                            }
+                                break;
+                        }
                     }
                 }
                 break;
@@ -215,11 +196,25 @@ public class Board {
             case 3:
                 for (int i = 0; i < getRowLength(); i++) {
                     for (int j = 0; j < getColumnLength(); j++) {
-                        if (MainBoard[i][j] == Board.PLB || 
-                            MainBoard[i][j] == Board.PLD ||
-                            MainBoard[i][j] == Board.PLF) {
+                        switch (MainBoard[i][j]) {
+                            case Board.PLA:
+                                playerPieces.get(Tester.getPlayerIndex(Board.PLA)).add(new CheckersCell(i, j, Board.PLA));
+                                break;
+
+                            case Board.PLE:
+                                playerPieces.get(Tester.getPlayerIndex(Board.PLE)).add(new CheckersCell(i, j, Board.PLE));
+                                break;
+
+                            case Board.PLC:
+                                playerPieces.get(Tester.getPlayerIndex(Board.PLC)).add(new CheckersCell(i, j, Board.PLC));
+                                break;
+
+                            case Board.PLB:
+                            case Board.PLD:
+                            case Board.PLF:
                                 MainBoard[i][j] = Board.EMP;
-                            }
+                                break;
+                        }
                     }
                 }
                 break;
@@ -227,79 +222,69 @@ public class Board {
             case 4:
                 for (int i = 0; i < getRowLength(); i++) {
                     for (int j = 0; j < getColumnLength(); j++) {
-                        if (MainBoard[i][j] == Board.PLE ||
-                            MainBoard[i][j] == Board.PLF) {
+                        switch (MainBoard[i][j]) {
+                            case Board.PLA:
+                                playerPieces.get(Tester.getPlayerIndex(Board.PLA)).add(new CheckersCell(i, j, Board.PLA));
+                                break;
+
+                            case Board.PLD:
+                                playerPieces.get(Tester.getPlayerIndex(Board.PLD)).add(new CheckersCell(i, j, Board.PLD));
+                                break;
+
+                            case Board.PLB:
+                                playerPieces.get(Tester.getPlayerIndex(Board.PLB)).add(new CheckersCell(i, j, Board.PLB));
+                                break;
+
+                            case Board.PLC:
+                                playerPieces.get(Tester.getPlayerIndex(Board.PLC)).add(new CheckersCell(i, j, Board.PLC));
+                                break;
+
+                            case Board.PLE:
+                            case Board.PLF:
                                 MainBoard[i][j] = Board.EMP;
-                            }
+                                break;
+                        }
+                    }
+                }
+                break;
+
+            case 6:
+                for (int i = 0; i < getRowLength(); i++) {
+                    for (int j = 0; j < getColumnLength(); j++) {
+                        switch (MainBoard[i][j]) {
+                            case Board.PLA:
+                                playerPieces.get(Tester.getPlayerIndex(Board.PLA)).add(new CheckersCell(i, j, Board.PLA));
+                                break;
+
+                            case Board.PLD:
+                                playerPieces.get(Tester.getPlayerIndex(Board.PLD)).add(new CheckersCell(i, j, Board.PLD));
+                                break;
+
+                            case Board.PLB:
+                                playerPieces.get(Tester.getPlayerIndex(Board.PLB)).add(new CheckersCell(i, j, Board.PLB));
+                                break;
+
+                            case Board.PLC:
+                                playerPieces.get(Tester.getPlayerIndex(Board.PLC)).add(new CheckersCell(i, j, Board.PLC));
+                                break;
+
+                            case Board.PLE:
+                                playerPieces.get(Tester.getPlayerIndex(Board.PLE)).add(new CheckersCell(i, j, Board.PLE));
+                                break;
+
+                            case Board.PLF:
+                                playerPieces.get(Tester.getPlayerIndex(Board.PLF)).add(new CheckersCell(i, j, Board.PLF));
+                                break;
+                        }
                     }
                 }
                 break;
         }
     }
 
-    /*public int getBoardScore(int agentPiece){
-        int index = 0;
-
-        switch (agentPiece){
-            case Board.PLA:
-                index = 0;
-                break;
-
-            case Board.PLB:
-                index = 1;
-                break;
-
-            case Board.PLC:
-                index = 2;
-                break;
-
-            case Board.PLD:
-                index = 3;
-                break;
-
-            case Board.PLE:
-                index = 4;
-                break;
-
-            case Board.PLF:
-                index = 5;
-                break;
-        }
-
-        return boardScore[index];
+    public ArrayList<CheckersCell> getPlayerPiecesList(int player){
+        return playerPieces.get(Tester.getPlayerIndex(player));
     }
-
-    public void setBoardScore(int agentPiece, int score){
-        int index = 0;
-
-        switch (agentPiece){
-            case Board.PLA:
-                index = 0;
-                break;
-
-            case Board.PLB:
-                index = 1;
-                break;
-
-            case Board.PLC:
-                index = 2;
-                break;
-
-            case Board.PLD:
-                index = 3;
-                break;
-
-            case Board.PLE:
-                index = 4;
-                break;
-
-            case Board.PLF:
-                index = 5;
-                break;
-        }
-
-        boardScore[index] = score;
-    }*/
 
     private void initializeZobristTable() {
         Random rand = new Random(System.currentTimeMillis());
@@ -318,6 +303,16 @@ public class Board {
             for (int j = 0; j < getColumnLength(); j++) {
                 //non valid spaces with value 0 don't affect hash with xor operation
                 currentHash ^= zobristTable[i][j][getHashTableIndex(MainBoard[i][j])];
+            }
+        }
+    }
+
+    public void updatePlayerPiece(CheckersMove move, int player){
+        for (CheckersCell i : playerPieces.get(Tester.getPlayerIndex(player))){
+            if (i.row == move.oldRow & i.column == move.oldColumn) {
+                i.row = move.newRow;
+                i.column = move.newColumn;
+                return;
             }
         }
     }
@@ -407,6 +402,26 @@ public class Board {
 
     public long hashValue() {
         return currentHash;
+    }
+
+    public boolean hasBoardScore(int player){
+        return transpositionTables.get(currentHash) != null;
+    }
+
+    public int getBoardScore(int player){
+        return transpositionTables.get(currentHash).get(player);
+    }
+
+    public void setHashTable(int player, int score){
+        if (transpositionTables.get(currentHash) != null) {
+            transpositionTables.get(currentHash).set(player, score);
+        }
+        else {
+            //sets new array with all scores to 0
+            ArrayList<Integer> scores = new ArrayList<>(Collections.nCopies(Tester.playerCount, 0));
+            scores.set(player, score);
+            transpositionTables.put(currentHash, scores);
+        }
     }
 
     public void Print()

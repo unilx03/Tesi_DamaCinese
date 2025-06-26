@@ -41,22 +41,16 @@ MaxDepth: livello di profondità dell'esplorazione dell'albero di gioco, 0 per p
 OPTIONS
 -v: stampa dettagliata dei progressi
 -g: versione giocabile con GUI tra umano e agente AI
+-t: disattivare tabelle di trasposizione
+-m: disattivare move ordering
 
 Esecuzione tramite nohup
 
 ### Task List
-Implementazione 2 giocatori
 - Esplorare tutti i possibili stati per 2 giocatori con 3 pedine su tabella da 25 possibili posizioni
+- Esplorare tutti i possibili stati per 2 giocatori con 3 pedine con move ordering
+- Esplorare tutti i possibili stati per 2 giocatori con 3 pedine con move ordering e tabelle di trasposizione
   
-Implementazione multi-giocatori
-- Maxn per più giocatori
-- Versione con GUI per più di 2 giocatori
-- Controllo condizioni di vittoria per zone ai lati
-- Controllo movimenti pedine in altre zone solo come passaggio
-- Move ordering per pedine ai lati (calcolare vicinanza per destinazioni diagonali)
+- Shallow e deep pruning per maxn
+- Hash table entry replacement strategies
 - Esplorare tutti i possibili stati per 3/4/6 giocatori con 3 pedine su tabella da 25 possibili posizioni
-
-Velocizzazione prestazioni
-- Move ordering base per priorizzare pedine centrali più vicine al traguardo
-- Tabelle di trasposizione con hashing effettuato in classe Board
-- Considerare possibilità di move ordering in base a punteggio della board nella mossa successiva
