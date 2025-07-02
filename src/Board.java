@@ -27,18 +27,31 @@ public class Board {
     public final static int PLE = 6;
     public final static int PLF = 7;
 
-    protected Hashtable<Long, ArrayList<Integer>> transpositionTables;
-    protected long[][][] zobristTable;
+    protected long[][][] zobristTable; //encoding of board with hash
     protected long currentHash;
+
+    protected Hashtable<Long, ArrayList<Integer>> transpositionTables; //for board scores for players
+    protected Hashtable<Long, Integer> hashOccurrences; //count how many times a board occurrs, more than 3 times considered a draw
 
     protected int[][] MainBoard;
     protected List<ArrayList<CheckersCell>> playerPieces;
-
     protected LinkedList<CheckersMove> moveHistory;
 
     public Board()
     {
         switch (Tester.pieces) {
+            case 1:
+                int[][] board1 = {
+                    {NOV, NOV, NOV, PLB, NOV, NOV, NOV},
+                    {PLC, NOV, EMP, NOV, EMP, NOV, PLE},
+                    {NOV, EMP, NOV, EMP, NOV, EMP, NOV},
+                    {PLF, NOV, EMP, NOV, EMP, NOV, PLD},
+                    {NOV, NOV, NOV, PLA, NOV, NOV, NOV}
+                    };
+
+                MainBoard = board1;
+                break;
+
             case 3:
                 int[][] board3 = {
                     {NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV},
@@ -51,18 +64,6 @@ public class Board {
                     {NOV, NOV, NOV, NOV, NOV, PLA, NOV, PLA, NOV, NOV, NOV, NOV, NOV},
                     {NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV}
                     };
-                
-                /*int[][] board3 = {
-                    {NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV},
-                    {NOV, NOV, NOV, NOV, NOV, PLB, NOV, PLB, NOV, NOV, NOV, NOV, NOV},
-                    {EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP},
-                    {NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV},
-                    {NOV, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, NOV},
-                    {NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV},
-                    {EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP},
-                    {NOV, NOV, NOV, NOV, NOV, PLA, NOV, PLA, NOV, NOV, NOV, NOV, NOV},
-                    {NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV}
-                    };*/
 
                 MainBoard = board3;
                 break;
@@ -83,22 +84,6 @@ public class Board {
                     {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
                     {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV}
                     };
-
-                /*int[][] board7 = {
-                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
-                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
-                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, PLB, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
-                    {EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP},
-                    {NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV},
-                    {NOV, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, NOV},
-                    {NOV, NOV, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, NOV, NOV},
-                    {NOV, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, NOV},
-                    {NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV},
-                    {EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP},
-                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, PLA, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
-                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
-                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV}
-                    };*/
 
                 MainBoard = board7;
                 break;
@@ -124,41 +109,22 @@ public class Board {
                     {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV}
                 };
 
-                /*int[][] board10 = {
-                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
-                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
-                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, PLB, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
-                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, PLB, NOV, PLB, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
-                    {EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP},
-                    {NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV},
-                    {NOV, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, NOV},
-                    {NOV, NOV, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, NOV, NOV},
-                    {NOV, NOV, NOV, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, NOV, NOV, NOV},
-                    {NOV, NOV, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, NOV, NOV},
-                    {NOV, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, NOV},
-                    {NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV},
-                    {EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP, NOV, EMP},
-                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, PLA, NOV, PLA, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
-                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, PLA, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
-                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
-                    {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLA, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV}
-                };*/
-
                 MainBoard = board10;
                 break;
         }
+
         playerPieces = new ArrayList<>();
         for (int i = 0; i < Tester.playerCount; i++){
             playerPieces.add(new ArrayList<CheckersCell>());
         }
 
+        adaptBoardToPlayer();
         moveHistory = new LinkedList<CheckersMove>();
 
-        adaptBoardToPlayer();
-
-        if (Tester.considerTranspositionTables) {
-            initializeZobristTable();
+        initializeZobristTable();
+        if (Tester.considerHashing) {
             transpositionTables = new Hashtable<Long, ArrayList<Integer>>();
+            hashOccurrences = new Hashtable<Long, Integer>();
         }
     }
 
@@ -292,7 +258,7 @@ public class Board {
 
         for(int i = 0; i < getRowLength(); ++i) {
             for(int j = 0; j < getColumnLength(); ++j) {
-                for(int k = 0; k < Tester.playerCount; ++k) {
+                for(int k = 0; k < Tester.playerCount + 1; ++k) {
                     this.zobristTable[i][j][k] = rand.nextLong();
                 }
             }
@@ -307,6 +273,7 @@ public class Board {
         }
     }
 
+    //find the piece at the old position, update position
     public void updatePlayerPiece(CheckersMove move, int player){
         for (CheckersCell i : playerPieces.get(Tester.getPlayerIndex(player))){
             if (i.row == move.oldRow & i.column == move.oldColumn) {
@@ -396,8 +363,8 @@ public class Board {
         return index;
     }
 
-    public void updateHashCode(CheckersCell piece){
-        currentHash ^= zobristTable[piece.row][piece.column][getHashTableIndex(MainBoard[piece.row][piece.column])];
+    public void updateHashCode(CheckersCell piece, int pieceValue){
+        currentHash ^= zobristTable[piece.row][piece.column][getHashTableIndex(pieceValue)];
     }
 
     public long hashValue() {
@@ -417,7 +384,7 @@ public class Board {
             transpositionTables.get(currentHash).set(player, score);
         }
         else {
-            //sets new array with all scores to 0
+            //sets new array with all scores to 0, set value for current player
             ArrayList<Integer> scores = new ArrayList<>(Collections.nCopies(Tester.playerCount, 0));
             scores.set(player, score);
             transpositionTables.put(currentHash, scores);

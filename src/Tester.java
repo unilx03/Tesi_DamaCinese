@@ -8,23 +8,24 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;*/
 
 public class Tester {
-    public static final int[] ROWS = {9, 13, 17};
-	public static final int[] COLUMNS = {13, 19, 25};
-    public static final int[] COLS = {7, 10, 13}; //width for GUI
-    public static final int[] PLAYER_PIECES = {3, 6, 10};
-    public static final int[] PIECES_ROWS = {2, 3, 4};
+    public static final int[] ROWS = {5, 9, 13, 17};
+	public static final int[] COLUMNS = {7, 13, 19, 25};
+    public static final int[] COLS = {4, 7, 10, 13}; //width for GUI
+    public static final int[] PLAYER_PIECES = {1, 3, 6, 10};
+    public static final int[] PIECES_ROWS = {1, 2, 3, 4};
 
 	public static boolean verbose = false;
 	public static boolean haveHumanPlayer = false;
 	public static boolean considerMoveOrdering = true;
-	public static boolean considerTranspositionTables = true;
+	public static boolean considerHashing = true;
+
+	public static boolean completeEvaluation = false;
 
     public static int pieces;
 	public static int boardSettings;
 	public static int playerCount;
 
 	public static int maxDepth = -1; //minimax depth, set to -1 for infinite
-	public static int maxTurns = -1; //set to -1 for infinite turns
 
 	private Tester() {
 	}
@@ -48,8 +49,8 @@ public class Tester {
 						considerMoveOrdering = false;
 						break;
 
-					case 't':
-						considerTranspositionTables = false;
+					case 'h':
+						considerHashing = false;
 						break;
 
 					default:
@@ -85,16 +86,20 @@ public class Tester {
 		try {
 			pieces = Integer.parseInt(L.get(1));
 			switch (pieces){
-				case 3:
+				case 1:
 					boardSettings = 0;
 					break;
 
-				case 6:
+				case 3:
 					boardSettings = 1;
 					break;
 
-				case 10:
+				case 6:
 					boardSettings = 2;
+					break;
+
+				case 10:
+					boardSettings = 3;
 					break;
 
 				default:
@@ -109,8 +114,10 @@ public class Tester {
 
 		try {
 			maxDepth = Integer.parseInt(L.get(2));
-			if (maxDepth == 0)
-				maxDepth = 100;
+			if (maxDepth == 0) {
+				//maxDepth = 100;
+				completeEvaluation = true;
+			}
 
 		} catch (NumberFormatException e) {
 			throw new IllegalArgumentException("Illegal integer format for Max Depth argument: " + pieces);
@@ -122,8 +129,8 @@ public class Tester {
 		System.err.println("OPTIONS:");
 		System.err.println("  -g            Play Chinese Checkers With GUI (Human Player against Agents). Default: " + haveHumanPlayer);
 		System.err.println("  -v            Enable verbose results. Default: " + verbose);
-		System.err.println("  -m            Disable Move Ordering. Default: " + considerTranspositionTables);
-		System.err.println("  -t            Disable Transposition Tables. Default: " + considerTranspositionTables);
+		System.err.println("  -m            Disable Move Ordering. Default: " + considerMoveOrdering);
+		System.err.println("  -t            Disable Hashing. Default: " + considerHashing);
 	}
 
 	//ex. for 3 players we have PLA, PLE, PLC, convert Player to their index based on how many players are playing and not their piece value, avoid going out of bounds of array made with length of player count

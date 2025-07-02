@@ -2,14 +2,13 @@ import java.util.*;
 
 public class Agent {
     protected int agentPiece;
-    protected int enemyPiece;
 
     public final static int VICTORY_SCORE = 1000000;
     public final static int DEFEAT_SCORE = -1000000;
+    public final static int DRAW_SCORE = 0;
 
     protected CheckersMove selectedMove;
     protected GameController gameController;
-
     protected GameController.GameState moveFinalState;
 
     //Debug execution progress
@@ -17,7 +16,6 @@ public class Agent {
     protected long executionStartTime = 0;
     protected long hashHit = 0;
     protected long lastLogTime = System.currentTimeMillis();
-    protected long milestoneLimit = 10000;
 
     public static enum BoardState {
         PLA_WIN, PLB_WIN, PLC_WIN, PLD_WIN, PLE_WIN, PLF_WIN, DRAW, PLAYING
@@ -30,21 +28,6 @@ public class Agent {
 
     public Agent(int agentPiece, GameController gameController) {
         this.agentPiece = agentPiece;
-
-        //enemy piece for 2 players
-        if (Tester.playerCount == 2)
-        {
-            switch (agentPiece){
-                case Board.PLA:
-                    this.enemyPiece = Board.PLB;
-                    break;
-
-                case Board.PLB:
-                    this.enemyPiece = Board.PLA;
-                    break;
-            }
-        }
-
         this.gameController = gameController;
     }
 
@@ -66,11 +49,10 @@ public class Agent {
         }
     }
 
-    //change depth in Tester
     public void exploreGameTree(Board board, int depth){
         int alpha = Integer.MIN_VALUE;
 
-        int currentPlayer = Board.PLA;
+        int currentPlayer = Board.PLA; //player in bottom starts first
         selectedMove = new CheckersMove();
 
         //Find every possible first move, define which lead to victory, draw or defeat by exploring game tree
@@ -81,15 +63,15 @@ public class Agent {
 
             executionCount = 0;
             executionStartTime = System.currentTimeMillis();
-            milestoneLimit = 100;
-
-            //Board localBoard = new Board(board);
 
             //find all moves initial position and destination
             CheckersCell p1 = new CheckersCell(move.oldRow, move.oldColumn, board.MainBoard[move.oldRow][move.oldColumn]);
             CheckersCell p2 = new CheckersCell(move.newRow, move.newColumn, board.MainBoard[move.newRow][move.newColumn]);
                     
             gameController.markMove(board, p1, p2);
+
+            if (Tester.considerHashing)
+                board.hashOccurrences.put(board.hashValue(), board.hashOccurrences.getOrDefault(board.hashValue(), 0) + 1);
                 
             if (Tester.verbose && !Tester.haveHumanPlayer) {
                 System.out.println("Analising Move: From: " + p1 + " To: " + p2);
@@ -108,7 +90,10 @@ public class Agent {
                     break;
             }
 
-            gameController.unmarkMove(board);
+            if (Tester.considerHashing)
+                board.hashOccurrences.put(board.hashValue(), board.hashOccurrences.get(board.hashValue()) - 1);
+            
+                gameController.unmarkMove(board);
 
                 /*
                 //Prune later moves, commented to make each first move evaluation independent
@@ -139,14 +124,36 @@ public class Agent {
                 CheckersCell p2 = new CheckersCell(move.newRow, move.newColumn, board.MainBoard[move.newRow][move.newColumn]);
                         
                 gameController.markMove(board, p1, p2);
-                        
-                move.setEvaluation(moveEvaluation(board, currentPlayer));
+                if (Tester.considerHashing) {
+                    board.hashOccurrences.put(board.hashValue(), board.hashOccurrences.getOrDefault(board.hashValue(), 0) + 1);
 
+                    if (board.hashOccurrences.get(board.currentHash) >= 2) {
+                        move.setEvaluation(DRAW_SCORE); //if board appeared 3 times already, don't select move
+                    }
+                    else {
+                        move.setEvaluation(moveEvaluation(board, currentPlayer));
+                    }
+                }
+                       
+                /* Shouldn't be the same of memorising final board states, especially draws
+                if (Tester.considerTranspositionTables) {
+                    if (board.hasBoardScore(Tester.getPlayerIndex(currentPlayer))) {
+                        move.setEvaluation(board.getBoardScore(Tester.getPlayerIndex(currentPlayer)));
+                    }
+                    else
+                        move.setEvaluation(moveEvaluation(board, currentPlayer));
+                }
+                else
+                    move.setEvaluation(moveEvaluation(board, currentPlayer));*/
+                
+                if (Tester.considerHashing) {
+                    board.hashOccurrences.put(board.hashValue(), board.hashOccurrences.get(board.hashValue()) - 1);
+                }
                 gameController.unmarkMove(board);
 
-                if (Tester.considerTranspositionTables) {
+                /*if (Tester.considerTranspositionTables) {
                     board.setHashTable(Tester.getPlayerIndex(currentPlayer), move.getEvaluation());
-                }
+                }*/
             }
 
             Collections.sort(nextMoves);
@@ -160,39 +167,31 @@ public class Agent {
             // Print number of total minimax calls
             executionCount++;
 
-            // Periodic progress
-            /*if (executionCount % milestoneLimit == 0) {
-                System.out.println("Exploration progress: " + milestoneLimit + " calls reached");
-                System.out.flush();
-
-                milestoneLimit *= 10;
-            }*/
-
             // Time based
             if (System.currentTimeMillis() - lastLogTime > 43200000) { // 12 hours
-                System.out.println("Exploration progress (hour progress): " + executionCount);
+                System.out.println("Exploration progress (12 hours progress): " + executionCount);
                 //System.out.flush();
                 executionCount = 0; //may uncomment if keep periodic progress
                 lastLogTime = System.currentTimeMillis();
             }
         }
 
-        int checkWinner = gameController.checkBoardState(board);
-        if (checkWinner != 0 || depth == 0) {
-            int result = evaluatePlayer(board, currentPlayer, checkWinner);
+        if (Tester.considerHashing) {
+            if (board.hasBoardScore(Tester.getPlayerIndex(currentPlayer))) {
+                /*if (Tester.verbose && !Tester.haveHumanPlayer)
+                    executionCount--;*/
+                return board.getBoardScore(Tester.getPlayerIndex(currentPlayer));
+            }
+        }
 
-            if (Tester.considerTranspositionTables)
+        int checkWinner = gameController.checkBoardState(board);
+        if (checkWinner != 0 || (depth <= 0 && !Tester.completeEvaluation)) {
+            int result = evaluateFinalState(board, currentPlayer, checkWinner);
+
+            if (Tester.considerHashing)
                 board.setHashTable(Tester.getPlayerIndex(currentPlayer), result);
 
             return result;
-        }
-
-        if (Tester.considerTranspositionTables) {
-            if (board.hasBoardScore(Tester.getPlayerIndex(currentPlayer))) {
-                if (Tester.verbose && !Tester.haveHumanPlayer)
-                    executionCount--;
-                return board.getBoardScore(Tester.getPlayerIndex(currentPlayer));
-            }
         }
 
         CheckersCell firstCell = null, secondCell = null;
@@ -202,14 +201,15 @@ public class Agent {
         int bestScore = (currentPlayer == agentPiece) ? Integer.MIN_VALUE : Integer.MAX_VALUE;
         List<CheckersMove> allMoves = moveOrderingEvaluation(board, currentPlayer);
 
-        /*if (allMoves.isEmpty()){ //no more possible moves available, technically should have already resulted in an end state
-            int result = evaluatePlayer(board, currentPlayer, checkWinner);
+        if (allMoves.isEmpty()){ //no more possible moves available, technically should have already resulted in an end state
+            System.out.println("error, should alread given end state");
+            int result = evaluateFinalState(board, currentPlayer, checkWinner);
 
-            if (Tester.considerTranspositionTables)
-                board.setHashTable(getPlayerIndex(currentPlayer), result);
+            if (Tester.considerHashing)
+                board.setHashTable(Tester.getPlayerIndex(currentPlayer), result);
 
             return result;
-        }*/
+        }
 
         for(CheckersMove move : allMoves){
             //find all moves initial position and destination
@@ -217,11 +217,25 @@ public class Agent {
             CheckersCell p2 = new CheckersCell(move.newRow, move.newColumn, board.MainBoard[move.newRow][move.newColumn]);
                     
             gameController.markMove(board, p1, p2);
-                    
-            //currently saving score only when reaching final depth or have winner
-            int score = minimax(board, depth - 1, findNextPlayer(currentPlayer), alpha, beta);
-            //int score = minimax(board, depth, !isMaximizing, alpha, beta);
 
+            if (Tester.considerHashing) {
+                board.hashOccurrences.put(board.hashValue(), board.hashOccurrences.getOrDefault(board.hashValue(), 0) + 1);
+                if (board.hashOccurrences.get(board.currentHash) >= 2) {
+                    return DRAW_SCORE; //if board appeared 3 times already, return draw score
+                }
+            }
+            
+            int score = 0;
+            if (!gameController.checkDraw(board)) { //if draw state found, skip call beforehand
+                //currently saving score only when reaching final depth or have winner
+                if (!Tester.completeEvaluation)
+                    score = minimax(board, depth - 1, findNextPlayer(currentPlayer), alpha, beta);
+                else
+                    score = minimax(board, depth, findNextPlayer(currentPlayer), alpha, beta);
+            }
+
+            if (Tester.considerHashing)
+                board.hashOccurrences.put(board.hashValue(), board.hashOccurrences.get(board.hashValue()) - 1);
             gameController.unmarkMove(board);
 
             if (currentPlayer == agentPiece) {
@@ -245,7 +259,7 @@ public class Agent {
                 break;
         }
 
-        if (Tester.considerTranspositionTables)
+        if (Tester.considerHashing)
             board.setHashTable(Tester.getPlayerIndex(currentPlayer), bestScore);
 
         if (currentPlayer == agentPiece) {
@@ -363,11 +377,11 @@ public class Agent {
             switch (Tester.playerCount){
                 case 3:
                     result = new int[3];
-                    result[Tester.getPlayerIndex(Board.PLA)] = evaluatePlayer(board, Board.PLA, checkWinner);
-                    result[Tester.getPlayerIndex(Board.PLE)] = evaluatePlayer(board, Board.PLE, checkWinner);
-                    result[Tester.getPlayerIndex(Board.PLC)] = evaluatePlayer(board, Board.PLC, checkWinner);
+                    result[Tester.getPlayerIndex(Board.PLA)] = evaluateFinalState(board, Board.PLA, checkWinner);
+                    result[Tester.getPlayerIndex(Board.PLE)] = evaluateFinalState(board, Board.PLE, checkWinner);
+                    result[Tester.getPlayerIndex(Board.PLC)] = evaluateFinalState(board, Board.PLC, checkWinner);
 
-                    if (Tester.considerTranspositionTables) {
+                    if (Tester.considerHashing) {
                         board.setHashTable(Tester.getPlayerIndex(Board.PLA), result[Tester.getPlayerIndex(Board.PLA)]);
                         board.setHashTable(Tester.getPlayerIndex(Board.PLE), result[Tester.getPlayerIndex(Board.PLE)]);
                         board.setHashTable(Tester.getPlayerIndex(Board.PLC), result[Tester.getPlayerIndex(Board.PLC)]);
@@ -376,12 +390,12 @@ public class Agent {
 
                 case 4:
                     result = new int[4];
-                    result[Tester.getPlayerIndex(Board.PLA)] = evaluatePlayer(board, Board.PLA, checkWinner);
-                    result[Tester.getPlayerIndex(Board.PLD)] = evaluatePlayer(board, Board.PLD, checkWinner);
-                    result[Tester.getPlayerIndex(Board.PLB)] = evaluatePlayer(board, Board.PLB, checkWinner);
-                    result[Tester.getPlayerIndex(Board.PLC)] = evaluatePlayer(board, Board.PLC, checkWinner);
+                    result[Tester.getPlayerIndex(Board.PLA)] = evaluateFinalState(board, Board.PLA, checkWinner);
+                    result[Tester.getPlayerIndex(Board.PLD)] = evaluateFinalState(board, Board.PLD, checkWinner);
+                    result[Tester.getPlayerIndex(Board.PLB)] = evaluateFinalState(board, Board.PLB, checkWinner);
+                    result[Tester.getPlayerIndex(Board.PLC)] = evaluateFinalState(board, Board.PLC, checkWinner);
 
-                    if (Tester.considerTranspositionTables) {
+                    if (Tester.considerHashing) {
                         board.setHashTable(Tester.getPlayerIndex(Board.PLA), result[Tester.getPlayerIndex(Board.PLA)]);
                         board.setHashTable(Tester.getPlayerIndex(Board.PLD), result[Tester.getPlayerIndex(Board.PLD)]);
                         board.setHashTable(Tester.getPlayerIndex(Board.PLB), result[Tester.getPlayerIndex(Board.PLB)]);
@@ -391,14 +405,14 @@ public class Agent {
 
                 case 6:
                     result = new int[6];
-                    result[Tester.getPlayerIndex(Board.PLA)] = evaluatePlayer(board, Board.PLA, checkWinner);
-                    result[Tester.getPlayerIndex(Board.PLD)] = evaluatePlayer(board, Board.PLD, checkWinner);
-                    result[Tester.getPlayerIndex(Board.PLE)] = evaluatePlayer(board, Board.PLE, checkWinner);
-                    result[Tester.getPlayerIndex(Board.PLB)] = evaluatePlayer(board, Board.PLB, checkWinner);
-                    result[Tester.getPlayerIndex(Board.PLC)] = evaluatePlayer(board, Board.PLC, checkWinner);
-                    result[Tester.getPlayerIndex(Board.PLF)] = evaluatePlayer(board, Board.PLF, checkWinner);
+                    result[Tester.getPlayerIndex(Board.PLA)] = evaluateFinalState(board, Board.PLA, checkWinner);
+                    result[Tester.getPlayerIndex(Board.PLD)] = evaluateFinalState(board, Board.PLD, checkWinner);
+                    result[Tester.getPlayerIndex(Board.PLE)] = evaluateFinalState(board, Board.PLE, checkWinner);
+                    result[Tester.getPlayerIndex(Board.PLB)] = evaluateFinalState(board, Board.PLB, checkWinner);
+                    result[Tester.getPlayerIndex(Board.PLC)] = evaluateFinalState(board, Board.PLC, checkWinner);
+                    result[Tester.getPlayerIndex(Board.PLF)] = evaluateFinalState(board, Board.PLF, checkWinner);
 
-                    if (Tester.considerTranspositionTables) {
+                    if (Tester.considerHashing) {
                         board.setHashTable(Tester.getPlayerIndex(Board.PLA), result[Tester.getPlayerIndex(Board.PLA)]);
                         board.setHashTable(Tester.getPlayerIndex(Board.PLD), result[Tester.getPlayerIndex(Board.PLD)]);
                         board.setHashTable(Tester.getPlayerIndex(Board.PLE), result[Tester.getPlayerIndex(Board.PLE)]);
@@ -412,7 +426,7 @@ public class Agent {
             return result;
         }
 
-        if (Tester.considerTranspositionTables) {
+        if (Tester.considerHashing) {
             if (board.hasBoardScore(Tester.getPlayerIndex(currentPlayer))) {
                 int[] result = new int[3];
                 switch (Tester.playerCount){
@@ -490,7 +504,7 @@ public class Agent {
             }
         }
 
-        if (Tester.considerTranspositionTables) {
+        if (Tester.considerHashing) {
             switch (Tester.playerCount){
                 case 3:
                     board.setHashTable(Tester.getPlayerIndex(Board.PLA), bestUtility[Tester.getPlayerIndex(Board.PLA)]);
@@ -659,7 +673,7 @@ public class Agent {
     /////////////////////////////////////////////////////////////////////////////////////////////////
 
     //account only win, defeat, draw, still going, for two player
-    public int evaluatePlayer(Board localBoard, int currentPlayer, int checkWinner){
+    public int evaluateFinalState(Board localBoard, int currentPlayer, int checkWinner){
         if (checkWinner == agentPiece && currentPlayer == agentPiece) //win
         {
             switch (agentPiece){
@@ -688,64 +702,6 @@ public class Agent {
                     break;
             }
             return VICTORY_SCORE;
-        }
-        else if (checkWinner != 0 && checkWinner != -1){ //defeat
-            switch (enemyPiece){
-                case Board.PLA:
-                    if (finalBoardState != BoardState.PLB_WIN && 
-                        finalBoardState != BoardState.PLC_WIN && 
-                        finalBoardState != BoardState.PLD_WIN && 
-                        finalBoardState != BoardState.PLE_WIN && 
-                        finalBoardState != BoardState.PLF_WIN && finalBoardState != BoardState.DRAW)
-                        finalBoardState = BoardState.PLA_WIN;
-                    break;
-
-                case Board.PLB:
-                    if (finalBoardState != BoardState.PLA_WIN && 
-                        finalBoardState != BoardState.PLC_WIN && 
-                        finalBoardState != BoardState.PLD_WIN && 
-                        finalBoardState != BoardState.PLE_WIN && 
-                        finalBoardState != BoardState.PLF_WIN && finalBoardState != BoardState.DRAW)
-                        finalBoardState = BoardState.PLB_WIN;
-                    break;
-
-                case Board.PLC:
-                    if (finalBoardState != BoardState.PLA_WIN && 
-                        finalBoardState != BoardState.PLB_WIN && 
-                        finalBoardState != BoardState.PLD_WIN && 
-                        finalBoardState != BoardState.PLE_WIN && 
-                        finalBoardState != BoardState.PLF_WIN && finalBoardState != BoardState.DRAW)
-                        finalBoardState = BoardState.PLC_WIN;
-                    break;
-
-                case Board.PLD:
-                    if (finalBoardState != BoardState.PLA_WIN && 
-                        finalBoardState != BoardState.PLB_WIN && 
-                        finalBoardState != BoardState.PLC_WIN && 
-                        finalBoardState != BoardState.PLE_WIN && 
-                        finalBoardState != BoardState.PLF_WIN && finalBoardState != BoardState.DRAW)
-                        finalBoardState = BoardState.PLD_WIN;
-                    break;
-
-                case Board.PLE:
-                    if (finalBoardState != BoardState.PLA_WIN && 
-                        finalBoardState != BoardState.PLB_WIN && 
-                        finalBoardState != BoardState.PLC_WIN && 
-                        finalBoardState != BoardState.PLD_WIN && 
-                        finalBoardState != BoardState.PLF_WIN && finalBoardState != BoardState.DRAW)
-                        finalBoardState = BoardState.PLE_WIN;
-                    break;
-
-                case Board.PLF:
-                    if (finalBoardState != BoardState.PLA_WIN && 
-                        finalBoardState != BoardState.PLB_WIN && 
-                        finalBoardState != BoardState.PLC_WIN && 
-                        finalBoardState != BoardState.PLD_WIN && 
-                        finalBoardState != BoardState.PLE_WIN && finalBoardState != BoardState.DRAW)
-                        finalBoardState = BoardState.PLF_WIN;
-                    break;
-            }
-            return DEFEAT_SCORE;
         }
         else if (checkWinner == -1) { //Draw
             switch (agentPiece){
@@ -808,18 +764,75 @@ public class Agent {
             if (finalBoardState == BoardState.PLAYING)
                 finalBoardState = BoardState.DRAW;
 
-            return 0;
+            return DRAW_SCORE;
+        }
+        else if (checkWinner != 0 && checkWinner != -1){ //defeat
+            switch (checkWinner){
+                case Board.PLA:
+                    if (finalBoardState != BoardState.PLB_WIN && 
+                        finalBoardState != BoardState.PLC_WIN && 
+                        finalBoardState != BoardState.PLD_WIN && 
+                        finalBoardState != BoardState.PLE_WIN && 
+                        finalBoardState != BoardState.PLF_WIN && finalBoardState != BoardState.DRAW)
+                        finalBoardState = BoardState.PLA_WIN;
+                    break;
+
+                case Board.PLB:
+                    if (finalBoardState != BoardState.PLA_WIN && 
+                        finalBoardState != BoardState.PLC_WIN && 
+                        finalBoardState != BoardState.PLD_WIN && 
+                        finalBoardState != BoardState.PLE_WIN && 
+                        finalBoardState != BoardState.PLF_WIN && finalBoardState != BoardState.DRAW)
+                        finalBoardState = BoardState.PLB_WIN;
+                    break;
+
+                case Board.PLC:
+                    if (finalBoardState != BoardState.PLA_WIN && 
+                        finalBoardState != BoardState.PLB_WIN && 
+                        finalBoardState != BoardState.PLD_WIN && 
+                        finalBoardState != BoardState.PLE_WIN && 
+                        finalBoardState != BoardState.PLF_WIN && finalBoardState != BoardState.DRAW)
+                        finalBoardState = BoardState.PLC_WIN;
+                    break;
+
+                case Board.PLD:
+                    if (finalBoardState != BoardState.PLA_WIN && 
+                        finalBoardState != BoardState.PLB_WIN && 
+                        finalBoardState != BoardState.PLC_WIN && 
+                        finalBoardState != BoardState.PLE_WIN && 
+                        finalBoardState != BoardState.PLF_WIN && finalBoardState != BoardState.DRAW)
+                        finalBoardState = BoardState.PLD_WIN;
+                    break;
+
+                case Board.PLE:
+                    if (finalBoardState != BoardState.PLA_WIN && 
+                        finalBoardState != BoardState.PLB_WIN && 
+                        finalBoardState != BoardState.PLC_WIN && 
+                        finalBoardState != BoardState.PLD_WIN && 
+                        finalBoardState != BoardState.PLF_WIN && finalBoardState != BoardState.DRAW)
+                        finalBoardState = BoardState.PLE_WIN;
+                    break;
+
+                case Board.PLF:
+                    if (finalBoardState != BoardState.PLA_WIN && 
+                        finalBoardState != BoardState.PLB_WIN && 
+                        finalBoardState != BoardState.PLC_WIN && 
+                        finalBoardState != BoardState.PLD_WIN && 
+                        finalBoardState != BoardState.PLE_WIN && finalBoardState != BoardState.DRAW)
+                        finalBoardState = BoardState.PLF_WIN;
+                    break;
+            }
+            return DEFEAT_SCORE;
         }
 
         //finalBoardState = BoardState.PLAYING;
-
         return (currentPlayer == agentPiece) ? 1 : -1;
     }
 
     public int moveEvaluation(Board board, int player){
         int checkWinner = gameController.checkBoardState(board);
         if (checkWinner != 0){
-            return evaluatePlayer(board, player, checkWinner);
+            return evaluateFinalState(board, player, checkWinner);
         }
         else {
             ArrayList<CheckersCell> playerPiecesList = board.getPlayerPiecesList(player);

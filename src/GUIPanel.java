@@ -1,12 +1,8 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.text.BreakIterator;
-import java.util.ArrayList;
-import java.util.Map;
+import java.util.*;
 
 //gameplay with GUI, strintcly AI vs Human player
 public class GUIPanel extends JFrame
@@ -86,6 +82,11 @@ public class GUIPanel extends JFrame
         }
         
         switch (Tester.pieces) {
+            case 1:
+                int[] ccArray1 = {1, 4, 3, 4, 1};
+                CCArray = ccArray1;
+                break;
+
             case 3:
                 int[] ccArray3 = {1, 2, 7, 6, 5, 6, 7, 2, 1};
                 CCArray = ccArray3;
@@ -125,7 +126,7 @@ public class GUIPanel extends JFrame
                     colSelected = (int) column;
                 }
 
-                if (Tester.boardSettings != 1){
+                if (Tester.boardSettings % 2 == 1){
                     if (rowSelected % 2 == 0)
                         boardCol = colSelected * 2;
                     else 
@@ -154,7 +155,7 @@ public class GUIPanel extends JFrame
                             moves = gameController.availableSlots(boardRow, boardCol, Board.PLA);
 
                             for (CheckersCell p : moves) {
-                                if (Tester.boardSettings != 1)
+                                if (Tester.boardSettings % 2 == 1)
                                     p.column = p.column / 2;
                                 else {
                                     if (p.row % 2 == 1)
@@ -207,26 +208,36 @@ public class GUIPanel extends JFrame
                                     CheckersCell p1 = agents[i].getSelectedMove().getOldCell();
                                     CheckersCell p2 = agents[i].getSelectedMove().getNewCell();
 
-                                    int seedRowBest = p1.row;
-                                    int seedColBest = 0;
-                                    if(p1.column % 2 == 0)  
-                                        seedColBest = p1.column / 2;
-                                    else 
-                                        seedColBest = (p1.column - 1) / 2;
+                                    int seedRowOriginal = p1.row;
+                                    int seedColOriginal = 0;
 
-                                    Seed pieceMovedFrom = checkPiece(seedBoard, seedRowBest, seedColBest);
+                                    if (Tester.boardSettings % 2 == 1)
+                                        seedColOriginal = p1.column / 2;
+                                    else {
+                                        if (p1.row % 2 == 1)
+                                            seedColOriginal = p1.column / 2;
+                                        else
+                                            seedColOriginal = p1.column / 2 + 1;
+                                    }
+
+                                    Seed pieceMovedFrom = checkPiece(seedBoard, seedRowOriginal, seedColOriginal);
 
                                     int selectedRowSeed = p2.row;
                                     int selectedColSeed = 0;
-                                    if (p2.column % 2 ==0)  
+
+                                    if (Tester.boardSettings % 2 == 1)
                                         selectedColSeed = p2.column / 2;
-                                    else 
-                                        selectedColSeed = (p2.column - 1) / 2;
+                                    else {
+                                        if (p2.row % 2 == 1)
+                                            selectedColSeed = p2.column / 2;
+                                        else
+                                            selectedColSeed = p2.column / 2 + 1;
+                                    }
                                         
-                                    seedBoard[seedRowBest][seedColBest] = Seed.EMPTY;
+                                    seedBoard[seedRowOriginal][seedColOriginal] = Seed.EMPTY;
                                     //seedBoard[seedRowBest][seedColBest] = seedBoard[selectedRowSeed][selectedColSeed];
+
                                     seedBoard[selectedRowSeed][selectedColSeed] = pieceMovedFrom;
-                                    //updateGameState(seedBoard);
                                     updateGameState(board);
 
                                     repaint();
@@ -237,6 +248,8 @@ public class GUIPanel extends JFrame
                         pieceMoved = Seed.INVALID;
                         playerClick = true;
                     }
+
+                    repaint();
                 }
 
                 repaint();
@@ -259,7 +272,7 @@ public class GUIPanel extends JFrame
 
     public void initGame() { //set seedBoard
         int halfColumn = 0;
-        if (Tester.boardSettings != 1)
+        if (Tester.boardSettings % 2 == 1)
             halfColumn = (Tester.COLS[Tester.boardSettings] - 1) / 2;
         else
             halfColumn = Tester.COLS[Tester.boardSettings] / 2;
@@ -302,76 +315,76 @@ public class GUIPanel extends JFrame
             col = 0;
         }
 
-        int sideRepetition = 2 + Tester.boardSettings;
+        int sideRepetition = 1 + Tester.boardSettings;
         int[] startCol;
-        if (Tester.boardSettings != 1)
+        if (Tester.boardSettings % 2 == 1)
             startCol = new int[]{0, 1, 1, 2};
         else
             startCol = new int[]{0, 1, 1};
 
         //Set PlayerC pieces
-        for (int row = 0; row < 2 + Tester.boardSettings; row++) {
+        for (int row = 0; row < 1 + Tester.boardSettings; row++) {
             for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
-                if (Tester.boardSettings != 1) {
+                if (Tester.boardSettings % 2 == 1) {
                     if (row % 2 == 0)
-                        seedBoard[2 + Tester.boardSettings + row][startCol[row] + colIncrease] = Seed.PLAYERC;
+                        seedBoard[1 + Tester.boardSettings + row][startCol[row] + colIncrease] = Seed.PLAYERC;
                     else
-                        seedBoard[2 + Tester.boardSettings + row][startCol[row] + colIncrease - 1] = Seed.PLAYERC;
+                        seedBoard[1 + Tester.boardSettings + row][startCol[row] + colIncrease - 1] = Seed.PLAYERC;
                 }
                 else {
-                    seedBoard[2 + Tester.boardSettings + row][startCol[row] + colIncrease] = Seed.PLAYERC;
+                    seedBoard[1 + Tester.boardSettings + row][startCol[row] + colIncrease] = Seed.PLAYERC;
                 }
             }
             sideRepetition--;
         }
 
-        sideRepetition = 2 + Tester.boardSettings;
+        sideRepetition = 1 + Tester.boardSettings;
         //Set PlayerF pieces
-        for (int row = 0; row < 2 + Tester.boardSettings; row++) {
+        for (int row = 0; row < 1 + Tester.boardSettings; row++) {
             for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
-                if (Tester.boardSettings != 1) {
+                if (Tester.boardSettings % 2 == 1) {
                     if (row % 2 == 0)
-                        seedBoard[Tester.ROWS[Tester.boardSettings] - 3 - Tester.boardSettings - row][startCol[row] + colIncrease] = Seed.PLAYERF;
+                        seedBoard[Tester.ROWS[Tester.boardSettings] - 2 - Tester.boardSettings - row][startCol[row] + colIncrease] = Seed.PLAYERF;
                     else
-                        seedBoard[Tester.ROWS[Tester.boardSettings] - 3 - Tester.boardSettings - row][startCol[row] + colIncrease - 1] = Seed.PLAYERF;
+                        seedBoard[Tester.ROWS[Tester.boardSettings] - 2 - Tester.boardSettings - row][startCol[row] + colIncrease - 1] = Seed.PLAYERF;
                 }
                 else {
-                    seedBoard[Tester.ROWS[Tester.boardSettings] - 3 - Tester.boardSettings - row][startCol[row] + colIncrease] = Seed.PLAYERF;
+                    seedBoard[Tester.ROWS[Tester.boardSettings] - 2 - Tester.boardSettings - row][startCol[row] + colIncrease] = Seed.PLAYERF;
                 }
                 
             }
             sideRepetition--;
         }
 
-        sideRepetition = 2 + Tester.boardSettings;
+        sideRepetition = 1 + Tester.boardSettings;
         //Set PlayerE pieces
-        for (int row = 0; row < 2 + Tester.boardSettings; row++) {
+        for (int row = 0; row < 1 + Tester.boardSettings; row++) {
             for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
-                if (Tester.boardSettings != 1) {
-                    seedBoard[2 + Tester.boardSettings + row][Tester.COLS[Tester.boardSettings] - 1 - startCol[row] - colIncrease] = Seed.PLAYERE;
+                if (Tester.boardSettings % 2 == 1) {
+                    seedBoard[1 + Tester.boardSettings + row][Tester.COLS[Tester.boardSettings] - 1 - startCol[row] - colIncrease] = Seed.PLAYERE;
                 }
                 else {
                     if (row % 2 == 0)
-                        seedBoard[2 + Tester.boardSettings + row][Tester.COLS[Tester.boardSettings] - 1 - startCol[row] - colIncrease] = Seed.PLAYERE;
+                        seedBoard[1 + Tester.boardSettings + row][Tester.COLS[Tester.boardSettings] - 1 - startCol[row] - colIncrease] = Seed.PLAYERE;
                     else
-                        seedBoard[2 + Tester.boardSettings + row][Tester.COLS[Tester.boardSettings] - startCol[row] - colIncrease] = Seed.PLAYERE;
+                        seedBoard[1 + Tester.boardSettings + row][Tester.COLS[Tester.boardSettings] - startCol[row] - colIncrease] = Seed.PLAYERE;
                 }
             }
             sideRepetition--;
         }
 
-        sideRepetition = 2 + Tester.boardSettings;
+        sideRepetition = 1 + Tester.boardSettings;
         //Set PlayerD pieces
-        for (int row = 0; row < 2 + Tester.boardSettings; row++) {
+        for (int row = 0; row < 1 + Tester.boardSettings; row++) {
             for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
-                if (Tester.boardSettings != 1) {
-                    seedBoard[Tester.ROWS[Tester.boardSettings] - 3 - Tester.boardSettings - row][Tester.COLS[Tester.boardSettings] - 1 - startCol[row] - colIncrease] = Seed.PLAYERD;
+                if (Tester.boardSettings % 2 == 1) {
+                    seedBoard[Tester.ROWS[Tester.boardSettings] - 2 - Tester.boardSettings - row][Tester.COLS[Tester.boardSettings] - 1 - startCol[row] - colIncrease] = Seed.PLAYERD;
                 }
                 else {
                     if (row % 2 == 0)
-                        seedBoard[Tester.ROWS[Tester.boardSettings] - 3 - Tester.boardSettings - row][Tester.COLS[Tester.boardSettings] - 1 - startCol[row] - colIncrease] = Seed.PLAYERD;
+                        seedBoard[Tester.ROWS[Tester.boardSettings] - 2 - Tester.boardSettings - row][Tester.COLS[Tester.boardSettings] - 1 - startCol[row] - colIncrease] = Seed.PLAYERD;
                     else
-                        seedBoard[Tester.ROWS[Tester.boardSettings] - 3 - Tester.boardSettings - row][Tester.COLS[Tester.boardSettings] - startCol[row] - colIncrease] = Seed.PLAYERD;
+                        seedBoard[Tester.ROWS[Tester.boardSettings] - 2 - Tester.boardSettings - row][Tester.COLS[Tester.boardSettings] - startCol[row] - colIncrease] = Seed.PLAYERD;
                 }
             }
             sideRepetition--;
@@ -382,8 +395,8 @@ public class GUIPanel extends JFrame
 
     public Seed checkPiece(Seed[][] boarding, int rowSelected, int colSelected) {
         Seed selected = Seed.INVALID;
-        if (rowSelected >= Tester.ROWS[Tester.boardSettings] || colSelected >= Tester.COLS[Tester.boardSettings]) //overflow mouse selected position
-            return selected;
+        // if (rowSelected >= Tester.ROWS[Tester.boardSettings] || colSelected >= Tester.COLS[Tester.boardSettings]) //overflow mouse selected position
+        //   return selected;
 
         switch (boarding[rowSelected][colSelected]){
             case PLAYERA:
@@ -666,14 +679,18 @@ public class GUIPanel extends JFrame
                     int plotOffset = 0;
                     switch (Tester.boardSettings) {
                         case 0:
-                            plotOffset = 3; 
+                            plotOffset = 2; 
                             break;
 
                         case 1:
-                            plotOffset = 5; 
+                            plotOffset = 3; 
                             break;
 
                         case 2:
+                            plotOffset = 5; 
+                            break;
+
+                        case 3:
                             plotOffset = 6;
                             break;
                     }
@@ -770,7 +787,6 @@ public class GUIPanel extends JFrame
                     }
                 }
             }
-
 
             if (GameController.currentState != GameController.GameState.PlayerA_WON && 
                 GameController.currentState != GameController.GameState.PlayerB_WON &&

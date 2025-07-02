@@ -7,8 +7,6 @@ public class GameController {
     }
     public static GameState currentState;
     public Board board;
-
-    private int count;
     private ArrayList<CheckersCell> validJump = new ArrayList<>();
 
     public GameController(Board b) {
@@ -28,6 +26,15 @@ public class GameController {
         if (!board.moveHistory.isEmpty()) {
             CheckersMove lastMove = board.moveHistory.removeLast();
 
+            int oldPieceValue = localBoard.MainBoard[lastMove.oldRow][lastMove.oldColumn];
+            int destPieceValue = localBoard.MainBoard[lastMove.newRow][lastMove.newColumn];
+
+            //xor out old values
+            if (Tester.considerHashing) {
+                localBoard.updateHashCode(lastMove.getNewCell(), destPieceValue);
+                localBoard.updateHashCode(lastMove.getOldCell(), oldPieceValue);
+            }
+
             int temp = localBoard.MainBoard[lastMove.oldRow][lastMove.oldColumn];
             localBoard.MainBoard[lastMove.oldRow][lastMove.oldColumn] = localBoard.MainBoard[lastMove.newRow][lastMove.newColumn];
             localBoard.MainBoard[lastMove.newRow][lastMove.newColumn] = temp;
@@ -37,14 +44,24 @@ public class GameController {
             reverseLastMove.reverseMove();
             localBoard.updatePlayerPiece(reverseLastMove, localBoard.MainBoard[reverseLastMove.oldRow][reverseLastMove.oldColumn]);
 
-            if (Tester.considerTranspositionTables) {
-                localBoard.updateHashCode(lastMove.getNewCell());
-                localBoard.updateHashCode(lastMove.getOldCell());
+            //xor in new values
+            if (Tester.considerHashing) {
+                localBoard.updateHashCode(lastMove.getNewCell(), oldPieceValue);
+                localBoard.updateHashCode(lastMove.getOldCell(), destPieceValue);
             }
         }
     }
 
     public void movePiece(Board currentBoard, CheckersMove move){
+        int oldPieceValue = currentBoard.MainBoard[move.oldRow][move.oldColumn];
+        int destPieceValue = currentBoard.MainBoard[move.newRow][move.newColumn];
+
+        //xor out old values
+        if (Tester.considerHashing) {
+            currentBoard.updateHashCode(move.getOldCell(), oldPieceValue);
+            currentBoard.updateHashCode(move.getNewCell(), destPieceValue);
+        }
+
         int piece = currentBoard.MainBoard[move.oldRow][move.oldColumn];
         currentBoard.MainBoard[move.oldRow][move.oldColumn] = currentBoard.MainBoard[move.newRow][move.newColumn];
         currentBoard.MainBoard[move.newRow][move.newColumn] = piece;
@@ -52,10 +69,10 @@ public class GameController {
         //update player piece position
         currentBoard.updatePlayerPiece(move, currentBoard.MainBoard[move.oldRow][move.oldColumn]);
 
-        //xor out old position, xor in new position
-        if (Tester.considerTranspositionTables) {
-            currentBoard.updateHashCode(move.getOldCell());
-            currentBoard.updateHashCode(move.getNewCell());
+        //xor in new values
+        if (Tester.considerHashing) {
+            currentBoard.updateHashCode(move.getOldCell(), destPieceValue);
+            currentBoard.updateHashCode(move.getNewCell(), oldPieceValue);
         }
     }
 
@@ -87,20 +104,17 @@ public class GameController {
         pointResult.addAll(0, validJump);
         validJump.clear();
 
-        /*if (Tester.verbose && !Tester.haveHumanPlayer) {
-            System.out.println("AvailableMoves for player " + player);
-            for (CheckersCell cell : pointResult) {
-                System.out.println("(" + cell.row + ", " + cell.column + ")");
-            }
-            System.out.println("");
-        }*/
+        /*System.out.println("AvailableMoves for player " + player);
+        for (CheckersCell cell : pointResult) {
+            System.out.println("(" + cell.row + ", " + cell.column + ")");
+        }
+        System.out.println("");*/
 
         return pointResult;
     }
 
     //valid movements in nearby positions
     public ArrayList<CheckersCell> validMoves(int row, int column, int player) {
-        count = 0;
         ArrayList<CheckersCell> points = new ArrayList<>();
 
         if (column > 1) {
@@ -109,8 +123,6 @@ public class GameController {
                 CheckersCell p = new CheckersCell(row, column - 2, board.MainBoard[row][column - 2]);
                 points.add(p);
             }
-            else 
-                count++;
         }
         if (column < (board.getColumnLength() - 2)) {
             //Right
@@ -118,8 +130,6 @@ public class GameController {
                 CheckersCell p = new CheckersCell(row, column + 2, board.MainBoard[row][column + 2]);
                 points.add(p);
             }
-            else 
-                count++;
         }
 
         if (row > 0) {
@@ -128,16 +138,12 @@ public class GameController {
                 CheckersCell p = new CheckersCell(row - 1, column - 1, board.MainBoard[row - 1][column - 1]);
                 points.add(p);
             }
-            else 
-                count++;
 
             //top right
             if (column < (board.getColumnLength() - 1) && board.MainBoard[row - 1][column + 1] != Board.NOV && validSpace(row, column, row - 1, column + 1)) {
                 CheckersCell p = new CheckersCell(row - 1, column + 1, board.MainBoard[row - 1][column + 1]);
                 points.add(p);
             }
-            else 
-                count++;
         }
 
         if(row < (board.getRowLength() - 1)) {
@@ -146,16 +152,12 @@ public class GameController {
                 CheckersCell p = new CheckersCell(row + 1, column + 1, board.MainBoard[row + 1][column + 1]);
                 points.add(p);
             }
-            else 
-                count++;
 
             //Bottom Left
             if (column > 0 && board.MainBoard[row + 1][column - 1] != Board.NOV && validSpace(row, column, row + 1, column - 1)) {
                 CheckersCell p = new CheckersCell(row + 1, column - 1, board.MainBoard[row + 1][column - 1]);
                 points.add(p);
             }
-            else 
-                count++;
         }
 
         return points;
@@ -266,10 +268,9 @@ public class GameController {
         return false;
     }
 
-    //check if position is valid (make non playing players spaces accessible only if the relative player is playing)
+    //check if position is valid (non playing players spaces accessible only if the relative player is playing)
     public boolean validSpace(int oldRow, int oldColumn, int newRow, int newColumn) { 
-        // may cause issues with the recursive check of passage in other areas
-        //a piece inside the goal zone can only move inside it
+        // a piece inside the goal zone can only move inside it
         if (checkPieceInsideZone(oldRow, oldColumn, getPlayerGoalZone(board.MainBoard[oldRow][oldColumn])) && 
             !checkPieceInsideZone(newRow, newColumn, getPlayerGoalZone(board.MainBoard[oldRow][oldColumn])))
             return false;
@@ -393,6 +394,7 @@ public class GameController {
         return false;
     }
 
+    //given player indicate the index of the goal area
     public int getPlayerGoalZone(int player){
         switch (player){
             case Board.PLA:
@@ -419,24 +421,24 @@ public class GameController {
     }
 
     public boolean checkPieceInsideZone (int row, int column, int playerPiece){
-        int sideRepetition = 2 + Tester.boardSettings;
+        int sideRepetition = 1 + Tester.boardSettings;
         int[] startCol = {0, 1, 2, 3};
 
         switch (playerPiece) {
             case Board.PLA:
-                if (row >= (board.getRowLength() - (2 + Tester.boardSettings)))
+                if (row >= (board.getRowLength() - (1 + Tester.boardSettings)))
                         return true;
                 break;
 
             case Board.PLB:
-                if (row < (2 + Tester.boardSettings))
+                if (row < (1 + Tester.boardSettings))
                     return true;
                 break;
 
             case Board.PLC:
-                for (int checkRow = 0; checkRow < 2 + Tester.boardSettings; checkRow++) {
+                for (int checkRow = 0; checkRow < 1 + Tester.boardSettings; checkRow++) {
                     for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
-                        int rowIndex = 2 + Tester.boardSettings + checkRow;
+                        int rowIndex = 1 + Tester.boardSettings + checkRow;
                         int colIndex = startCol[checkRow] + (colIncrease * 2);
 
                         if (rowIndex == row && colIndex == column)
@@ -447,9 +449,9 @@ public class GameController {
                 break;
 
             case Board.PLF:
-                for (int checkRow = 0; checkRow < 2 + Tester.boardSettings; checkRow++) {
+                for (int checkRow = 0; checkRow < 1 + Tester.boardSettings; checkRow++) {
                     for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
-                        int rowIndex = Tester.ROWS[Tester.boardSettings] - 3 - Tester.boardSettings - checkRow;
+                        int rowIndex = Tester.ROWS[Tester.boardSettings] - 2 - Tester.boardSettings - checkRow;
                         int colIndex = startCol[checkRow] + (colIncrease * 2);
 
                         if (rowIndex == row && colIndex == column)
@@ -460,9 +462,9 @@ public class GameController {
                 break;
 
             case Board.PLE:
-                for (int checkRow = 0; checkRow < 2 + Tester.boardSettings; checkRow++) {
+                for (int checkRow = 0; checkRow < 1 + Tester.boardSettings; checkRow++) {
                     for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
-                        int rowIndex = 2 + Tester.boardSettings + checkRow;
+                        int rowIndex = 1 + Tester.boardSettings + checkRow;
                         int colIndex = Tester.COLUMNS[Tester.boardSettings] - 1 - startCol[checkRow] - (colIncrease * 2);
 
                         if (rowIndex == row && colIndex == column)
@@ -473,9 +475,9 @@ public class GameController {
                 break;
 
             case Board.PLD:
-                for (int checkRow = 0; checkRow < 2 + Tester.boardSettings; checkRow++) {
+                for (int checkRow = 0; checkRow < 1 + Tester.boardSettings; checkRow++) {
                     for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
-                        int rowIndex = Tester.ROWS[Tester.boardSettings] - 3 - Tester.boardSettings - checkRow;
+                        int rowIndex = Tester.ROWS[Tester.boardSettings] - 2 - Tester.boardSettings - checkRow;
                         int colIndex = Tester.COLUMNS[Tester.boardSettings] - 1 - startCol[checkRow] - (colIncrease * 2);
 
                         if (rowIndex == row && colIndex == column)
@@ -493,13 +495,13 @@ public class GameController {
         // (-1) draw situation
         // (Board piece) winner is corresponding player
 
-        //if goal spaced is filled and there's a t least one piece of the player, the player wins (prevent base stalling)
+        //if goal spaced is filled and there's at least one piece of the player, the player wins (prevent base stalling and more win conditions)
 
         int trackOwn = 0;
         int trackOpponent = 0; //opposite player that stays in its initial area
 
         //Player A check if pieces are in Player B area
-        for(int row = 0; row < (2 + Tester.boardSettings); row++){
+        for(int row = 0; row < (1 + Tester.boardSettings); row++){
             for(int column = 0; column < currentBoard.MainBoard[0].length; column++){
                 if (currentBoard.MainBoard[row][column] == Board.PLA) {
                     trackOwn++;
@@ -518,139 +520,150 @@ public class GameController {
 
         /////////////////////////////////////////////////////////////////////////////////////////////////
 
-        trackOwn = 0;
-        trackOpponent = 0;
+        if (Tester.playerCount != 3) {
+            trackOwn = 0;
+            trackOpponent = 0;
 
-        //Player B check if pieces are in Player A area
-        for(int row = (currentBoard.getRowLength() - (2 + Tester.boardSettings)); row < currentBoard.MainBoard.length ; row++){
-            for(int column = 0; column < currentBoard.getColumnLength(); column++){
-                if (currentBoard.MainBoard[row][column] == Board.PLB) {
-                    trackOwn++;
-                }
-                else if (currentBoard.MainBoard[row][column] != Board.NOV &&
-                        currentBoard.MainBoard[row][column] == Board.PLA) {
-                    trackOpponent++;
+            //Player B check if pieces are in Player A area
+            for(int row = (currentBoard.getRowLength() - (1 + Tester.boardSettings)); row < currentBoard.MainBoard.length ; row++){
+                for(int column = 0; column < currentBoard.getColumnLength(); column++){
+                    if (currentBoard.MainBoard[row][column] == Board.PLB) {
+                        trackOwn++;
+                    }
+                    else if (currentBoard.MainBoard[row][column] != Board.NOV &&
+                            currentBoard.MainBoard[row][column] == Board.PLA) {
+                        trackOpponent++;
+                    }
                 }
             }
-        }
 
-        if ((trackOwn + trackOpponent) == Tester.pieces && trackOwn > 0) {
-            //this.currentState = GameState.PlayerB_WON;
-            return Board.PLB;
+            if ((trackOwn + trackOpponent) == Tester.pieces && trackOwn > 0) {
+                //this.currentState = GameState.PlayerB_WON;
+                return Board.PLB;
+            }
         }
 
         /////////////////////////////////////////////////////////////////////////////////////////////////
 
-        int sideRepetition = 2 + Tester.boardSettings;
+        int sideRepetition = 1 + Tester.boardSettings;
         int[] startCol = {0, 1, 2, 3};
 
-        trackOwn = 0;
-        trackOpponent = 0;
+        if (Tester.playerCount != 2) {
+            trackOwn = 0;
+            trackOpponent = 0;
 
-        //Player C check if pieces are in Player D area
-        for (int row = 0; row < 2 + Tester.boardSettings; row++) {
-            for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
-                int rowIndex = Tester.ROWS[Tester.boardSettings] - 3 - Tester.boardSettings - row;
-                int colIndex = Tester.COLUMNS[Tester.boardSettings] - 1 - startCol[row] - (colIncrease * 2);
+            //Player C check if pieces are in Player D area
+            for (int row = 0; row < 1 + Tester.boardSettings; row++) {
+                for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
+                    int rowIndex = Tester.ROWS[Tester.boardSettings] - 2 - Tester.boardSettings - row;
+                    int colIndex = Tester.COLUMNS[Tester.boardSettings] - 1 - startCol[row] - (colIncrease * 2);
 
-                if (currentBoard.MainBoard[rowIndex][colIndex] == Board.PLC) {
-                    trackOwn++;
+                    if (currentBoard.MainBoard[rowIndex][colIndex] == Board.PLC) {
+                        trackOwn++;
+                    }
+                    else if (currentBoard.MainBoard[rowIndex][colIndex] != Board.NOV &&
+                            currentBoard.MainBoard[rowIndex][colIndex] == Board.PLD) {
+                        trackOpponent++;
+                    }
                 }
-                else if (currentBoard.MainBoard[rowIndex][colIndex] != Board.NOV &&
-                        currentBoard.MainBoard[rowIndex][colIndex] == Board.PLD) {
-                    trackOpponent++;
-                }
+                sideRepetition--;
             }
-            sideRepetition--;
-        }
 
-        if ((trackOwn + trackOpponent) == Tester.pieces && trackOwn > 0) {
-            //this.currentState = GameState.PlayerC_WON;
-            return Board.PLC;
+            if ((trackOwn + trackOpponent) == Tester.pieces && trackOwn > 0) {
+                //this.currentState = GameState.PlayerC_WON;
+                return Board.PLC;
+            }
         }
 
         /////////////////////////////////////////////////////////////////////////////////////////////////
 
-        trackOwn = 0;
-        trackOpponent = 0;
+        if (Tester.playerCount == 6) {
+            trackOwn = 0;
+            trackOpponent = 0;
 
-        sideRepetition = 2 + Tester.boardSettings;
-        //Player F check if pieces are in Player E area
-        for (int row = 0; row < 2 + Tester.boardSettings; row++) {
-            for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
-                int rowIndex = 2 + Tester.boardSettings + row;
-                int colIndex = Tester.COLUMNS[Tester.boardSettings] - 1 - startCol[row] - (colIncrease * 2);
+            sideRepetition = 1 + Tester.boardSettings;
 
-                if (currentBoard.MainBoard[rowIndex][colIndex] == Board.PLF) {
-                    trackOwn++;
+            //Player F check if pieces are in Player E area
+            for (int row = 0; row < 1 + Tester.boardSettings; row++) {
+                for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
+                    int rowIndex = 1 + Tester.boardSettings + row;
+                    int colIndex = Tester.COLUMNS[Tester.boardSettings] - 1 - startCol[row] - (colIncrease * 2);
+
+                    if (currentBoard.MainBoard[rowIndex][colIndex] == Board.PLF) {
+                        trackOwn++;
+                    }
+                    else if (currentBoard.MainBoard[rowIndex][colIndex] != Board.NOV &&
+                            currentBoard.MainBoard[rowIndex][colIndex] == Board.PLE) {
+                        trackOpponent++;
+                    }
                 }
-                else if (currentBoard.MainBoard[rowIndex][colIndex] != Board.NOV &&
-                        currentBoard.MainBoard[rowIndex][colIndex] == Board.PLE) {
-                    trackOpponent++;
-                }
+                sideRepetition--;
             }
-            sideRepetition--;
-        }
 
-        if ((trackOwn + trackOpponent) == Tester.pieces && trackOwn > 0) {
-            //this.currentState = GameState.PlayerF_WON;
-            return Board.PLF;
+            if ((trackOwn + trackOpponent) == Tester.pieces && trackOwn > 0) {
+                //this.currentState = GameState.PlayerF_WON;
+                return Board.PLF;
+            }
         }
 
         /////////////////////////////////////////////////////////////////////////////////////////////////
         
-        trackOwn = 0;
-        trackOpponent = 0;
+        if (Tester.playerCount != 2 && Tester.playerCount != 4) {
+            trackOwn = 0;
+            trackOpponent = 0;
 
-        sideRepetition = 2 + Tester.boardSettings;
-        //Player E check if pieces are in Player F area
-        for (int row = 0; row < 2 + Tester.boardSettings; row++) {
-            for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
-                int rowIndex = Tester.ROWS[Tester.boardSettings] - 3 - Tester.boardSettings - row;
-                int colIndex = startCol[row] + (colIncrease * 2);
+            sideRepetition = 1 + Tester.boardSettings;
+            //Player E check if pieces are in Player F area
+            for (int row = 0; row < 1 + Tester.boardSettings; row++) {
+                for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
+                    int rowIndex = Tester.ROWS[Tester.boardSettings] - 2 - Tester.boardSettings - row;
+                    int colIndex = startCol[row] + (colIncrease * 2);
 
-                if (currentBoard.MainBoard[rowIndex][colIndex] == Board.PLE) {
-                    trackOwn++;
+                    if (currentBoard.MainBoard[rowIndex][colIndex] == Board.PLE) {
+                        trackOwn++;
+                    }
+                    else if (currentBoard.MainBoard[rowIndex][colIndex] != Board.NOV &&
+                            currentBoard.MainBoard[rowIndex][colIndex] == Board.PLF) {
+                        trackOpponent++;
+                    }
                 }
-                else if (currentBoard.MainBoard[rowIndex][colIndex] != Board.NOV &&
-                        currentBoard.MainBoard[rowIndex][colIndex] == Board.PLF) {
-                    trackOpponent++;
-                }
+                sideRepetition--;
             }
-            sideRepetition--;
-        }
 
-        if ((trackOwn + trackOpponent) == Tester.pieces && trackOwn > 0) {
-            //this.currentState = GameState.PlayerE_WON;
-            return Board.PLE;
+            if ((trackOwn + trackOpponent) == Tester.pieces && trackOwn > 0) {
+                //this.currentState = GameState.PlayerE_WON;
+                return Board.PLE;
+            }
         }
 
         /////////////////////////////////////////////////////////////////////////////////////////////////
 
-        trackOwn = 0;
-        trackOpponent = 0;
+        if (Tester.playerCount != 2 && Tester.playerCount != 3) {
+            trackOwn = 0;
+            trackOpponent = 0;
 
-        sideRepetition = 2 + Tester.boardSettings;
-        //Player D check if pieces are in Player C area
-        for (int row = 0; row < 2 + Tester.boardSettings; row++) {
-            for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
-                int rowIndex = 2 + Tester.boardSettings + row;
-                int colIndex = startCol[row] + (colIncrease * 2);
+            sideRepetition = 1 + Tester.boardSettings;
+            //Player D check if pieces are in Player C area
+            for (int row = 0; row < 1 + Tester.boardSettings; row++) {
+                for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
+                    int rowIndex = 1 + Tester.boardSettings + row;
+                    int colIndex = startCol[row] + (colIncrease * 2);
 
-                if (currentBoard.MainBoard[rowIndex][colIndex] == Board.PLD) {
-                    trackOwn++;
+                    if (currentBoard.MainBoard[rowIndex][colIndex] == Board.PLD) {
+                        trackOwn++;
+                    }
+                    else if (currentBoard.MainBoard[rowIndex][colIndex] != Board.NOV &&
+                            currentBoard.MainBoard[rowIndex][colIndex] == Board.PLC) {
+                        trackOpponent++;
+                    }
                 }
-                else if (currentBoard.MainBoard[rowIndex][colIndex] != Board.NOV &&
-                        currentBoard.MainBoard[rowIndex][colIndex] == Board.PLC) {
-                    trackOpponent++;
-                }
+                sideRepetition--;
             }
-            sideRepetition--;
-        }
 
-        if ((trackOwn + trackOpponent) == Tester.pieces && trackOwn > 0) {
-            //this.currentState = GameState.PlayerD_WON;
-            return Board.PLD;
+            if ((trackOwn + trackOpponent) == Tester.pieces && trackOwn > 0) {
+                //this.currentState = GameState.PlayerD_WON;
+                return Board.PLD;
+            }
         }
 
         /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -663,22 +676,8 @@ public class GameController {
     }
 
     public boolean checkDraw(Board localBoard){ 
-        /*if (localBoard.moveHistory.size() >= 6) { //in two player games
-            Board.LastInfo lastMove1 = localBoard.moveHistory.get(localBoard.moveHistory.size() - 1);
-            Board.LastInfo lastMove2 = localBoard.moveHistory.get(localBoard.moveHistory.size() - 2);
-
-            //check if both player haven't changed move and are going back and forth within 6 moves
-            if (lastMove1.equals(localBoard.moveHistory.get(localBoard.moveHistory.size() - 5)) &&
-                lastMove1.reverseMove(localBoard.moveHistory.get(localBoard.moveHistory.size() - 3))) {
-                if (lastMove2.equals(localBoard.moveHistory.get(localBoard.moveHistory.size() - 6)) &&
-                    lastMove2.reverseMove(localBoard.moveHistory.get(localBoard.moveHistory.size() - 4))) {
-                        return true;
-                }
-            }
-        }*/
-
         int moveCountToCheck = 3 * Tester.playerCount; //every player moves forward, every player moves back, every player moves forward with the same evaluation
-        if (localBoard.moveHistory.size() >= 3 * Tester.playerCount) { //generic
+        if (localBoard.moveHistory.size() >= moveCountToCheck) { //generic
             List<CheckersMove> lastMoves = localBoard.moveHistory.subList(
                 localBoard.moveHistory.size() - moveCountToCheck,
                 localBoard.moveHistory.size()

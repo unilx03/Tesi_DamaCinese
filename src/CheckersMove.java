@@ -1,5 +1,3 @@
-import java.util.*;
-
 public class CheckersMove implements Comparable<CheckersMove>{
 	public int oldRow;
     public int oldColumn;
