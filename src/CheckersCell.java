@@ -1,7 +1,7 @@
 public class CheckersCell{
-    public int row;
-    public int column;
-	public int state;
+    public byte row;
+    public byte column;
+	public byte state;
 
     /**
 	 * Allocates a cell
@@ -12,14 +12,14 @@ public class CheckersCell{
 	 */
 
     public CheckersCell(int i, int j) {
-		this.row = i;
-		this.column = j;
+		this.row = (byte)i;
+		this.column = (byte)j;
 	}
 
 	public CheckersCell(int i, int j, int state) {
-		this.row = i;
-		this.column = j;
-		this.state = state;
+		this.row = (byte)i;
+		this.column = (byte)j;
+		this.state = (byte)state;
 	}
 
     @Override

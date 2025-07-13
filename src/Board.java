@@ -17,23 +17,23 @@ import java.util.*;
 
 public class Board {
 
-    public final static int NOV = 0; //for slot references
-    public final static int EMP = 1;
+    public final static byte NOV = 0; //for slot references
+    public final static byte EMP = 1;
     
-    public final static int PLA = 2;
-    public final static int PLB = 3;
-    public final static int PLC = 4;
-    public final static int PLD = 5;
-    public final static int PLE = 6;
-    public final static int PLF = 7;
+    public final static byte PLA = 2;
+    public final static byte PLB = 3;
+    public final static byte PLC = 4;
+    public final static byte PLD = 5;
+    public final static byte PLE = 6;
+    public final static byte PLF = 7;
 
     protected long[][][] zobristTable; //encoding of board with hash
     protected long currentHash;
 
-    protected Hashtable<Long, ArrayList<Integer>> transpositionTables; //for board scores for players
+    protected Hashtable<Long, ArrayList<Integer>> transpositionTables; //for board scores for players, save victory defeat and in progress value to avoid repeating time consuming evaluation functions
     protected Hashtable<Long, Integer> hashOccurrences; //count how many times a board occurrs, more than 3 times considered a draw
 
-    protected int[][] MainBoard;
+    protected byte[][] MainBoard;
     protected List<ArrayList<CheckersCell>> playerPieces;
     protected LinkedList<CheckersMove> moveHistory;
 
@@ -41,7 +41,7 @@ public class Board {
     {
         switch (Tester.pieces) {
             case 1:
-                int[][] board1 = {
+                byte[][] board1 = {
                     {NOV, NOV, NOV, PLB, NOV, NOV, NOV},
                     {PLC, NOV, EMP, NOV, EMP, NOV, PLE},
                     {NOV, EMP, NOV, EMP, NOV, EMP, NOV},
@@ -53,7 +53,7 @@ public class Board {
                 break;
 
             case 3:
-                int[][] board3 = {
+                byte[][] board3 = {
                     {NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV},
                     {NOV, NOV, NOV, NOV, NOV, PLB, NOV, PLB, NOV, NOV, NOV, NOV, NOV},
                     {PLC, NOV, PLC, NOV, EMP, NOV, EMP, NOV, EMP, NOV, PLE, NOV, PLE},
@@ -69,7 +69,7 @@ public class Board {
                 break;
 
             case 6:
-                int[][] board7 = {
+                byte[][] board7 = {
                     {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
                     {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
                     {NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, PLB, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
@@ -89,7 +89,7 @@ public class Board {
                 break;
 
             case 10:
-                int[][] board10 = {
+                byte[][] board10 = {
                     {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
                     {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
                     {NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, PLB, NOV, PLB, NOV, PLB, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV, NOV},
@@ -122,16 +122,9 @@ public class Board {
         moveHistory = new LinkedList<CheckersMove>();
 
         initializeZobristTable();
-        if (Tester.considerHashing) {
-            transpositionTables = new Hashtable<Long, ArrayList<Integer>>();
-            hashOccurrences = new Hashtable<Long, Integer>();
-        }
+        transpositionTables = new Hashtable<Long, ArrayList<Integer>>();
+        hashOccurrences = new Hashtable<Long, Integer>();
     }
-
-    /*public Board (Board b){
-        MainBoard = b.MainBoard.clone();
-        moveHistory = b.moveHistory;
-    }*/
 
     //set other non-playing player spaces to empty, also set playerPieces
     public void adaptBoardToPlayer(){

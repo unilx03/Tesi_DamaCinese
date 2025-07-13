@@ -26,16 +26,16 @@ public class GameController {
         if (!board.moveHistory.isEmpty()) {
             CheckersMove lastMove = board.moveHistory.removeLast();
 
-            int oldPieceValue = localBoard.MainBoard[lastMove.oldRow][lastMove.oldColumn];
-            int destPieceValue = localBoard.MainBoard[lastMove.newRow][lastMove.newColumn];
+            byte oldPieceValue = localBoard.MainBoard[lastMove.oldRow][lastMove.oldColumn];
+            byte destPieceValue = localBoard.MainBoard[lastMove.newRow][lastMove.newColumn];
 
             //xor out old values
-            if (Tester.considerHashing) {
+            if (Tester.considerHashing || Tester.considerBoardRecurrences) {
                 localBoard.updateHashCode(lastMove.getNewCell(), destPieceValue);
                 localBoard.updateHashCode(lastMove.getOldCell(), oldPieceValue);
             }
 
-            int temp = localBoard.MainBoard[lastMove.oldRow][lastMove.oldColumn];
+            byte temp = localBoard.MainBoard[lastMove.oldRow][lastMove.oldColumn];
             localBoard.MainBoard[lastMove.oldRow][lastMove.oldColumn] = localBoard.MainBoard[lastMove.newRow][lastMove.newColumn];
             localBoard.MainBoard[lastMove.newRow][lastMove.newColumn] = temp;
 
@@ -45,7 +45,7 @@ public class GameController {
             localBoard.updatePlayerPiece(reverseLastMove, localBoard.MainBoard[reverseLastMove.oldRow][reverseLastMove.oldColumn]);
 
             //xor in new values
-            if (Tester.considerHashing) {
+            if (Tester.considerHashing || Tester.considerBoardRecurrences) {
                 localBoard.updateHashCode(lastMove.getNewCell(), oldPieceValue);
                 localBoard.updateHashCode(lastMove.getOldCell(), destPieceValue);
             }
@@ -53,16 +53,16 @@ public class GameController {
     }
 
     public void movePiece(Board currentBoard, CheckersMove move){
-        int oldPieceValue = currentBoard.MainBoard[move.oldRow][move.oldColumn];
-        int destPieceValue = currentBoard.MainBoard[move.newRow][move.newColumn];
+        byte oldPieceValue = currentBoard.MainBoard[move.oldRow][move.oldColumn];
+        byte destPieceValue = currentBoard.MainBoard[move.newRow][move.newColumn];
 
         //xor out old values
-        if (Tester.considerHashing) {
+        if (Tester.considerHashing || Tester.considerBoardRecurrences) {
             currentBoard.updateHashCode(move.getOldCell(), oldPieceValue);
             currentBoard.updateHashCode(move.getNewCell(), destPieceValue);
         }
 
-        int piece = currentBoard.MainBoard[move.oldRow][move.oldColumn];
+        byte piece = currentBoard.MainBoard[move.oldRow][move.oldColumn];
         currentBoard.MainBoard[move.oldRow][move.oldColumn] = currentBoard.MainBoard[move.newRow][move.newColumn];
         currentBoard.MainBoard[move.newRow][move.newColumn] = piece;
 
@@ -70,7 +70,7 @@ public class GameController {
         currentBoard.updatePlayerPiece(move, currentBoard.MainBoard[move.oldRow][move.oldColumn]);
 
         //xor in new values
-        if (Tester.considerHashing) {
+        if (Tester.considerHashing || Tester.considerBoardRecurrences) {
             currentBoard.updateHashCode(move.getOldCell(), destPieceValue);
             currentBoard.updateHashCode(move.getNewCell(), oldPieceValue);
         }
@@ -490,7 +490,7 @@ public class GameController {
         return false;
     }
 
-    public int checkBoardState(Board currentBoard){
+    public int checkBoardState(Board currentBoard){ //return final board state based on winning player
         // (0) continue game
         // (-1) draw situation
         // (Board piece) winner is corresponding player
@@ -669,8 +669,8 @@ public class GameController {
         /////////////////////////////////////////////////////////////////////////////////////////////////
 
         //check if draw situation is present
-        if (checkDraw(currentBoard))
-            return -1;
+        //if (checkDraw(currentBoard))
+        //    return -1;
 
         return 0;
     }

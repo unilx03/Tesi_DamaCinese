@@ -16,6 +16,8 @@ public class Tester {
 
 	public static boolean verbose = false;
 	public static boolean haveHumanPlayer = false;
+
+	public static boolean considerBoardRecurrences = true;
 	public static boolean considerMoveOrdering = true;
 	public static boolean considerHashing = true;
 
@@ -43,6 +45,10 @@ public class Tester {
 
 					case 'g':
 						haveHumanPlayer = true;
+						break;
+
+					case 'r':
+						considerBoardRecurrences = false;
 						break;
 
 					case 'm':
@@ -129,6 +135,7 @@ public class Tester {
 		System.err.println("OPTIONS:");
 		System.err.println("  -g            Play Chinese Checkers With GUI (Human Player against Agents). Default: " + haveHumanPlayer);
 		System.err.println("  -v            Enable verbose results. Default: " + verbose);
+		System.err.println("  -r            Disable Board recurrences check. Default: " + considerBoardRecurrences);
 		System.err.println("  -m            Disable Move Ordering. Default: " + considerMoveOrdering);
 		System.err.println("  -t            Disable Hashing. Default: " + considerHashing);
 	}
@@ -234,7 +241,7 @@ public class Tester {
 			GameController gameController = new GameController(board);
 			Agent agent = new Agent(Board.PLA, gameController);
 
-			agent.exploreGameTree(board, Tester.maxDepth);
+			agent.exploreGameTree(board);
 			
 		}
 	}

@@ -11,9 +11,13 @@ public class Agent {
     protected GameController gameController;
     protected GameController.GameState moveFinalState;
 
+    protected int currentDepth = 1;
+    protected boolean stillPlaying = false;
+
     //Debug execution progress
     protected long executionCount = 0;
-    protected long executionStartTime = 0;
+    protected long totalExecutionStartTime = 0;
+    protected long depthExecutionStartTime = 0;
     protected long hashHit = 0;
     protected long lastLogTime = System.currentTimeMillis();
 
@@ -35,81 +39,82 @@ public class Agent {
     public void findNextMove(Board board, int depth){
         //movement stored in initialPosition and newPosition
         selectedMove = new CheckersMove();
+        int exploringDepth = 0;
+        currentDepth = Tester.maxDepth;
 
         switch (Tester.playerCount){
             case 2:
-                minimax(board, depth, agentPiece, Integer.MIN_VALUE, Integer.MAX_VALUE);
+                minimax(board, exploringDepth, agentPiece, Integer.MIN_VALUE, Integer.MAX_VALUE);
                 break;
 
             case 3:
             case 4:
             case 6:
-                maxN(board, depth, agentPiece);
+                maxN(board, exploringDepth, agentPiece);
                 break;
         }
     }
 
-    public void exploreGameTree(Board board, int depth){
+    public void exploreGameTree(Board board){
         int alpha = Integer.MIN_VALUE;
 
         int currentPlayer = Board.PLA; //player in bottom starts first
         selectedMove = new CheckersMove();
 
-        //Find every possible first move, define which lead to victory, draw or defeat by exploring game tree
-        List<CheckersMove> allFirstMoves = moveOrderingEvaluation(board, currentPlayer);
+        totalExecutionStartTime = System.currentTimeMillis();
 
-        for(CheckersMove move : allFirstMoves){
+        if (Tester.completeEvaluation){
+            Tester.maxDepth = Integer.MAX_VALUE;
+        }
+
+        while (currentDepth < Tester.maxDepth){
             finalBoardState = BoardState.PLAYING;
-
+            stillPlaying = false;
             executionCount = 0;
-            executionStartTime = System.currentTimeMillis();
+            depthExecutionStartTime = System.currentTimeMillis();
 
-            //find all moves initial position and destination
-            CheckersCell p1 = new CheckersCell(move.oldRow, move.oldColumn, board.MainBoard[move.oldRow][move.oldColumn]);
-            CheckersCell p2 = new CheckersCell(move.newRow, move.newColumn, board.MainBoard[move.newRow][move.newColumn]);
-                    
-            gameController.markMove(board, p1, p2);
-
-            if (Tester.considerHashing)
-                board.hashOccurrences.put(board.hashValue(), board.hashOccurrences.getOrDefault(board.hashValue(), 0) + 1);
-                
-            if (Tester.verbose && !Tester.haveHumanPlayer) {
-                System.out.println("Analising Move: From: " + p1 + " To: " + p2);
-                System.out.flush();
+            if (Tester.considerBoardRecurrences){
+                board.hashOccurrences.clear();
             }
 
+            int exploringDepth = 0;
             switch (Tester.playerCount) {
                 case 2:
-                    minimax(board, depth - 1, findNextPlayer(currentPlayer), alpha, Integer.MAX_VALUE);
+                    minimax(board, exploringDepth, currentPlayer, alpha, Integer.MAX_VALUE);
                     break;
 
                 case 3:
                 case 4:
                 case 6:
-                    maxN(board, depth - 1, findNextPlayer(currentPlayer));
+                    maxN(board, exploringDepth, currentPlayer);
                     break;
             }
 
-            if (Tester.considerHashing)
-                board.hashOccurrences.put(board.hashValue(), board.hashOccurrences.get(board.hashValue()) - 1);
-            
-                gameController.unmarkMove(board);
-
-                /*
-                //Prune later moves, commented to make each first move evaluation independent
-                if (score > alpha)
-				{
-					alpha = score;
-				}
-                */
-
-            System.out.println("From: " + p1 + " To: " + p2 + " " + finalBoardState);
-            if (Tester.verbose && !Tester.haveHumanPlayer) {
-                //System.out.println("Branch execution count: " + executionCount);
-                System.out.println("Branch execution count (since last timed update): " + executionCount);
-                System.out.println("Total execution Time: " + ((System.currentTimeMillis() - executionStartTime) / 1000) + " seconds");
-                System.out.println();
+            if (stillPlaying) {
+                if (Tester.verbose && !Tester.haveHumanPlayer) {
+                    //System.out.println("Branch execution count: " + executionCount);
+                    System.out.println("Branch execution count for depth = " + currentDepth + " (since last timed update): " + executionCount);
+                    System.out.println("Execution Time: " + ((System.currentTimeMillis() - depthExecutionStartTime) / 1000) + " seconds");
+                    
+                    Runtime rt = Runtime.getRuntime();
+                    System.out.printf("Used Mem: %.2f MB\n\n", (rt.totalMemory() - rt.freeMemory()) / 1e6);
+                    
+                    System.out.println();
+                }
+                currentDepth++;
             }
+            else {
+                if (Tester.verbose && !Tester.haveHumanPlayer) {
+                    //System.out.println("Branch execution count: " + executionCount);
+                    System.out.println("Execution concluded for depth = " + currentDepth + " (since last timed update): " + executionCount);
+                    System.out.println("Execution Time: " + ((System.currentTimeMillis() - depthExecutionStartTime) / 1000) + " seconds");
+                    System.out.println("Total Execution Time: " + ((System.currentTimeMillis() - totalExecutionStartTime) / 1000) + " seconds");
+
+                    System.out.println();
+                }
+                currentDepth = Tester.maxDepth;
+            }
+            
             System.out.flush();
         }
     }
@@ -119,41 +124,46 @@ public class Agent {
 
         if (Tester.considerMoveOrdering){
             for (CheckersMove move : nextMoves){
+                boolean evaluationSet = false;
                 //find all moves initial position and destination
                 CheckersCell p1 = new CheckersCell(move.oldRow, move.oldColumn, board.MainBoard[move.oldRow][move.oldColumn]);
                 CheckersCell p2 = new CheckersCell(move.newRow, move.newColumn, board.MainBoard[move.newRow][move.newColumn]);
                         
                 gameController.markMove(board, p1, p2);
-                if (Tester.considerHashing) {
+                if (Tester.considerBoardRecurrences) {
                     board.hashOccurrences.put(board.hashValue(), board.hashOccurrences.getOrDefault(board.hashValue(), 0) + 1);
 
-                    if (board.hashOccurrences.get(board.currentHash) >= 2) {
+                    if (board.hashOccurrences.get(board.hashValue()) >= 3) {
                         move.setEvaluation(DRAW_SCORE); //if board appeared 3 times already, don't select move
+                        evaluationSet = true;
+                    }
+
+                    board.hashOccurrences.put(board.hashValue(), board.hashOccurrences.get(board.hashValue()) - 1);
+                }
+
+                if (Tester.considerHashing) {
+                    if (Tester.playerCount == 2) {
+                        if (board.hasBoardScore(Tester.getPlayerIndex(agentPiece))) {
+                            move.setEvaluation(board.getBoardScore(Tester.getPlayerIndex(agentPiece)));
+                            evaluationSet = true;
+                        }
                     }
                     else {
-                        move.setEvaluation(moveEvaluation(board, currentPlayer));
+                        if (board.hasBoardScore(Tester.getPlayerIndex(currentPlayer))) {
+                            move.setEvaluation(board.getBoardScore(Tester.getPlayerIndex(currentPlayer)));
+                            evaluationSet = true;
+                        }
                     }
                 }
-                       
-                /* Shouldn't be the same of memorising final board states, especially draws
-                if (Tester.considerTranspositionTables) {
-                    if (board.hasBoardScore(Tester.getPlayerIndex(currentPlayer))) {
-                        move.setEvaluation(board.getBoardScore(Tester.getPlayerIndex(currentPlayer)));
-                    }
+
+                if (!evaluationSet) {
+                    if (Tester.playerCount == 2)
+                        move.setEvaluation(moveEvaluation(board)); //minimax version
                     else
                         move.setEvaluation(moveEvaluation(board, currentPlayer));
                 }
-                else
-                    move.setEvaluation(moveEvaluation(board, currentPlayer));*/
-                
-                if (Tester.considerHashing) {
-                    board.hashOccurrences.put(board.hashValue(), board.hashOccurrences.get(board.hashValue()) - 1);
-                }
-                gameController.unmarkMove(board);
 
-                /*if (Tester.considerTranspositionTables) {
-                    board.setHashTable(Tester.getPlayerIndex(currentPlayer), move.getEvaluation());
-                }*/
+                gameController.unmarkMove(board);
             }
 
             Collections.sort(nextMoves);
@@ -176,40 +186,27 @@ public class Agent {
             }
         }
 
-        if (Tester.considerHashing) {
-            if (board.hasBoardScore(Tester.getPlayerIndex(currentPlayer))) {
-                /*if (Tester.verbose && !Tester.haveHumanPlayer)
-                    executionCount--;*/
-                return board.getBoardScore(Tester.getPlayerIndex(currentPlayer));
+        if (Tester.considerHashing) { //skip check board state if already evaluated
+            if (board.hasBoardScore(Tester.getPlayerIndex(agentPiece))) {
+                return board.getBoardScore(Tester.getPlayerIndex(agentPiece));
             }
         }
 
         int checkWinner = gameController.checkBoardState(board);
-        if (checkWinner != 0 || (depth <= 0 && !Tester.completeEvaluation)) {
+        if (checkWinner != 0) {
             int result = evaluateFinalState(board, currentPlayer, checkWinner);
-
-            if (Tester.considerHashing)
-                board.setHashTable(Tester.getPlayerIndex(currentPlayer), result);
-
             return result;
+        }
+        else if (depth > currentDepth){ //finish depth of execution
+            stillPlaying = true; //this path still have possible moves with more depth
+            return (currentPlayer == agentPiece) ? 1 : -1;
         }
 
         CheckersCell firstCell = null, secondCell = null;
-        //Board localBoard = new Board(board);
 
         // switch based on self (max) or other player (min), more compact alternating minimax
         int bestScore = (currentPlayer == agentPiece) ? Integer.MIN_VALUE : Integer.MAX_VALUE;
-        List<CheckersMove> allMoves = moveOrderingEvaluation(board, currentPlayer);
-
-        if (allMoves.isEmpty()){ //no more possible moves available, technically should have already resulted in an end state
-            System.out.println("error, should alread given end state");
-            int result = evaluateFinalState(board, currentPlayer, checkWinner);
-
-            if (Tester.considerHashing)
-                board.setHashTable(Tester.getPlayerIndex(currentPlayer), result);
-
-            return result;
-        }
+        List<CheckersMove> allMoves = moveOrderingEvaluation(board, currentPlayer); //return normal list of moves if moveOrdering is disabled
 
         for(CheckersMove move : allMoves){
             //find all moves initial position and destination
@@ -218,24 +215,24 @@ public class Agent {
                     
             gameController.markMove(board, p1, p2);
 
-            if (Tester.considerHashing) {
+            int score = 0;
+            if (Tester.considerBoardRecurrences) {
                 board.hashOccurrences.put(board.hashValue(), board.hashOccurrences.getOrDefault(board.hashValue(), 0) + 1);
-                if (board.hashOccurrences.get(board.currentHash) >= 2) {
-                    return DRAW_SCORE; //if board appeared 3 times already, return draw score
+
+                if (board.hashOccurrences.get(board.hashValue()) >= 3) { //if board appeared 3 times already, return draw score
+                    board.hashOccurrences.put(board.hashValue(), board.hashOccurrences.get(board.hashValue()) - 1);
+                    gameController.unmarkMove(board);
+                    continue;
                 }
             }
             
-            int score = 0;
-            if (!gameController.checkDraw(board)) { //if draw state found, skip call beforehand
-                //currently saving score only when reaching final depth or have winner
-                if (!Tester.completeEvaluation)
-                    score = minimax(board, depth - 1, findNextPlayer(currentPlayer), alpha, beta);
-                else
-                    score = minimax(board, depth, findNextPlayer(currentPlayer), alpha, beta);
+            if (!gameController.checkDraw(board)) { //if draw state found from identical 6 moves, skip call beforehand
+                score = minimax(board, depth + 1, findNextPlayer(currentPlayer), alpha, beta);
             }
 
-            if (Tester.considerHashing)
+            if (Tester.considerBoardRecurrences)
                 board.hashOccurrences.put(board.hashValue(), board.hashOccurrences.get(board.hashValue()) - 1);
+
             gameController.unmarkMove(board);
 
             if (currentPlayer == agentPiece) {
@@ -249,8 +246,9 @@ public class Agent {
             } else {
                 if (score < bestScore) {
                     bestScore = score;
-                    //firstCell = p1;
-                    //secondCell = p2;
+
+                    firstCell = p1;
+                    secondCell = p2;
                 }
                 beta = Math.min(beta, score);
             }
@@ -259,15 +257,10 @@ public class Agent {
                 break;
         }
 
-        if (Tester.considerHashing)
-            board.setHashTable(Tester.getPlayerIndex(currentPlayer), bestScore);
-
-        if (currentPlayer == agentPiece) {
+        if (Tester.haveHumanPlayer && currentPlayer == agentPiece) {
             selectedMove.setMove(firstCell, secondCell);
         }
 
-        /*if (Tester.verbose && !Tester.haveHumanPlayer)
-            System.out.println(GameController.currentState);*/
         return bestScore;
     }
     
@@ -542,136 +535,6 @@ public class Agent {
 
     /////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /*
-    public int paranoid(Board board, int depth, int currentPlayer) {
-        if (Tester.verbose && !Tester.haveHumanPlayer) {
-            // Print number of total minimax calls
-            executionCount++;
-
-            // Periodic progress
-            /*if (executionCount % milestoneLimit == 0) {
-                System.out.println("Exploration progress: " + milestoneLimit + " calls reached");
-                System.out.flush();
-
-                milestoneLimit *= 10;
-            }
-
-            // Time based
-            if (System.currentTimeMillis() - lastLogTime > 43200000) { // 12 hours
-                System.out.println("Exploration progress (hour progress): " + executionCount);
-                //System.out.flush();
-                executionCount = 0; //may uncomment if keep periodic progress
-                lastLogTime = System.currentTimeMillis();
-            }
-        }
-
-        int checkWinner = gameController.checkBoardState(board);
-        if (checkWinner != 0 || depth == 0) {
-            int result = evaluatePlayer(board, agentPiece, checkWinner);
-            //transpositionTables.put(Long.valueOf(hash), result);
-            return result;
-        }
-
-        /*if (transpositionTables.containsKey(board.hashValue()))
-            return transpositionTables.get(hash);
-            else if (Tester.verbose && !Tester.haveHumanPlayer) {
-            // Print number of total minimax calls beyond transposition
-            executionCount++;}
-        
-
-        CheckersCell firstCell = null, secondCell = null;
-        //Board localBoard = new Board(board);
-
-        Map<CheckersCell, ArrayList<CheckersCell>> allMoves = gameController.checkMove(agentPiece);
-
-        int result = 0;
-        if (allMoves.isEmpty()){ //no more possible moves available, technically should have already resulted in an end state
-            result = evaluatePlayer(board, agentPiece, checkWinner);
-            //transpositionTables.put(Long.valueOf(hash), result);
-            return result;
-        }
-        
-        if (currentPlayer == agentPiece){ //maximising
-            int maxEval = Integer.MIN_VALUE;
-
-            for (Map.Entry<CheckersCell, ArrayList<CheckersCell>> key : allMoves.entrySet()) {
-                for(CheckersCell dest : key.getValue()){
-                    //Board localBoard = new Board(board);
-
-                    CheckersCell src = key.getKey();
-
-                    //find all moves initial position and destination
-                    CheckersCell p1 = new CheckersCell(src.row, src.column, board.MainBoard[src.row][src.column]);
-                    CheckersCell p2 = new CheckersCell(dest.row, dest.column, board.MainBoard[dest.row][dest.column]);
-                        
-                    gameController.markMove(board, p1, p2);
-                        
-                    //currently saving score only when reaching final depth or have winner
-                    int score = paranoid(board, depth, findNextPlayer(currentPlayer));
-                    //int score = minimax(board, depth, !isMaximizing, alpha, beta);
-
-                    gameController.unmarkMove(board);
-
-                    if (score > maxEval) {
-                        maxEval = score;
-                        firstCell = p1;
-                        secondCell = p2;   
-                    }
-                    maxEval = Math.max(maxEval, score);
-
-                    result = maxEval;
-                }
-            }
-        } 
-        else { //all other players minimizing
-            int minEval = Integer.MAX_VALUE;
-
-            for (Map.Entry<CheckersCell, ArrayList<CheckersCell>> key : allMoves.entrySet()) {
-                for(CheckersCell dest : key.getValue()){
-                    //Board localBoard = new Board(board);
-
-                    CheckersCell src = key.getKey();
-
-                    //find all moves initial position and destination
-                    CheckersCell p1 = new CheckersCell(src.row, src.column, board.MainBoard[src.row][src.column]);
-                    CheckersCell p2 = new CheckersCell(dest.row, dest.column, board.MainBoard[dest.row][dest.column]);
-                        
-                    gameController.markMove(board, p1, p2);
-                        
-                    //currently saving score only when reaching final depth or have winner
-                    int score = paranoid(board, depth, findNextPlayer(currentPlayer));
-                    //int score = minimax(board, depth, !isMaximizing, alpha, beta);
-
-                    gameController.unmarkMove(board);
-
-                    if (score < minEval) {
-                        minEval = score;
-                        firstCell = p1;
-                        secondCell = p2;
-                    }
-                    minEval = Math.min(minEval, score);
-
-                    result = minEval;
-                }
-            }
-        }
-
-        //transpositionTables.put(Long.valueOf(hash), maxEval);
-
-        if (currentPlayer == agentPiece) {
-            initialPosition = firstCell;
-            newPosition = secondCell;
-        }
-
-        /*if (Tester.verbose && !Tester.haveHumanPlayer)
-            System.out.println(GameController.currentState);
-
-        return result;
-    }
-    */
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////
-
     //account only win, defeat, draw, still going, for two player
     public int evaluateFinalState(Board localBoard, int currentPlayer, int checkWinner){
         if (checkWinner == agentPiece && currentPlayer == agentPiece) //win
@@ -829,7 +692,30 @@ public class Agent {
         return (currentPlayer == agentPiece) ? 1 : -1;
     }
 
-    public int moveEvaluation(Board board, int player){
+    public int moveEvaluation(Board board){ //for minimax (opponent want to minimise)
+        int checkWinner = gameController.checkBoardState(board);
+        if (checkWinner != 0){
+            return evaluateFinalState(board, agentPiece, checkWinner);
+        }
+        else {
+            ArrayList<CheckersCell> playerPiecesList = board.getPlayerPiecesList(agentPiece);
+            ArrayList<CheckersCell> opponentPiecesList = board.getPlayerPiecesList(gameController.getPlayerGoalZone(agentPiece));
+
+            int limit = Tester.ROWS[Tester.boardSettings] + Tester.COLUMNS[Tester.boardSettings];
+            int score = 0;
+
+            for (CheckersCell cell : playerPiecesList) {
+                score += (limit - cell.distanceToGoal());
+            }
+            for (CheckersCell cell : opponentPiecesList) {
+                score -= (limit - cell.distanceToGoal());
+            }
+
+            return score;
+        }
+    }
+
+    public int moveEvaluation(Board board, int player){ //for maxn
         int checkWinner = gameController.checkBoardState(board);
         if (checkWinner != 0){
             return evaluateFinalState(board, player, checkWinner);

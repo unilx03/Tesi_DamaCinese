@@ -1,8 +1,8 @@
 public class CheckersMove implements Comparable<CheckersMove>{
-	public int oldRow;
-    public int oldColumn;
-	public int newRow;
-	public int newColumn;
+	public byte oldRow;
+    public byte oldColumn;
+	public byte newRow;
+	public byte newColumn;
 
     public int evaluationValue;
 
@@ -17,10 +17,10 @@ public class CheckersMove implements Comparable<CheckersMove>{
 	}
 
     public void setMove(int row1, int column1, int row2, int column2) {
-		this.oldRow = row1;
-		this.oldColumn = column1;
-		this.newRow = row2;
-		this.newColumn = column2;
+		this.oldRow = (byte)row1;
+		this.oldColumn = (byte)column1;
+		this.newRow = (byte)row2;
+		this.newColumn = (byte)column2;
 	}
 
     public void setMove(CheckersCell p1, CheckersCell p2) {
@@ -51,7 +51,7 @@ public class CheckersMove implements Comparable<CheckersMove>{
     }
 
     public void reverseMove(){
-        int temp = this.oldRow;
+        byte temp = this.oldRow;
         this.oldRow = this.newRow;
         this.newRow = temp;
 

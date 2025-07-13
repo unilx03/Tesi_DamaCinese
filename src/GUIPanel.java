@@ -156,12 +156,12 @@ public class GUIPanel extends JFrame
 
                             for (CheckersCell p : moves) {
                                 if (Tester.boardSettings % 2 == 1)
-                                    p.column = p.column / 2;
+                                    p.column = (byte) (p.column / 2);
                                 else {
                                     if (p.row % 2 == 1)
-                                        p.column = p.column / 2;
+                                        p.column = (byte) (p.column / 2);
                                     else
-                                        p.column = p.column / 2 + 1;
+                                        p.column = (byte) (p.column / 2 + 1);
                                 }
                             }
 
