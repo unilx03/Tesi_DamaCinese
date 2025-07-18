@@ -42,7 +42,7 @@ public class GameController {
             //update player piece position (reverse because searches on old coordinates)
             CheckersMove reverseLastMove = lastMove;
             reverseLastMove.reverseMove();
-            localBoard.updatePlayerPiece(reverseLastMove, localBoard.MainBoard[reverseLastMove.oldRow][reverseLastMove.oldColumn]);
+            localBoard.updatePlayerPiece(reverseLastMove, destPieceValue); //destPieceValue as where the piece landed in the last move
 
             //xor in new values
             if (Tester.considerHashing || Tester.considerBoardRecurrences) {
@@ -67,7 +67,7 @@ public class GameController {
         currentBoard.MainBoard[move.newRow][move.newColumn] = piece;
 
         //update player piece position
-        currentBoard.updatePlayerPiece(move, currentBoard.MainBoard[move.oldRow][move.oldColumn]);
+        currentBoard.updatePlayerPiece(move, piece);
 
         //xor in new values
         if (Tester.considerHashing || Tester.considerBoardRecurrences) {
@@ -79,6 +79,18 @@ public class GameController {
     //return all possible moves for every piece
     public List<CheckersMove> checkMove(int boardPieceType) {
         List<CheckersMove> legalMoves = new ArrayList<>();
+
+        ArrayList<CheckersCell> playerPiecesList = board.getPlayerPiecesList(boardPieceType);
+
+        /*for (CheckersCell playerPiece : playerPiecesList){
+            //System.out.println(playerPiece + " for " + boardPieceType);
+            ArrayList<CheckersCell> destinations = availableSlots(playerPiece.row, playerPiece.column, boardPieceType);
+
+            for (CheckersCell dest : destinations) {
+                CheckersMove move = new CheckersMove(playerPiece.row, playerPiece.column, dest.row, dest.column);
+                legalMoves.add(move);
+            }
+        }*/
 
         for (int i = 0; i < board.getRowLength(); i++) {
             for(int j = 0; j < board.getColumnLength(); j++){
