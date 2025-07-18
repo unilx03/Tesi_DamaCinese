@@ -502,7 +502,9 @@ public class GameController {
 
         //Player A check if pieces are in Player B area
         for(int row = 0; row < (1 + Tester.boardSettings); row++){
-            for(int column = 0; column < currentBoard.MainBoard[0].length; column++){
+            int column = currentBoard.getColumnLength() / 2 - row;
+
+            for (int j = 0; j < (1 + row); j++){
                 if (currentBoard.MainBoard[row][column] == Board.PLA) {
                     trackOwn++;
                 }
@@ -510,6 +512,8 @@ public class GameController {
                         currentBoard.MainBoard[row][column] == Board.PLB) {
                     trackOpponent++;
                 }
+
+                column += 2;
             }
         }
 
@@ -525,15 +529,19 @@ public class GameController {
             trackOpponent = 0;
 
             //Player B check if pieces are in Player A area
-            for(int row = (currentBoard.getRowLength() - (1 + Tester.boardSettings)); row < currentBoard.MainBoard.length ; row++){
-                for(int column = 0; column < currentBoard.getColumnLength(); column++){
-                    if (currentBoard.MainBoard[row][column] == Board.PLB) {
+            for(int row = 0; row < (1 + Tester.boardSettings); row++){
+                int column = currentBoard.getColumnLength() / 2 - row;
+
+                for (int j = 0; j < (1 + row); j++){
+                    if (currentBoard.MainBoard[currentBoard.getRowLength() - row - 1][column] == Board.PLB) {
                         trackOwn++;
                     }
-                    else if (currentBoard.MainBoard[row][column] != Board.NOV &&
-                            currentBoard.MainBoard[row][column] == Board.PLA) {
+                    else if (currentBoard.MainBoard[currentBoard.getRowLength() - row - 1][column] != Board.NOV &&
+                            currentBoard.MainBoard[currentBoard.getRowLength() - row - 1][column] == Board.PLA) {
                         trackOpponent++;
                     }
+
+                    column += 2;
                 }
             }
 

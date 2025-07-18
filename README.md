@@ -1,6 +1,21 @@
 # Tesi di Laurea Li Xu
 Esplorazione totale dell'albero di gioco della Dama Cinese per risolvere completamente il gioco
 
+## Parametri modificabili
+java Tester [OPTIONS] <Player Count> <Pieces> <MaxDepth>
+Player Count: 1/2/3/4/6
+Pieces: 1/3/6/10
+MaxDepth: livello di profondità dell'esplorazione dell'albero di gioco, 0 per profondità massima fino a considerare ogni possibilità
+
+OPTIONS
+-v: stampa dettagliata dei progressi
+-g: versione giocabile con GUI tra umano e agente AI
+-r: disattivare tabelle di trasposizione per memorizzare configurazioni ricorrenti
+-m: disattivare move ordering
+-h: disattivare tabelle di trasposizione per memorizzare punteggi per move ordering (anche attivo il codice rilevante non viene eseguito al momento)
+
+Esecuzione tramite nohup
+
 ## Regole di gioco complete
 La Dama Cinese `e un gioco da tavolo strategico da 2-3-4-6 giocatori che si svolge su
 un peculiare tabellone a forma di stella a sei punte. Ogni giocatore occupa con le sue
@@ -31,26 +46,3 @@ Per evitare situazioni in cui un giocatore non pu`o vincere perch´e una pedina 
 occupa uno dei fori nel triangolo di destinazione, un giocatore vince nel caso in cui tutte
 le posizioni all’interno del triangolo di traguardo sono occupati ed `e presente almeno una
 delle sue pedine.
-
-## Parametri modificabili
-Tester [OPTIONS] <Player Count> <Pieces> <MaxDepth>
-Player Count: 2/3/4/6 (al momento solo 2)
-Pieces: 3/6/10 (modalità 3 pedine in esame)
-MaxDepth: livello di profondità dell'esplorazione dell'albero di gioco, 0 per profondità massima fino a considerare ogni possibilità
-
-OPTIONS
--v: stampa dettagliata dei progressi
--g: versione giocabile con GUI tra umano e agente AI
--t: disattivare tabelle di trasposizione
--m: disattivare move ordering
-
-Esecuzione tramite nohup
-
-### Task List
-- Esplorare tutti i possibili stati per 2 giocatori con 3 pedine su tabella da 25 possibili posizioni
-- Esplorare tutti i possibili stati per 2 giocatori con 3 pedine con move ordering
-- Esplorare tutti i possibili stati per 2 giocatori con 3 pedine con move ordering e tabelle di trasposizione
-  
-- Shallow e deep pruning per maxn
-- Hash table entry replacement strategies
-- Esplorare tutti i possibili stati per 3/4/6 giocatori con 3 pedine su tabella da 25 possibili posizioni

@@ -95,6 +95,7 @@ public class Agent {
                     //System.out.println("Branch execution count: " + executionCount);
                     System.out.println("Branch execution count for depth = " + currentDepth + " (since last timed update): " + executionCount);
                     System.out.println("Execution Time: " + ((System.currentTimeMillis() - depthExecutionStartTime) / 1000) + " seconds");
+                    System.out.println("Best final board state reached: " + finalBoardState);
                     
                     Runtime rt = Runtime.getRuntime();
                     System.out.printf("Used Mem: %.2f MB\n\n", (rt.totalMemory() - rt.freeMemory()) / 1e6);
@@ -108,13 +109,15 @@ public class Agent {
                     //System.out.println("Branch execution count: " + executionCount);
                     System.out.println("Execution concluded for depth = " + currentDepth + " (since last timed update): " + executionCount);
                     System.out.println("Execution Time: " + ((System.currentTimeMillis() - depthExecutionStartTime) / 1000) + " seconds");
+                    System.out.println("Best final board state reached: " + finalBoardState);
+
                     System.out.println("Total Execution Time: " + ((System.currentTimeMillis() - totalExecutionStartTime) / 1000) + " seconds");
 
                     System.out.println();
                 }
                 currentDepth = Tester.maxDepth;
             }
-            
+
             System.out.flush();
         }
     }
@@ -134,13 +137,14 @@ public class Agent {
                     board.hashOccurrences.put(board.hashValue(), board.hashOccurrences.getOrDefault(board.hashValue(), 0) + 1);
 
                     if (board.hashOccurrences.get(board.hashValue()) >= 3) {
-                        move.setEvaluation(DRAW_SCORE); //if board appeared 3 times already, don't select move
+                        move.setEvaluation(DRAW_SCORE); //if board appeared 3 times already, don't select move (need to actually remove it from nextMoves to be better)
                         evaluationSet = true;
                     }
 
-                    board.hashOccurrences.put(board.hashValue(), board.hashOccurrences.get(board.hashValue()) - 1);
+                    board.hashOccurrences.put(board.hashValue(), board.hashOccurrences.get(board.hashValue()) - 1); //needed because after ordering moves I'll visit them again in minimax
                 }
 
+                /*
                 if (Tester.considerHashing) {
                     if (Tester.playerCount == 2) {
                         if (board.hasBoardScore(Tester.getPlayerIndex(agentPiece))) {
@@ -155,10 +159,19 @@ public class Agent {
                         }
                     }
                 }
+                */
 
                 if (!evaluationSet) {
-                    if (Tester.playerCount == 2)
-                        move.setEvaluation(moveEvaluation(board)); //minimax version
+                    if (Tester.playerCount == 2) { //need to save board score if considerHashing is true for previous if to actually work
+                        int evaluationScore = moveEvaluation(board);
+                        move.setEvaluation(evaluationScore); //minimax version
+
+                        /*
+                        if (Tester.considerHashing) {
+                            board.setHashTable(Tester.getPlayerIndex(agentPiece), evaluationScore);
+                        }
+                        */
+                    }
                     else
                         move.setEvaluation(moveEvaluation(board, currentPlayer));
                 }
@@ -186,11 +199,13 @@ public class Agent {
             }
         }
 
+        /* saved board score only to not repeat moveOrdering evaluation, don't skip with wrong score
         if (Tester.considerHashing) { //skip check board state if already evaluated
             if (board.hasBoardScore(Tester.getPlayerIndex(agentPiece))) {
                 return board.getBoardScore(Tester.getPlayerIndex(agentPiece));
             }
         }
+        */
 
         int checkWinner = gameController.checkBoardState(board);
         if (checkWinner != 0) {
@@ -220,7 +235,7 @@ public class Agent {
                 board.hashOccurrences.put(board.hashValue(), board.hashOccurrences.getOrDefault(board.hashValue(), 0) + 1);
 
                 if (board.hashOccurrences.get(board.hashValue()) >= 3) { //if board appeared 3 times already, return draw score
-                    board.hashOccurrences.put(board.hashValue(), board.hashOccurrences.get(board.hashValue()) - 1);
+                    //board.hashOccurrences.put(board.hashValue(), board.hashOccurrences.get(board.hashValue()) - 1);
                     gameController.unmarkMove(board);
                     continue;
                 }

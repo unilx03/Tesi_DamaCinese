@@ -137,7 +137,7 @@ public class Tester {
 		System.err.println("  -v            Enable verbose results. Default: " + verbose);
 		System.err.println("  -r            Disable Board recurrences check. Default: " + considerBoardRecurrences);
 		System.err.println("  -m            Disable Move Ordering. Default: " + considerMoveOrdering);
-		System.err.println("  -t            Disable Hashing. Default: " + considerHashing);
+		System.err.println("  -h            Disable Hashing. Default: " + considerHashing);
 	}
 
 	//ex. for 3 players we have PLA, PLE, PLC, convert Player to their index based on how many players are playing and not their piece value, avoid going out of bounds of array made with length of player count
