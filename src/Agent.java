@@ -92,7 +92,6 @@ public class Agent {
 
             if (stillPlaying) {
                 if (Tester.verbose && !Tester.haveHumanPlayer) {
-                    //System.out.println("Branch execution count: " + executionCount);
                     System.out.println("Branch execution count for depth = " + (currentDepth + 1) + " (since last timed update): " + executionCount);
                     System.out.println("Execution Time: " + ((System.currentTimeMillis() - depthExecutionStartTime) / 1000) + " seconds");
                     System.out.println("Best final board state reached: " + finalBoardState);
@@ -106,7 +105,6 @@ public class Agent {
             }
             else {
                 if (Tester.verbose && !Tester.haveHumanPlayer) {
-                    //System.out.println("Branch execution count: " + executionCount);
                     System.out.println("Execution concluded for depth = " + (currentDepth + 1) + " (since last timed update): " + executionCount);
                     System.out.println("Execution Time: " + ((System.currentTimeMillis() - depthExecutionStartTime) / 1000) + " seconds");
                     System.out.println("Best final board state reached: " + finalBoardState);
@@ -266,8 +264,8 @@ public class Agent {
                 if (score < bestScore) {
                     bestScore = score;
 
-                    //firstCell = p1;
-                    //secondCell = p2;
+                    firstCell = p1;
+                    secondCell = p2;
                 }
                 beta = Math.min(beta, score);
             }

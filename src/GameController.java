@@ -15,40 +15,48 @@ public class GameController {
 
     //get the selected move from the user and check whether the move is valid.
     //send the board.
-    public void markMove(Board localBoard, CheckersCell p1, CheckersCell p2){
-        movePiece(localBoard, new CheckersMove(p1, p2));
+    public void markMove(Board currentBoard, CheckersCell p1, CheckersCell p2){
+        CheckersMove move = new CheckersMove(p1, p2);
+        movePiece(currentBoard, move);
         
-        CheckersMove lastMove = new CheckersMove(p1, p2);
-        localBoard.moveHistory.add(lastMove);
+        CheckersMove lastMove = move;
+        currentBoard.moveHistory.add(lastMove);
     }
 
-    public void unmarkMove(Board localBoard){
-        if (!board.moveHistory.isEmpty()) {
+    public void unmarkMove(Board currentBoard){
+        if (!currentBoard.moveHistory.isEmpty()) {
             CheckersMove lastMove = board.moveHistory.removeLast();
 
-            byte oldPieceValue = localBoard.MainBoard[lastMove.oldRow][lastMove.oldColumn];
-            byte destPieceValue = localBoard.MainBoard[lastMove.newRow][lastMove.newColumn];
+            byte oldPieceValue = currentBoard.MainBoard[lastMove.oldRow][lastMove.oldColumn];
+            byte destPieceValue = currentBoard.MainBoard[lastMove.newRow][lastMove.newColumn];
+
+            //System.out.println("rewind");
+            //System.out.println(currentBoard.hashValue());
 
             //xor out old values
             if (Tester.considerHashing || Tester.considerBoardRecurrences) {
-                localBoard.updateHashCode(lastMove.getNewCell(), destPieceValue);
-                localBoard.updateHashCode(lastMove.getOldCell(), oldPieceValue);
+                currentBoard.updateHashCode(lastMove.getNewCell(), destPieceValue);
+                currentBoard.updateHashCode(lastMove.getOldCell(), oldPieceValue);
             }
 
-            byte temp = localBoard.MainBoard[lastMove.oldRow][lastMove.oldColumn];
-            localBoard.MainBoard[lastMove.oldRow][lastMove.oldColumn] = localBoard.MainBoard[lastMove.newRow][lastMove.newColumn];
-            localBoard.MainBoard[lastMove.newRow][lastMove.newColumn] = temp;
+            //System.out.println(currentBoard.hashValue());
 
-            //update player piece position (reverse because searches on old coordinates)
-            CheckersMove reverseLastMove = lastMove;
-            reverseLastMove.reverseMove();
-            localBoard.updatePlayerPiece(reverseLastMove, destPieceValue); //destPieceValue as where the piece landed in the last move
+            byte temp = currentBoard.MainBoard[lastMove.oldRow][lastMove.oldColumn];
+            currentBoard.MainBoard[lastMove.oldRow][lastMove.oldColumn] = currentBoard.MainBoard[lastMove.newRow][lastMove.newColumn];
+            currentBoard.MainBoard[lastMove.newRow][lastMove.newColumn] = temp;
 
             //xor in new values
             if (Tester.considerHashing || Tester.considerBoardRecurrences) {
-                localBoard.updateHashCode(lastMove.getNewCell(), oldPieceValue);
-                localBoard.updateHashCode(lastMove.getOldCell(), destPieceValue);
+                currentBoard.updateHashCode(lastMove.getNewCell(), oldPieceValue);
+                currentBoard.updateHashCode(lastMove.getOldCell(), destPieceValue);
             }
+
+            //System.out.println(currentBoard.hashValue());
+
+            //update player piece position (reverse because searches on old coordinates)
+            CheckersMove reverseLastMove = new CheckersMove(lastMove.oldRow, lastMove.oldColumn, lastMove.newRow, lastMove.newColumn);
+            reverseLastMove.reverseMove();
+            currentBoard.updatePlayerPiece(reverseLastMove, destPieceValue); //destPieceValue as where the piece landed in the last move
         }
     }
 
@@ -56,11 +64,16 @@ public class GameController {
         byte oldPieceValue = currentBoard.MainBoard[move.oldRow][move.oldColumn];
         byte destPieceValue = currentBoard.MainBoard[move.newRow][move.newColumn];
 
+        //System.out.println("move");
+        //System.out.println(currentBoard.hashValue());
+
         //xor out old values
         if (Tester.considerHashing || Tester.considerBoardRecurrences) {
             currentBoard.updateHashCode(move.getOldCell(), oldPieceValue);
             currentBoard.updateHashCode(move.getNewCell(), destPieceValue);
         }
+
+        //System.out.println(currentBoard.hashValue());
 
         byte piece = currentBoard.MainBoard[move.oldRow][move.oldColumn];
         currentBoard.MainBoard[move.oldRow][move.oldColumn] = currentBoard.MainBoard[move.newRow][move.newColumn];
@@ -74,6 +87,8 @@ public class GameController {
             currentBoard.updateHashCode(move.getOldCell(), destPieceValue);
             currentBoard.updateHashCode(move.getNewCell(), oldPieceValue);
         }
+
+        //System.out.println(currentBoard.hashValue());
     }
 
     //return all possible moves for every piece
@@ -82,17 +97,18 @@ public class GameController {
 
         ArrayList<CheckersCell> playerPiecesList = board.getPlayerPiecesList(boardPieceType);
 
-        /*for (CheckersCell playerPiece : playerPiecesList){
+        for (CheckersCell playerPiece : playerPiecesList){
             //System.out.println(playerPiece + " for " + boardPieceType);
             ArrayList<CheckersCell> destinations = availableSlots(playerPiece.row, playerPiece.column, boardPieceType);
 
             for (CheckersCell dest : destinations) {
                 CheckersMove move = new CheckersMove(playerPiece.row, playerPiece.column, dest.row, dest.column);
+                //System.out.println("(" + move.oldRow + ", " + move.oldColumn + " to (" + move.newRow + ", " + move.newColumn + ")");
                 legalMoves.add(move);
             }
-        }*/
+        }
 
-        for (int i = 0; i < board.getRowLength(); i++) {
+        /*for (int i = 0; i < board.getRowLength(); i++) {
             for(int j = 0; j < board.getColumnLength(); j++){
                 if(board.MainBoard[i][j] == boardPieceType) {
                     ArrayList<CheckersCell> destinations = availableSlots(i, j, boardPieceType);
@@ -103,7 +119,7 @@ public class GameController {
                     }
                 }
             }
-        }
+        }*/
 
         return legalMoves;
     }
@@ -689,8 +705,8 @@ public class GameController {
         /////////////////////////////////////////////////////////////////////////////////////////////////
 
         //check if draw situation is present
-        //if (checkDraw(currentBoard))
-        //    return -1;
+        if (checkDraw(currentBoard))
+            return -1;
 
         return 0;
     }

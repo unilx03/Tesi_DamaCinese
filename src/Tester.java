@@ -121,7 +121,6 @@ public class Tester {
 		try {
 			maxDepth = Integer.parseInt(L.get(2));
 			if (maxDepth == 0) {
-				//maxDepth = 100;
 				completeEvaluation = true;
 			}
 
@@ -217,7 +216,7 @@ public class Tester {
     }
 
 	public static void main(String[] args) {
-		if (args.length == 0) {
+		if (args.length < 3) {
 			printUsage();
 			System.exit(0);
 		}
