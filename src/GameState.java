@@ -4,7 +4,6 @@ public enum GameState {
         WIN1(1),
         WIN2(-1);
 
-
         private final Integer intId; 
 
         private GameState(Integer intId) {

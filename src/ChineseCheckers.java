@@ -55,123 +55,84 @@ public class ChineseCheckers {
                 //System.out.println("Configuration stats: " + stat + "\n" + B);
 
                 if (depth < 0) {
-                        System.out.println("Depth exit");
+                        //System.out.println("Depth exit");
                         return GameState.DRAW;
                 }
+                
+                long key = B.hashValue();
+                Stat stat = T.getOrDefault(key, new Stat(state, 0));
 
-                /*long key  = B.hashValue();
-                Stat stat = T.get(key);                         
-                int count = 1;
-
-                if(stat != null) {
-                        if(stat.state != GameState.OPEN) {
-                                return stat.state;
-                        }
-
-                        count += stat.count;
-                        if(count == 2) {
-                                return GameState.DRAW;
-                        }
-                }  
-
-                T.put(key,new Stat(state,count)); // Insert it here only to keep track of the count for DRAW detection
-                System.out.println(B.toString());*/
-
+                stat.count++;
+                if (stat.count == 2) {
+                        //System.out.println("repeated");
+                        return GameState.DRAW;
+                }
+                else {
+                        T.put(key, new Stat(stat.state, stat.count));
+                }
+                
                 //System.out.println(B.toString());
 
                 if (B.getCurrentState() != GameState.OPEN) {
                         state = B.getCurrentState();
                 } else if(B.getCurrentPlayer() == Board.PL1) {
-                        Integer score = Integer.MIN_VALUE;
+                        Integer bestScore = Integer.MIN_VALUE;
                         for(Piece p: B.getPlayerPieces(Board.PL1)) {
                                 for(Piece q : B.validMoves(p)) {
                                         B.playMove(p,q);
 
-                                        long key  = B.hashValue();
-                                        Stat stat = T.get(key); 
-                                        int count = 1;
-
-                                        if(stat != null) {
-                                                if(stat.state != GameState.OPEN) {
-                                                        //System.out.println(stat.state);
-                                                        return stat.state;
-                                                }
-
-                                                count += stat.count;
-                                                if(count == 2) {
-                                                        B.unplayMove();
-                                                        score = GameState.DRAW.toInt();
-                                                        //System.out.println("continue");
-                                                        continue;
-                                                }
+                                        int score = minimaxtt(depth - 1,B,alpha,beta,T).toInt();
+                                        if (score > bestScore){
+                                                bestScore = score;
+                                                state = GameState.fromInt(bestScore);
                                         }
 
-                                        T.put(key,new Stat(state,count)); // Insert it here only to keep track of the count for DRAW detection
-
-                                        score = Math.max(score,minimaxtt(depth - 1,B,alpha,beta,T).toInt());
                                         B.unplayMove();
-                                        alpha = Math.max(alpha,score);
+                                        alpha = Math.max(alpha,bestScore);
                                         if(beta <= alpha)
                                                 break;
                                 }
                                 if(beta <= alpha)
                                         break;
                         }
-                        //System.out.println("want to exit");
-                        state = GameState.fromInt(score);
+                        
                 } else {
-                        Integer score = Integer.MAX_VALUE;
+                        Integer bestScore = Integer.MAX_VALUE;
                         for(Piece p: B.getPlayerPieces(Board.PL2)) {
                                 for(Piece q : B.validMoves(p)) {
                                         B.playMove(p,q);
 
-                                        long key  = B.hashValue();
-                                        Stat stat = T.get(key); 
-                                        int count = 1;
-
-                                        if(stat != null) {
-                                                if(stat.state != GameState.OPEN) {
-                                                        //System.out.println(stat.state);
-                                                        return stat.state;
-                                                }
-
-                                                count += stat.count;
-                                                if(count == 2) {
-                                                        B.unplayMove();
-                                                        score = GameState.DRAW.toInt();
-                                                        //System.out.println("continue");
-                                                        continue;
-                                                }
+                                        int score = minimaxtt(depth - 1,B,alpha,beta,T).toInt();
+                                        if (score < bestScore){
+                                                bestScore = score;
+                                                state = GameState.fromInt(bestScore);
                                         }
 
-                                        T.put(key,new Stat(state,count)); // Insert it here only to keep track of the count for DRAW detection
-
-                                        score = Math.min(score,minimaxtt(depth - 1,B,alpha,beta,T).toInt());
                                         B.unplayMove();
-                                        beta = Math.min(beta,score);
+                                        beta = Math.min(beta,bestScore);
                                         if(beta <= alpha)
                                                 break;
                                 }
                                 if(beta <= alpha)
                                         break;
                         }
-                        //System.out.println("want to exit 2");
-                        state = GameState.fromInt(score);
                 }
 
-                //T.put(key,new Stat(state,count));
+                T.put(key,new Stat(state,stat.count - 1));
                 return state;
         }
         
         private static void analyzeGameTree(Board B) {
                 Integer score = Integer.MIN_VALUE;
                 HashMap<Long,Stat> T = new HashMap<>();
+                
                 for(Piece p : B.getPlayerPieces(1))
                         for(Piece q : B.validMoves(p)) {
                                 B.playMove(p,q);
                                 System.out.println("Evaluating Player1's move: piece from " + p + " to " + q + "\n" + B);
                                 GameState state = minimaxtt(maxDepth, B,Integer.MIN_VALUE,Integer.MAX_VALUE,T);
                                 System.out.println("Result: " + state + "\n");
+                                
                                 score = Math.max(score,state.toInt());
                                 B.unplayMove();
                         }
