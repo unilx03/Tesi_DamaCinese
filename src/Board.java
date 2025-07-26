@@ -11,10 +11,14 @@ import java.util.Arrays;
 public class Board {
 
         public final static int NIL = 0; // Not usable 
-        public final static int PL1 = 1; // Player1
-        public final static int PL2 = 2; // Player2
-        public final static int EMP = 3; // Empty
-        public final static int MRK = 4; // Marked
+        public final static int PL1 = 1; // Player1 (lower center)
+        public final static int PL2 = 2; // Player2 (upper center)
+        public final static int PL3 = 3; // Player3 (upper left)
+        public final static int PL4 = 4; // Player4 (upper right)
+        public final static int PL5 = 5; // Player5 (lower right)
+        public final static int PL6 = 6; // Player6 (lower left)
+        public final static int EMP = 7; // Empty
+        public final static int MRK = 8; // Marked
 
         // Board with 1 piece per player
         static private int[][] B1 = {
@@ -176,6 +180,7 @@ public class Board {
                 this.rows          = B.length;
                 this.cols          = B[0].length;
                 this.homePieces    = new int[this.numOfPlayers+1];
+                // Decomment for anti spoiling victory condition
                 //for (int i = 1; i < this.numOfPlayers + 1; i++)
                 //        this.homePieces[i] = this.numOfPieces;
                 this.gameState     = new GameState[]{GameState.OPEN,GameState.WIN1,GameState.WIN2};
@@ -223,7 +228,11 @@ public class Board {
         private boolean isValid(Piece piece) {
                 int row = piece.getRow();
                 int col = piece.getCol();
-                return row >= 0 && row < this.rows && col >= 0 && col < this.cols && this.B[row][col] != NIL;
+                
+                if (row >= 0 && row < this.rows && col >= 0 && col < this.cols && this.B[row][col] != NIL)
+                        return true;
+
+                return false;
         }
 
         private boolean isFree(Piece piece) {
@@ -254,12 +263,14 @@ public class Board {
                 this.B[nrow][ncol] = player;
                 if(W[nrow][ncol] == player)
                         this.homePieces[player]++; // A piece has been moved at home
+                // Decomment for anti spoiling victory condition
                 //if(W[nrow][ncol] == inversePlayer(player))
                 //        this.homePieces[inversePlayer(player)]++; // Current player moved piece back to starting area
 
                 this.B[orow][ocol] = EMP;
                 if(W[orow][ocol] == player)
                         this.homePieces[player]--; // A piece already placed at home has been moved, the slot is now empty
+                // Decomment for anti spoiling victory condition
                 //if(W[orow][ocol] == inversePlayer(player))
                 //        this.homePieces[inversePlayer(player)]--; // Current player moved piece out of starting area
 
@@ -300,6 +311,7 @@ public class Board {
         }
 
         private void checkWin() {
+                // Decomment for anti spoiling victory condition
                 /*if(this.homePieces[this.currentPlayer] == this.numOfPieces) { // player n destination area is filled with pieces, check if at least one of them has value n
                         int checkWinValue = checkWinning();
                         if (checkWinValue == this.currentPlayer) {
@@ -455,7 +467,7 @@ public class Board {
                 }
         }
 
-        private int inversePlayer(int player) throws IllegalStateException{
+        private int inversePlayer(int player) throws IllegalStateException{ // given a player index return the opposite, indicate goal area
                 switch (player){
                         case PL1:
                                 return PL2;
@@ -468,33 +480,17 @@ public class Board {
                 }
         }
 
-        /*private boolean checkPieceInsideZone (int row, int column, int playerPiece){ //playerPiece: index i to see if coordinates are in player i starting area
-                switch (playerPiece) {
-                        case PL1:
-                                if (row >= (this.rows - getStartingAreaRows()))
-                                        return true;
-                                break;
-
-                        case PL2:
-                                if (row < getStartingAreaRows())
-                                        return true;
-                                break;
-                        }
-                return false;
-        }*/
-
         private int checkWinning(){ //return final board state based on winning player
                 // (0) continue game
-                // (-1) draw situation
                 // (Board piece) winner is corresponding player
 
-                //if goal spaced is filled and there's at least one piece of the player, the player wins (prevent base stalling and more win conditions)
+                // Victory condition: if player i goal spaced is filled and there's at least one piece of the player i, the player i wins
 
                 int trackOwn = 0;
                 int trackOpponent = 0; //opposite player that stays in its initial area
                 int rowCount = getStartingAreaRows();
 
-                //Player A check if pieces are in Player B area
+                //Player 1 check if pieces are in Player 2 area
                 for(int row = 0; row < rowCount; row++){
                         int column = this.cols / 2 - row;
 
@@ -516,6 +512,7 @@ public class Board {
 
                 /////////////////////////////////////////////////////////////////////////////////////////////////
 
+                //Player 2 check if pieces are in Player 1 area
                 if (this.numOfPlayers != 3) {
                         trackOwn = 0;
                         trackOpponent = 0;
@@ -544,5 +541,325 @@ public class Board {
                 return 0;
         }
 
+        // PlayerPiece: index i to see if coordinates are in player i starting area
+        private boolean checkPieceInsideZone (int row, int column, int playerPiece){ 
+                int sideRepetition = getStartingAreaRows();
+                int[] startCol = {0, 1, 2, 3};
 
+                switch (playerPiece) {
+                        case PL1:
+                                if (row >= (this.rows - getStartingAreaRows()))
+                                        return true;
+                                break;
+
+                        case PL2:
+                                if (row < getStartingAreaRows())
+                                        return true;
+                                break;
+                        case PL3: //upper left triangle
+                                for (int checkRow = 0; checkRow < 1 + getStartingAreaRows(); checkRow++) 
+                                {
+                                        for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
+                                                int rowIndex = getStartingAreaRows() + checkRow;
+                                                int colIndex = startCol[checkRow] + (colIncrease * 2);
+
+                                                if (rowIndex == row && colIndex == column)
+                                                return true;
+                                        }
+                                        sideRepetition--;
+                                }
+                                break;
+
+                        case PL6:  //lower left triangle
+                                for (int checkRow = 0; checkRow < getStartingAreaRows(); checkRow++) {
+                                for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
+                                        int rowIndex = this.rows - 1 - getStartingAreaRows() - checkRow;
+                                        int colIndex = startCol[checkRow] + (colIncrease * 2);
+
+                                        if (rowIndex == row && colIndex == column)
+                                        return true;
+                                }
+                                sideRepetition--;
+                                }
+                                break;
+
+                        case PL4: //upper right triangle
+                                for (int checkRow = 0; checkRow < getStartingAreaRows(); checkRow++) {
+                                for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
+                                        int rowIndex = getStartingAreaRows() + checkRow;
+                                        int colIndex = this.cols - 1 - startCol[checkRow] - (colIncrease * 2);
+
+                                        if (rowIndex == row && colIndex == column)
+                                        return true;
+                                }
+                                sideRepetition--;
+                                }
+                                break;
+
+                        case PL5: //lower right triangle
+                                for (int checkRow = 0; checkRow < getStartingAreaRows(); checkRow++) {
+                                for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
+                                        int rowIndex = this.rows - 1 - getStartingAreaRows() - checkRow;
+                                        int colIndex = this.cols - 1 - startCol[checkRow] - (colIncrease * 2);
+
+                                        if (rowIndex == row && colIndex == column)
+                                        return true;
+                                }
+                                sideRepetition--;
+                                }
+                                break;
+                        }
+                return false;
+        }
+
+        // Check if position is valid:
+        // 1. A piece can't return to its starting area after leaving it
+        // 2. A piece inside the goal area can't leave it
+        // 3. A piece can't stay in the starting area of another player that is not its opposite, can use area for jump movements
+        public boolean validSpace(int oldRow, int oldColumn, int newRow, int newColumn) throws IllegalStateException { 
+                int oldPieceType = this.B[oldRow][oldColumn];
+                int newPieceType = this.B[newRow][newColumn];
+
+                // a piece inside the goal zone can only move inside it
+                if (checkPieceInsideZone(oldRow, oldColumn, inversePlayer(newPieceType)) && 
+                !checkPieceInsideZone(newRow, newColumn, inversePlayer(newPieceType)))
+                return false;
+
+                // a piece can't return to its starting area after leaving it
+                if (!checkPieceInsideZone(oldRow, oldColumn, newPieceType) && 
+                checkPieceInsideZone(newRow, newColumn, newPieceType))
+                return false;
+
+                // pieces can't access other piece starting and goal area except opposite
+                switch (this.numOfPlayers) {
+                        case 2:
+                                if (newPieceType != NIL) {
+                                        // PL1 and PL2 cannot enter PL3, PL4, PL5, PL6 area
+                                        if (checkPieceInsideZone(newRow, newColumn, PL3) ||
+                                                checkPieceInsideZone(newRow, newColumn, PL4) ||
+                                                checkPieceInsideZone(newRow, newColumn, PL5) ||
+                                                checkPieceInsideZone(newRow, newColumn, PL6))
+                                                        return false;
+                                        return true;
+                                } 
+                                break;
+                        
+                        case 3:
+                                if (newPieceType != NIL) {
+                                        // PL1, PL3, PL4 cannot enter other starting and goal area (PL1 -> PL2, PL3 -> PL5, PL4 -> PL6)
+                                        if ((checkPieceInsideZone(newRow, newColumn, PL1) ||
+                                                checkPieceInsideZone(newRow, newColumn, PL2)) && oldPieceType != PL1)
+                                                return false;
+
+                                        if ((checkPieceInsideZone(newRow, newColumn, PL3) ||
+                                        checkPieceInsideZone(newRow, newColumn, PL5)) && oldPieceType != PL3)
+                                                return false;
+
+                                        if ((checkPieceInsideZone(newRow, newColumn, PL4) ||
+                                        checkPieceInsideZone(newRow, newColumn, PL6)) && oldPieceType != PL4)
+                                                return false;
+
+                                        return true;
+                                } 
+                                break;
+
+                        case 4:
+                                if (newPieceType != NIL) {
+                                        // PL1, PL2, PL3, PL5 cannot enter other starting and goal area (PL1 -> PL2, PL3 -> PL5), cannot enter PL2 and PL4
+                                        if (checkPieceInsideZone(newRow, newColumn, PL2) ||
+                                                checkPieceInsideZone(newRow, newColumn, PL4))
+                                                return false;
+                                        
+                                        if ((checkPieceInsideZone(newRow, newColumn, PL1) ||
+                                                checkPieceInsideZone(newRow, newColumn, PL2)) && 
+                                                (oldPieceType != PL1 || oldPieceType != PL2))
+                                                return false;
+
+                                        if ((checkPieceInsideZone(newRow, newColumn, PL3) ||
+                                                checkPieceInsideZone(newRow, newColumn, PL5)) && 
+                                                (oldPieceType != PL3 || oldPieceType != PL5))
+                                                return false;
+
+                                        return true;
+                                } 
+                                break;
+
+                        case 6:
+                                if (newPieceType != NIL) {
+                                        // Pieces cannot enter other starting and goal area
+                                        if ((checkPieceInsideZone(newRow, newColumn, PL1) ||
+                                                checkPieceInsideZone(newRow, newColumn, PL2)) && 
+                                                (oldPieceType != PL1 || oldPieceType != PL2))
+                                                return false;
+
+                                        if ((checkPieceInsideZone(newRow, newColumn, PL3) ||
+                                                checkPieceInsideZone(newRow, newColumn, PL5)) && 
+                                                (oldPieceType != PL3 || oldPieceType != PL5))
+                                                return false;
+
+                                        if ((checkPieceInsideZone(newRow, newColumn, PL4) ||
+                                                checkPieceInsideZone(newRow, newColumn, PL6)) && 
+                                                (oldPieceType != PL4 || oldPieceType != PL6))
+                                                return false;
+
+                                        return true;
+                                } 
+                                break;
+                }
+
+                return false;
+        }
+
+        /*
+        Methods for n players
+        public int findNextPlayer(int currentPlayer){
+                switch (currentPlayer){
+                case Board.PLA:
+                        switch (Tester.playerCount){
+                        case 2:
+                                return Board.PLB;
+
+                        case 3:
+                                return Board.PLE;
+                                
+                        case 4:
+                                return Board.PLD;
+
+                        case 6:
+                                return Board.PLD;
+                        }
+                        break;
+
+                case Board.PLB:
+                        switch (Tester.playerCount){
+                        case 2:
+                                return Board.PLA;
+
+                        case 4:
+                                return Board.PLC;
+
+                        case 6:
+                                return Board.PLC;
+                        }
+                        break;
+
+                case Board.PLC:
+                        switch (Tester.playerCount){
+                        case 3:
+                                return Board.PLA;
+
+                        case 4:
+                                return Board.PLA;
+
+                        case 6:
+                                return Board.PLF;
+                        }
+                        break;
+                
+                case Board.PLD:
+                        switch (Tester.playerCount){
+                        case 4:
+                                return Board.PLB;
+
+                        case 6:
+                                return Board.PLE;
+                        }
+                        break;
+
+                case Board.PLE:
+                        switch (Tester.playerCount){
+                        case 3:
+                                return Board.PLC;
+
+                        case 6:
+                                return Board.PLB;
+                        }
+                        break;
+
+
+                case Board.PLF:
+                        switch (Tester.playerCount){
+                        case 6:
+                                return Board.PLA;
+                        }
+                        break;
+                }
+                return (currentPlayer + 1) % 6;
+        }
+
+        	//ex. for 3 players we have PLA, PLE, PLC, convert Player to their index based on how many players are playing and not their piece value, avoid going out of bounds of array made with length of player count
+        public static int getPlayerIndex(int player){
+        int index = 0;
+        switch (player) {
+            case Board.PLA:
+                index = 0;
+                break;
+
+            case Board.PLB:
+                switch (playerCount){
+                    case 2:
+                        index = 1;
+                        break;
+
+                    case 4:
+                        index = 2;
+                        break;
+
+                    case 6:
+                        index = 3;
+                        break;
+                }
+                break;
+
+            case Board.PLC:
+                switch (playerCount){
+                    case 3:
+                        index = 2;
+                        break;
+
+                    case 4:
+                        index = 3;
+                        break;
+
+                    case 6:
+                        index = 4;
+                        break;
+                }
+                break;
+
+            case Board.PLD:
+                switch (playerCount){
+                    case 4:
+                        index = 1;
+                        break;
+
+                    case 6:
+                        index = 1;
+                        break;
+                }
+                break;
+
+            case Board.PLE:
+                switch (playerCount){
+                    case 3:
+                        index = 1;
+                        break;
+
+                    case 6:
+                        index = 2;
+                        break;
+                }
+                break;
+
+            case Board.PLF:
+                switch (playerCount){
+                    case 6:
+                        index = 5;
+                        break;
+                }
+                break;
+        }
+
+        return index;
+    }*/
 }

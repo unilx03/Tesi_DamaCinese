@@ -71,7 +71,7 @@ public class ChineseCheckers {
                         T.put(key, new Stat(stat.state, stat.count));
                 }
                 
-                //System.out.println(B.toString());
+                System.out.println(B.toString());
 
                 if (B.getCurrentState() != GameState.OPEN) {
                         state = B.getCurrentState();
