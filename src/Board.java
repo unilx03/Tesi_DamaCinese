@@ -448,6 +448,42 @@ public class Board {
                 return this.hash;
         }
 
+        public int distanceToGoal(Piece piece, int player) throws IllegalStateException {
+		Piece goalTarget;
+                int areaRows = getStartingAreaRows();
+
+		switch (player){
+			case Board.PL1: //going bottom to up
+				goalTarget = new Piece(0, this.cols / 2);
+                                break;
+
+			case Board.PL2: //going top to bottom
+				goalTarget = new Piece(this.rows - 1, this.cols / 2);
+                                break;
+
+			case Board.PL3: //top left to bottom right
+				goalTarget = new Piece(this.rows - 1 - areaRows, this.cols - 1);
+                                break;
+
+			case Board.PL5: //bottom right to top left
+				goalTarget = new Piece(areaRows, 0);
+                                break;
+
+			case Board.PL4: //top right to bottom left
+				goalTarget = new Piece(this.rows - 1 - areaRows, 0);
+                                break;
+
+			case Board.PL6: //bottom left to top right
+				goalTarget = new Piece(areaRows, this.cols - 1);
+                                break;
+
+                        default:
+                                throw new IllegalStateException("Invalid player piece");
+		}
+
+                return (int)Math.sqrt(Math.pow(goalTarget.getRow() - piece.getRow(), 2) + Math.pow(goalTarget.getCol() - piece.getCol(), 2));
+	}
+
         private int getStartingAreaRows() throws IllegalStateException{
                 switch (this.numOfPieces){
                         case 1:

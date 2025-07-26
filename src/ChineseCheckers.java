@@ -1,18 +1,20 @@
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.HashMap;
 import java.lang.IllegalStateException;
 
 public class ChineseCheckers {
-        private static Random rand;
-        private static int    maxDepth;
+    private static Random rand;
+    private static boolean VERBOSE = false;
 
 	private ChineseCheckers() {
 	}
 
 	private static void printUsage() {
-		System.err.println("Usage: ChineseCheckers <Num of Pieces> <Max Depth>");
+		System.err.println("Usage: ChineseCheckers <Num of Pieces> <TurnLimit>");
 	}
 
         private static Piece getRandomPiece(Board B) {
@@ -48,91 +50,66 @@ public class ChineseCheckers {
 
         }
 
-        // Minimax with alpha-beta pruning and transposition table to check DRAW
-        private static GameState minimaxtt(int depth, Board B, int alpha, int beta, HashMap<Long,Stat> T) throws IllegalStateException {
-                GameState state = GameState.OPEN;
+        // Minimax with alpha-beta pruning 
+        private static GameState minimaxab(Board B, int alpha, int beta, int turnLimit) throws IllegalStateException {
+                //System.out.println(B.toString());
 
-                //System.out.println("Configuration stats: " + stat + "\n" + B);
-
-                if (depth < 0) {
-                        //System.out.println("Depth exit");
+                if(turnLimit == 0)
                         return GameState.DRAW;
-                }
-                
-                long key = B.hashValue();
-                Stat stat = T.getOrDefault(key, new Stat(state, 0));
-
-                stat.count++;
-                if (stat.count == 2) {
-                        //System.out.println("repeated");
-                        return GameState.DRAW;
-                }
-                else {
-                        T.put(key, new Stat(stat.state, stat.count));
-                }
-                
-                System.out.println(B.toString());
-
-                if (B.getCurrentState() != GameState.OPEN) {
-                        state = B.getCurrentState();
-                } else if(B.getCurrentPlayer() == Board.PL1) {
-                        Integer bestScore = Integer.MIN_VALUE;
-                        for(Piece p: B.getPlayerPieces(Board.PL1)) {
-                                for(Piece q : B.validMoves(p)) {
+                else if (B.getCurrentState() != GameState.OPEN) {
+                        return B.getCurrentState();
+                } else if(B.getCurrentPlayer() == 1) {
+                        Integer score = Integer.MIN_VALUE;
+                        for(Piece p: orderPlayerPieces(B, 1)) {
+                                for(Piece q : orderPieceMoves(B, p, 1)) {
                                         B.playMove(p,q);
-
-                                        int score = minimaxtt(depth - 1,B,alpha,beta,T).toInt();
-                                        if (score > bestScore){
-                                                bestScore = score;
-                                                state = GameState.fromInt(bestScore);
-                                        }
-
+                                        score = Math.max(score,minimaxab(B,alpha,beta,turnLimit-1).toInt());
                                         B.unplayMove();
-                                        alpha = Math.max(alpha,bestScore);
+                                        alpha = Math.max(alpha,score);
                                         if(beta <= alpha)
                                                 break;
                                 }
-                                if(beta <= alpha)
-                                        break;
                         }
                         
+                        return GameState.fromInt(score);
                 } else {
-                        Integer bestScore = Integer.MAX_VALUE;
-                        for(Piece p: B.getPlayerPieces(Board.PL2)) {
-                                for(Piece q : B.validMoves(p)) {
+                        Integer score = Integer.MAX_VALUE;
+                        for(Piece p: orderPlayerPieces(B, 2)) {
+                                for(Piece q : orderPieceMoves(B, p, 2)) {
                                         B.playMove(p,q);
-
-                                        int score = minimaxtt(depth - 1,B,alpha,beta,T).toInt();
-                                        if (score < bestScore){
-                                                bestScore = score;
-                                                state = GameState.fromInt(bestScore);
-                                        }
-
+                                        score = Math.min(score,minimaxab(B,alpha,beta,turnLimit-1).toInt());
                                         B.unplayMove();
-                                        beta = Math.min(beta,bestScore);
+                                        beta = Math.min(beta,score);
                                         if(beta <= alpha)
                                                 break;
                                 }
-                                if(beta <= alpha)
-                                        break;
                         }
+                        return GameState.fromInt(score);
                 }
-
-                T.put(key,new Stat(state,stat.count - 1));
-                return state;
         }
-        
-        private static void analyzeGameTree(Board B) {
+
+        private static ArrayList<Piece> orderPlayerPieces(Board B, int player) {
+                ArrayList<Piece> playerPieces = new ArrayList<>(Arrays.asList(B.getPlayerPieces(player)));;
+                playerPieces.sort(Comparator.comparingInt(p -> B.distanceToGoal(p, player)));
+                return playerPieces;
+        }
+
+        private static ArrayList<Piece> orderPieceMoves(Board B, Piece piece, int player) {
+                ArrayList<Piece> pieceMoves = B.validMoves(piece);
+                pieceMoves.sort(Comparator.comparingInt(p -> B.distanceToGoal(p, player)));
+                return pieceMoves;
+        }
+
+
+        private static void analyzeGameTree(Board B, int turnLimit) {
                 Integer score = Integer.MIN_VALUE;
-                HashMap<Long,Stat> T = new HashMap<>();
-                
-                for(Piece p : B.getPlayerPieces(1))
+                int currPlayer = B.getCurrentPlayer();
+                for(Piece p : B.getPlayerPieces(currPlayer))
                         for(Piece q : B.validMoves(p)) {
                                 B.playMove(p,q);
-                                System.out.println("Evaluating Player1's move: piece from " + p + " to " + q + "\n" + B);
-                                GameState state = minimaxtt(maxDepth, B,Integer.MIN_VALUE,Integer.MAX_VALUE,T);
+                                System.out.println("Evaluating Player" + currPlayer + "'s move: piece from " + p + " to " + q + "\n" + B);
+                                GameState state = minimaxab(B,Integer.MIN_VALUE,Integer.MAX_VALUE,turnLimit);
                                 System.out.println("Result: " + state + "\n");
-                                
                                 score = Math.max(score,state.toInt());
                                 B.unplayMove();
                         }
@@ -149,33 +126,17 @@ public class ChineseCheckers {
                 rand = new Random();
 
                 int numOfPieces  = Integer.parseInt(args[0]);
-                maxDepth  = Integer.parseInt(args[1]);
+                int turnLimit    = Integer.parseInt(args[1]);
 
                 Board B = new Board(numOfPieces);
 
                 
-                System.out.println("Starting Board\n" + B);
-
                 //randomMatch(B,100);
-                analyzeGameTree(B);
 
-                
+                System.out.println("Starting Board\n" + B);
+                analyzeGameTree(B,turnLimit);
 
 	}
 
-        private static class Stat {
-                GameState state;
-                int count;
-                
-                public Stat(GameState state, int count) {
-                        this.state = state;
-                        this.count = count;
-                }
-
-                @Override
-                public String toString() {
-                    return "[" + this.state + "," + this.count + "]";
-                }
-        }
 
 }
