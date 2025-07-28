@@ -232,6 +232,31 @@ public class Board {
                 if (row >= 0 && row < this.rows && col >= 0 && col < this.cols && this.B[row][col] != NIL)
                         return true;
 
+                // PL1 and PL2 cannot enter PL3, PL4, PL5, PL6 area
+                if (checkPieceInsideZone(row, col, PL3) ||
+                        checkPieceInsideZone(row, col, PL4) ||
+                        checkPieceInsideZone(row, col, PL5) ||
+                        checkPieceInsideZone(row, col, PL6))
+                                return false;
+
+                return false;
+        }
+
+        private boolean isValid(Piece originalPiece, Piece destinationPiece) {
+                int row = destinationPiece.getRow();
+                int col = destinationPiece.getCol();
+                
+                if (row >= 0 && row < this.rows && col >= 0 && col < this.cols && this.B[row][col] != NIL)
+                        return true;
+
+                /*
+                if (row >= 0 && row < this.rows && col >= 0 && col < this.cols && this.B[row][col] != NIL) {
+                        // 1. A piece can't return to its starting area after leaving it
+                        // 2. A piece inside the goal area can't leave it
+                        if (validSpace(originalPiece.getRow(), originalPiece.getCol(), destinationPiece.getRow(), destinationPiece.getCol()))
+                                return true;
+                }*/
+
                 return false;
         }
 
@@ -246,7 +271,6 @@ public class Board {
         private boolean isNotPlayable(Piece piece) {
                 return this.B[piece.getRow()][piece.getCol()] == NIL;
         }
-        
         
         private boolean belongsToCurrentPlayer(Piece piece) {
                 return this.B[piece.getRow()][piece.getCol()] == this.currentPlayer;
@@ -295,6 +319,7 @@ public class Board {
                 this.moveHist.push(new BoardHist(oldpiece,newpiece,this.currentPlayer));
                 checkWin();
                 this.currentPlayer = this.currentPlayer % numOfPlayers + 1;
+                //this.currentPlayer = findNextPlayer(currentPlayer, numOfPlayers); for n players, also works for 2
 
                 return this.currentState;
         }
@@ -322,38 +347,50 @@ public class Board {
                         this.currentState  = GameState.OPEN;                     // Match is still open*/
 
                 if (this.homePieces[this.currentPlayer] == this.numOfPieces) {
-                                this.currentState  = this.gameState[this.currentPlayer]; // Current player wins
+                        this.currentState  = this.gameState[this.currentPlayer]; // Current player wins
                 }
                 else
                         this.currentState  = GameState.OPEN;    
         }
 
-        private LinkedList<Piece> validJumps(Piece piece) {
+        private LinkedList<Piece> validJumps(Piece originalPiece, Piece destinationPiece, boolean checkingSpecialHopCondition) {
                 LinkedList<Piece> L = new LinkedList<>();
-                if(this.isValid(piece) && this.isFree(piece)) {
-                        B[piece.getRow()][piece.getCol()] = MRK;
-                        L.add(piece);
+                if(this.isValid(destinationPiece) && this.isFree(destinationPiece)) {
+                        B[destinationPiece.getRow()][destinationPiece.getCol()] = MRK;
+                        L.add(destinationPiece);
+
+                        /*if (column > 3) {
+                                //Left
+                                if (board.MainBoard[row][column - 2] != Board.NOV && isPlayingPiece(row, column - 2)) {
+                                        if (board.MainBoard[row][column - 4] != Board.NOV) {
+                                        if (validSpace(originalRow, originalColumn, row, column - 4))
+                                                validHops(originalRow, originalColumn, row, column - 4, player, false);
+                                        else if (board.MainBoard[row][column - 4] == Board.EMP && !checkingSpecialHopCondition) //empty otherwise jumps over present player pieces
+                                                validHops(originalRow, originalColumn, row, column - 4, player, true);
+                                        }
+                                }
+                        }*/
 
                         Piece p;
 
-                        p = piece.left();
+                        p = destinationPiece.left();
                         if(this.isValid(p) && this.isTaken(p))
-                                L.addAll(this.validJumps(p.left()));
-                        p = piece.right();
+                                L.addAll(this.validJumps(destinationPiece, p.left(), false));
+                        p = destinationPiece.right();
                         if(this.isValid(p) && this.isTaken(p))
-                                L.addAll(this.validJumps(p.right()));
-                        p = piece.upLeft();
+                                L.addAll(this.validJumps(destinationPiece, p.right(), false));
+                        p = destinationPiece.upLeft();
                         if(this.isValid(p) && this.isTaken(p))
-                                L.addAll(this.validJumps(p.upLeft()));
-                        p = piece.upRight();
+                                L.addAll(this.validJumps(destinationPiece, p.upLeft(), false));
+                        p = destinationPiece.upRight();
                         if(this.isValid(p) && this.isTaken(p))
-                                L.addAll(this.validJumps(p.upRight()));
-                        p = piece.downLeft();
+                                L.addAll(this.validJumps(destinationPiece, p.upRight(), false));
+                        p = destinationPiece.downLeft();
                         if(this.isValid(p) && this.isTaken(p))
-                                L.addAll(this.validJumps(p.downLeft()));
-                        p = piece.downRight();
+                                L.addAll(this.validJumps(destinationPiece, p.downLeft(), false));
+                        p = destinationPiece.downRight();
                         if(this.isValid(p) && this.isTaken(p))
-                                L.addAll(this.validJumps(p.downRight())); 
+                                L.addAll(this.validJumps(destinationPiece, p.downRight(), false)); 
                 }
                 return L;
         }
@@ -364,21 +401,21 @@ public class Board {
         // 3 = upRight
         // 4 = downLeft
         // 5 = downRight
-        private LinkedList<Piece> validMoves(Piece piece, int direction) {
+        private LinkedList<Piece> validMoves(Piece originalPiece, Piece destinationPiece, int direction) {
                 LinkedList<Piece> L = new LinkedList<>();
 
-                if(this.isValid(piece)) {
-                        if(this.isFree(piece)) {
-                                B[piece.getRow()][piece.getCol()] = MRK;
-                                L.add(piece);
-                        } else if(this.isTaken(piece)) {
+                if(this.isValid(originalPiece, destinationPiece)) {
+                        if(this.isFree(destinationPiece)) {
+                                B[destinationPiece.getRow()][destinationPiece.getCol()] = MRK;
+                                L.add(destinationPiece);
+                        } else if(this.isTaken(destinationPiece)) {
                                 switch(direction) {
-                                        case 0: L.addAll(this.validJumps(piece.left()));      break;
-                                        case 1: L.addAll(this.validJumps(piece.right()));     break;        
-                                        case 2: L.addAll(this.validJumps(piece.upLeft()));    break;
-                                        case 3: L.addAll(this.validJumps(piece.upRight()));   break;
-                                        case 4: L.addAll(this.validJumps(piece.downLeft()));  break;
-                                        case 5: L.addAll(this.validJumps(piece.downRight())); break;
+                                        case 0: L.addAll(this.validJumps(originalPiece, destinationPiece.left(), false));      break;
+                                        case 1: L.addAll(this.validJumps(originalPiece, destinationPiece.right(), false));     break;        
+                                        case 2: L.addAll(this.validJumps(originalPiece, destinationPiece.upLeft(), false));    break;
+                                        case 3: L.addAll(this.validJumps(originalPiece, destinationPiece.upRight(), false));   break;
+                                        case 4: L.addAll(this.validJumps(originalPiece, destinationPiece.downLeft(), false));  break;
+                                        case 5: L.addAll(this.validJumps(originalPiece, destinationPiece.downRight(), false)); break;
                                 }
                         }
                 }
@@ -392,12 +429,14 @@ public class Board {
                         int player = B[piece.getRow()][piece.getCol()];
                         B[piece.getRow()][piece.getCol()] = MRK;
 
-                        L.addAll(this.validMoves(piece.left(),0));
-                        L.addAll(this.validMoves(piece.right(),1)); 
-                        L.addAll(this.validMoves(piece.upLeft(),2));
-                        L.addAll(this.validMoves(piece.upRight(),3));
-                        L.addAll(this.validMoves(piece.downLeft(),4));
-                        L.addAll(this.validMoves(piece.downRight(),5));
+                        Piece originalPiece = new Piece(piece);
+
+                        L.addAll(this.validMoves(originalPiece, piece.left(),0));
+                        L.addAll(this.validMoves(originalPiece, piece.right(),1)); 
+                        L.addAll(this.validMoves(originalPiece, piece.upLeft(),2));
+                        L.addAll(this.validMoves(originalPiece, piece.upRight(),3));
+                        L.addAll(this.validMoves(originalPiece, piece.downLeft(),4));
+                        L.addAll(this.validMoves(originalPiece, piece.downRight(),5));
 
                         // Cleanup the Board
                         for(Piece p : L)
@@ -574,6 +613,127 @@ public class Board {
                         }
                 }
 
+                /////////////////////////////////////////////////////////////////////////////////////////////////
+
+                int sideRepetition = rowCount;
+                int[] startCol = {0, 1, 2, 3};
+
+                if (numOfPlayers != 2) {
+                        trackOwn = 0;
+                        trackOpponent = 0;
+
+                        //upper left -> bottom right
+                        //Player 3 check if pieces are in Player 5 area
+                        for (int row = 0; row < rowCount; row++) {
+                                for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
+                                int rowIndex = this.rows - 1 - rowCount - row;
+                                int colIndex = this.cols - 1 - startCol[row] - (colIncrease * 2);
+
+                                if (B[rowIndex][colIndex] == Board.PL3) {
+                                        trackOwn++;
+                                }
+                                else if (B[rowIndex][colIndex] == Board.PL5) {
+                                        trackOpponent++;
+                                }
+                                }
+                                sideRepetition--;
+                        }
+
+                        if ((trackOwn + trackOpponent) == this.numOfPieces && trackOwn > 0) {
+                                return Board.PL3;
+                        }
+                }
+
+                /////////////////////////////////////////////////////////////////////////////////////////////////
+
+                if (numOfPlayers == 6) {
+                        trackOwn = 0;
+                        trackOpponent = 0;
+
+                        sideRepetition = rowCount;
+
+                        //lower left -> upper right
+                        //Player 6 check if pieces are in Player 4 area
+                        for (int row = 0; row < 1 + rowCount; row++) {
+                                for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
+                                int rowIndex = rowCount + row;
+                                int colIndex = this.cols - 1 - startCol[row] - (colIncrease * 2);
+
+                                if (B[rowIndex][colIndex] == Board.PL6) {
+                                        trackOwn++;
+                                }
+                                else if (B[rowIndex][colIndex] == Board.PL4) {
+                                        trackOpponent++;
+                                }
+                                }
+                                sideRepetition--;
+                        }
+
+                        if ((trackOwn + trackOpponent) == this.numOfPieces && trackOwn > 0) {
+                                return Board.PL6;
+                        }
+                }
+
+                /////////////////////////////////////////////////////////////////////////////////////////////////
+                
+                if (numOfPlayers != 2 && numOfPlayers != 4) {
+                        trackOwn = 0;
+                        trackOpponent = 0;
+
+                        sideRepetition = rowCount;
+
+                        //upper right -> lower left
+                        //Player 4 check if pieces are in Player 6 area
+                        for (int row = 0; row < rowCount; row++) {
+                                for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
+                                int rowIndex = this.rows - 1 - rowCount - row;
+                                int colIndex = startCol[row] + (colIncrease * 2);
+
+                                if (B[rowIndex][colIndex] == Board.PL4) {
+                                        trackOwn++;
+                                }
+                                else if (B[rowIndex][colIndex] == Board.PL6) {
+                                        trackOpponent++;
+                                }
+                                }
+                                sideRepetition--;
+                        }
+
+                        if ((trackOwn + trackOpponent) == this.numOfPieces && trackOwn > 0) {
+                                return Board.PL4;
+                        }
+                }
+
+                /////////////////////////////////////////////////////////////////////////////////////////////////
+
+                if (numOfPlayers != 2 && numOfPlayers != 3) {
+                        trackOwn = 0;
+                        trackOpponent = 0;
+
+                        sideRepetition = rowCount;
+
+                        //lower right -> upper left
+                        //Player 5 check if pieces are in Player 3 area
+                        for (int row = 0; row < rowCount; row++) {
+                                for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
+                                int rowIndex = rowCount + row;
+                                int colIndex = startCol[row] + (colIncrease * 2);
+
+                                if (B[rowIndex][colIndex] == Board.PL5) {
+                                        trackOwn++;
+                                }
+                                else if (B[rowIndex][colIndex] == Board.PL3) {
+                                        trackOpponent++;
+                                }
+                                }
+                                sideRepetition--;
+                        }
+
+                        if ((trackOwn + trackOpponent) == this.numOfPieces && trackOwn > 0) {
+                                return Board.PL5;
+                        }
+                }
+
                 return 0;
         }
 
@@ -746,156 +906,79 @@ public class Board {
                 return false;
         }
 
-        /*
-        Methods for n players
-        public int findNextPlayer(int currentPlayer){
+        // Method for n players
+        public int findNextPlayer(int currentPlayer, int numOfPlayers){
                 switch (currentPlayer){
-                case Board.PLA:
-                        switch (Tester.playerCount){
-                        case 2:
-                                return Board.PLB;
+                case Board.PL1:
+                        switch (numOfPlayers){
+                                case 2:
+                                        return Board.PL2;
 
-                        case 3:
-                                return Board.PLE;
-                                
-                        case 4:
-                                return Board.PLD;
+                                case 3:
+                                        return Board.PL3;
+                                        
+                                case 4:
+                                        return Board.PL3;
 
-                        case 6:
-                                return Board.PLD;
-                        }
+                                case 6:
+                                        return Board.PL6;
+                                }
                         break;
 
-                case Board.PLB:
-                        switch (Tester.playerCount){
-                        case 2:
-                                return Board.PLA;
+                case Board.PL2:
+                        switch (numOfPlayers){
+                                case 2:
+                                        return Board.PL1;
 
-                        case 4:
-                                return Board.PLC;
+                                case 4:
+                                        return Board.PL5;
 
-                        case 6:
-                                return Board.PLC;
-                        }
+                                case 6:
+                                        return Board.PL4;
+                                }
                         break;
 
-                case Board.PLC:
-                        switch (Tester.playerCount){
-                        case 3:
-                                return Board.PLA;
+                case Board.PL3: //upper left
+                        switch (numOfPlayers){
+                                case 3:
+                                        return Board.PL4;
 
-                        case 4:
-                                return Board.PLA;
+                                case 4:
+                                        return Board.PL2;
 
-                        case 6:
-                                return Board.PLF;
-                        }
+                                case 6:
+                                        return Board.PL2;
+                                }
                         break;
                 
-                case Board.PLD:
-                        switch (Tester.playerCount){
-                        case 4:
-                                return Board.PLB;
+                case Board.PL4: //upper right
+                        switch (numOfPlayers){
+                                case 3:
+                                        return Board.PL1;
 
-                        case 6:
-                                return Board.PLE;
-                        }
+                                case 6:
+                                        return Board.PL5;
+                                }
                         break;
 
-                case Board.PLE:
-                        switch (Tester.playerCount){
-                        case 3:
-                                return Board.PLC;
+                case Board.PL5: //lower right
+                        switch (numOfPlayers){
+                                case 4:
+                                        return Board.PL1;
 
-                        case 6:
-                                return Board.PLB;
-                        }
+                                case 6:
+                                        return Board.PL1;
+                                }
                         break;
 
 
-                case Board.PLF:
-                        switch (Tester.playerCount){
-                        case 6:
-                                return Board.PLA;
-                        }
+                case Board.PL6: //lower left
+                        switch (numOfPlayers){
+                                case 6:
+                                        return Board.PL3;
+                                }
                         break;
                 }
                 return (currentPlayer + 1) % 6;
         }
-
-        	//ex. for 3 players we have PLA, PLE, PLC, convert Player to their index based on how many players are playing and not their piece value, avoid going out of bounds of array made with length of player count
-        public static int getPlayerIndex(int player){
-        int index = 0;
-        switch (player) {
-            case Board.PLA:
-                index = 0;
-                break;
-
-            case Board.PLB:
-                switch (playerCount){
-                    case 2:
-                        index = 1;
-                        break;
-
-                    case 4:
-                        index = 2;
-                        break;
-
-                    case 6:
-                        index = 3;
-                        break;
-                }
-                break;
-
-            case Board.PLC:
-                switch (playerCount){
-                    case 3:
-                        index = 2;
-                        break;
-
-                    case 4:
-                        index = 3;
-                        break;
-
-                    case 6:
-                        index = 4;
-                        break;
-                }
-                break;
-
-            case Board.PLD:
-                switch (playerCount){
-                    case 4:
-                        index = 1;
-                        break;
-
-                    case 6:
-                        index = 1;
-                        break;
-                }
-                break;
-
-            case Board.PLE:
-                switch (playerCount){
-                    case 3:
-                        index = 1;
-                        break;
-
-                    case 6:
-                        index = 2;
-                        break;
-                }
-                break;
-
-            case Board.PLF:
-                switch (playerCount){
-                    case 6:
-                        index = 5;
-                        break;
-                }
-                break;
-        }
-
-        return index;
-    }*/
 }
