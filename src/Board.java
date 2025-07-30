@@ -228,36 +228,8 @@ public class Board {
         private boolean isValid(Piece piece) {
                 int row = piece.getRow();
                 int col = piece.getCol();
-                
-                if (row >= 0 && row < this.rows && col >= 0 && col < this.cols && this.B[row][col] != NIL)
-                        return true;
 
-                // PL1 and PL2 cannot enter PL3, PL4, PL5, PL6 area
-                if (checkPieceInsideZone(row, col, PL3) ||
-                        checkPieceInsideZone(row, col, PL4) ||
-                        checkPieceInsideZone(row, col, PL5) ||
-                        checkPieceInsideZone(row, col, PL6))
-                                return false;
-
-                return false;
-        }
-
-        private boolean isValid(Piece originalPiece, Piece destinationPiece) {
-                int row = destinationPiece.getRow();
-                int col = destinationPiece.getCol();
-                
-                if (row >= 0 && row < this.rows && col >= 0 && col < this.cols && this.B[row][col] != NIL)
-                        return true;
-
-                /*
-                if (row >= 0 && row < this.rows && col >= 0 && col < this.cols && this.B[row][col] != NIL) {
-                        // 1. A piece can't return to its starting area after leaving it
-                        // 2. A piece inside the goal area can't leave it
-                        if (validSpace(originalPiece.getRow(), originalPiece.getCol(), destinationPiece.getRow(), destinationPiece.getCol()))
-                                return true;
-                }*/
-
-                return false;
+                return row >= 0 && row < this.rows && col >= 0 && col < this.cols && this.B[row][col] != NIL;
         }
 
         private boolean isFree(Piece piece) {
@@ -355,7 +327,7 @@ public class Board {
 
         private LinkedList<Piece> validJumps(Piece originalPiece, Piece destinationPiece, boolean checkingSpecialHopCondition) {
                 LinkedList<Piece> L = new LinkedList<>();
-                if(this.isValid(destinationPiece) && this.isFree(destinationPiece)) {
+                if(this.isValidSpecial(originalPiece, destinationPiece) && this.isFree(destinationPiece)) {
                         B[destinationPiece.getRow()][destinationPiece.getCol()] = MRK;
                         L.add(destinationPiece);
 
@@ -374,23 +346,53 @@ public class Board {
                         Piece p;
 
                         p = destinationPiece.left();
-                        if(this.isValid(p) && this.isTaken(p))
-                                L.addAll(this.validJumps(destinationPiece, p.left(), false));
+                        if(this.isValid(p) && this.isTaken(p)) {
+                                if (this.isValidSpecial(destinationPiece, p.left()))
+                                        L.addAll(this.validJumps(destinationPiece, p.left(), false));
+                                //else if (!this.isTaken(p.left()) && !checkingSpecialHopCondition)
+                                //        L.addAll(this.validJumps(destinationPiece, p.left(), true));
+                        }
+
                         p = destinationPiece.right();
-                        if(this.isValid(p) && this.isTaken(p))
-                                L.addAll(this.validJumps(destinationPiece, p.right(), false));
+                        if(this.isValid(p) && this.isTaken(p)) {
+                                if (this.isValidSpecial(destinationPiece, p.right()))
+                                        L.addAll(this.validJumps(destinationPiece, p.right(), false));
+                                //else if (!this.isTaken(p.right()) && !checkingSpecialHopCondition)
+                                //        L.addAll(this.validJumps(destinationPiece, p.right(), true));
+                        }
+
                         p = destinationPiece.upLeft();
-                        if(this.isValid(p) && this.isTaken(p))
-                                L.addAll(this.validJumps(destinationPiece, p.upLeft(), false));
+                        if(this.isValid(p) && this.isTaken(p)) {
+                                if (this.isValidSpecial(destinationPiece, p.upLeft()))
+                                        L.addAll(this.validJumps(destinationPiece, p.upLeft(), false));
+                                //else if (!this.isTaken(p.upLeft()) && !checkingSpecialHopCondition)
+                                //        L.addAll(this.validJumps(destinationPiece, p.upLeft(), true));
+                        }
+
                         p = destinationPiece.upRight();
-                        if(this.isValid(p) && this.isTaken(p))
-                                L.addAll(this.validJumps(destinationPiece, p.upRight(), false));
+                        if(this.isValid(p) && this.isTaken(p))  {
+                                if (this.isValidSpecial(destinationPiece, p.upRight()))
+                                        L.addAll(this.validJumps(destinationPiece, p.upRight(), false));
+                                //else if (!this.isTaken(p.upRight()) && !checkingSpecialHopCondition)
+                                //        L.addAll(this.validJumps(destinationPiece, p.upRight(), true));
+                        }
+
                         p = destinationPiece.downLeft();
-                        if(this.isValid(p) && this.isTaken(p))
-                                L.addAll(this.validJumps(destinationPiece, p.downLeft(), false));
+                        if(this.isValid(p) && this.isTaken(p)) {
+                                if (this.isValidSpecial(destinationPiece, p.downLeft()))
+                                        L.addAll(this.validJumps(destinationPiece, p.downLeft(), false));
+                                //else if (!this.isTaken(p.downLeft()) && !checkingSpecialHopCondition)
+                                //        L.addAll(this.validJumps(destinationPiece, p.downLeft(), true));
+                        }
+
                         p = destinationPiece.downRight();
-                        if(this.isValid(p) && this.isTaken(p))
-                                L.addAll(this.validJumps(destinationPiece, p.downRight(), false)); 
+                        if(this.isValid(p) && this.isTaken(p)) {
+                                if (this.isValidSpecial(destinationPiece, p.downRight()))
+                                        L.addAll(this.validJumps(destinationPiece, p.downRight(), false)); 
+                                //else if (!this.isTaken(p.downRight()) && !checkingSpecialHopCondition)
+                                //        L.addAll(this.validJumps(destinationPiece, p.downRight(), true));
+                        }
+
                 }
                 return L;
         }
@@ -404,7 +406,7 @@ public class Board {
         private LinkedList<Piece> validMoves(Piece originalPiece, Piece destinationPiece, int direction) {
                 LinkedList<Piece> L = new LinkedList<>();
 
-                if(this.isValid(originalPiece, destinationPiece)) {
+                if(this.isValidSpecial(originalPiece, destinationPiece)) {
                         if(this.isFree(destinationPiece)) {
                                 B[destinationPiece.getRow()][destinationPiece.getCol()] = MRK;
                                 L.add(destinationPiece);
@@ -444,6 +446,25 @@ public class Board {
                         B[piece.getRow()][piece.getCol()] = player;
                 }
                 return L;
+        }
+
+
+        //check special rules
+        private boolean isValidSpecial(Piece originalPiece, Piece destinationPiece) {
+                int row = destinationPiece.getRow();
+                int col = destinationPiece.getCol();
+
+                if (row >= 0 && row < this.rows && col >= 0 && col < this.cols && this.B[row][col] != NIL) {
+                        //return true;
+                        
+                        // 1. A piece can't return to its starting area after leaving it
+                        // 2. A piece inside the goal area can't leave it
+                        // 3. A piece can't stay in the starting area of another player that is not its opposite
+                        if (validSpace(originalPiece.getRow(), originalPiece.getCol(), destinationPiece.getRow(), destinationPiece.getCol()))
+                                return true;
+                }
+
+                return false;
         }
 
         public Piece[] getPlayerPieces(int player) throws IllegalArgumentException {
@@ -817,13 +838,13 @@ public class Board {
                 int newPieceType = this.B[newRow][newColumn];
 
                 // a piece inside the goal zone can only move inside it
-                if (checkPieceInsideZone(oldRow, oldColumn, inversePlayer(newPieceType)) && 
-                !checkPieceInsideZone(newRow, newColumn, inversePlayer(newPieceType)))
+                if (checkPieceInsideZone(oldRow, oldColumn, inversePlayer(this.currentPlayer)) && 
+                !checkPieceInsideZone(newRow, newColumn, inversePlayer(this.currentPlayer)))
                 return false;
 
                 // a piece can't return to its starting area after leaving it
-                if (!checkPieceInsideZone(oldRow, oldColumn, newPieceType) && 
-                checkPieceInsideZone(newRow, newColumn, newPieceType))
+                if (!checkPieceInsideZone(oldRow, oldColumn, this.currentPlayer) && 
+                checkPieceInsideZone(newRow, newColumn, this.currentPlayer))
                 return false;
 
                 // pieces can't access other piece starting and goal area except opposite

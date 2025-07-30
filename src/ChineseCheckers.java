@@ -11,6 +11,9 @@ public class ChineseCheckers {
     private static Random rand;
     private static boolean VERBOSE = false;
 
+    private static long moveExecutionStartTime = 0;
+    private static long lastLogTime;
+
 	private ChineseCheckers() {
 	}
 
@@ -53,7 +56,7 @@ public class ChineseCheckers {
 
         // Minimax with alpha-beta pruning 
         private static GameState minimaxab(Board B, int alpha, int beta, int turnLimit, HashMap<Long,Integer> T) throws IllegalStateException {
-                System.out.println(B.toString());
+                //System.out.println(B.toString());
 
                 /*long key = B.hashValue();
                 int repetitionCount = T.getOrDefault(key, 0);
@@ -141,12 +144,15 @@ public class ChineseCheckers {
 
                 for(Piece p : B.getPlayerPieces(currPlayer))
                         for(Piece q : B.validMoves(p)) {
+                                moveExecutionStartTime = System.currentTimeMillis();
+
                                 B.playMove(p,q);
                                 System.out.println("Evaluating Player" + currPlayer + "'s move: piece from " + p + " to " + q + "\n" + B);
                                 GameState state = minimaxab(B,Integer.MIN_VALUE,Integer.MAX_VALUE,turnLimit,T);
-                                System.out.println("Result: " + state + "\n");
+                                System.out.println("Result: " + state);
+                                System.out.println("Execution Time: " + ((System.currentTimeMillis() - moveExecutionStartTime) / 1000) + " seconds\n");
                                 score = Math.max(score,state.toInt());
-                                B.unplayMove();
+                                B.unplayMove();        
                         }
                 System.out.println("\nFinal result: " + GameState.fromInt(score));
         }
