@@ -55,26 +55,31 @@ public class ChineseCheckers {
         }
 
         // Minimax with alpha-beta pruning 
-        private static GameState minimaxab(Board B, int alpha, int beta, int turnLimit, HashMap<Long,Integer> T) throws IllegalStateException {
+        private static GameState minimaxab(Board B, int alpha, int beta, int turnLimit, HashMap<Long,Stat> T) throws IllegalStateException {
                 //System.out.println(B.toString());
 
-                /*long key = B.hashValue();
-                int repetitionCount = T.getOrDefault(key, 0);
+                long key = B.hashValue();
+                Stat currentStat = T.getOrDefault(key, new Stat(GameState.OPEN, 0));
 
-                repetitionCount++;
-                if (repetitionCount == 2) {
-                        //System.out.println("repeated");
-                        return GameState.DRAW;
+                currentStat.count++;
+                if (currentStat.count == 2) {
+                        return currentStat.state;
                 }
                 else {
-                        T.put(key, repetitionCount);
-                }*/
+                        T.put(key, currentStat);
+                }
 
-                if(turnLimit == 0)
+                if(turnLimit == 0) {
+                        currentStat.state = GameState.DRAW;
+                        T.put(key, currentStat);
                         return GameState.DRAW;
+                }
                 else if (B.getCurrentState() != GameState.OPEN) {
+                        currentStat.state = B.getCurrentState();
+                        T.put(key, currentStat);
                         return B.getCurrentState();
-                } else if(B.getCurrentPlayer() == 1) {
+                } 
+                else if(B.getCurrentPlayer() == 1) {
                         Integer score = Integer.MIN_VALUE;
                         /*for(Piece p: orderPlayerPieces(B, 1)) {
                                 for(Piece q : orderPieceMoves(B, p, 1)) {
@@ -89,14 +94,20 @@ public class ChineseCheckers {
 
                         for (CheckersMove move : moveOrderingEvaluation(B, Board.PL1, T)){
                                 B.playMove(move.start,move.dest);
-                                score = Math.max(score,minimaxab(B,alpha,beta,turnLimit-1,T).toInt());
+                                GameState state = minimaxab(B,alpha,beta,turnLimit-1,T);
                                 B.unplayMove();
+
+                                if (state == GameState.OPEN)
+                                        continue;
+                                score = Math.max(score,state.toInt());
+
                                 alpha = Math.max(alpha,score);
                                 if(beta <= alpha)
                                         break;
                         }
                         
-                        //T.put(key, --repetitionCount);
+                        currentStat.count--;
+                        T.put(key, currentStat);
                         return GameState.fromInt(score);
                 } else {
                         Integer score = Integer.MAX_VALUE;
@@ -113,14 +124,20 @@ public class ChineseCheckers {
 
                         for (CheckersMove move : moveOrderingEvaluation(B, Board.PL2, T)){
                                 B.playMove(move.start,move.dest);
-                                score = Math.min(score,minimaxab(B,alpha,beta,turnLimit-1,T).toInt());
+                                GameState state = minimaxab(B,alpha,beta,turnLimit-1,T);
                                 B.unplayMove();
+
+                                if (state == GameState.OPEN)
+                                        continue;
+                                score = Math.min(score,state.toInt());
+
                                 beta = Math.min(beta,score);
                                 if(beta <= alpha)
                                         break;
                         }
 
-                        //T.put(key, --repetitionCount);
+                        currentStat.count--;
+                        T.put(key, currentStat);
                         return GameState.fromInt(score);
                 }
         }
@@ -139,7 +156,7 @@ public class ChineseCheckers {
 
         private static void analyzeGameTree(Board B, int turnLimit) {
                 Integer score = Integer.MIN_VALUE;
-                HashMap<Long,Integer> T = new HashMap<>();
+                HashMap<Long,Stat> T = new HashMap<>();
                 int currPlayer = B.getCurrentPlayer();
 
                 for(Piece p : B.getPlayerPieces(currPlayer))
@@ -178,6 +195,21 @@ public class ChineseCheckers {
 
 	}
 
+        private static class Stat {
+                GameState state;
+                int count;
+                
+                public Stat(GameState state, int count) {
+                        this.state = state;
+                        this.count = count;
+                }
+
+                @Override
+                public String toString() {
+                    return "[" + this.state + "," + this.count + "]";
+                }
+        }
+
         public static class CheckersMove {
                 public Piece start;
                 public Piece dest;
@@ -190,7 +222,7 @@ public class ChineseCheckers {
                 }
         }
 
-        public static List<CheckersMove> moveOrderingEvaluation(Board B, int player, HashMap<Long,Integer> T){
+        public static List<CheckersMove> moveOrderingEvaluation(Board B, int player, HashMap<Long,Stat> T){
                 List<CheckersMove> nextMoves = new ArrayList<CheckersMove>();
 
                 ArrayList<Piece> playerPieces = new ArrayList<>(Arrays.asList(B.getPlayerPieces(player)));;
@@ -202,10 +234,10 @@ public class ChineseCheckers {
                                 B.playMove(startPiece, destPiece);
                                 
                                 /*long key = B.hashValue();
-                                int repetitionCount = T.getOrDefault(key, 0);
+                                Stat currentStat = T.getOrDefault(key, new Stat(GameState.OPEN, 0));
 
-                                repetitionCount++;
-                                if (repetitionCount == 2) {
+                                currentStat.count++;
+                                if (currentStat.count == 2) {
                                         evaluationScore = GameState.DRAW.toInt();
                                 }
                                 else {

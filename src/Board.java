@@ -158,7 +158,6 @@ public class Board {
         private long H[][];
         private long hash;
 
-
         public final int rows;
         public final int cols;
 
@@ -181,8 +180,8 @@ public class Board {
                 this.cols          = B[0].length;
                 this.homePieces    = new int[this.numOfPlayers+1];
                 // Decomment for anti spoiling victory condition
-                //for (int i = 1; i < this.numOfPlayers + 1; i++)
-                //        this.homePieces[i] = this.numOfPieces;
+                for (int i = 1; i < this.numOfPlayers + 1; i++)
+                        this.homePieces[i] = this.numOfPieces;
                 this.gameState     = new GameState[]{GameState.OPEN,GameState.WIN1,GameState.WIN2};
                 this.moveHist      = new LinkedList<BoardHist>();
 
@@ -260,15 +259,15 @@ public class Board {
                 if(W[nrow][ncol] == player)
                         this.homePieces[player]++; // A piece has been moved at home
                 // Decomment for anti spoiling victory condition
-                //if(W[nrow][ncol] == inversePlayer(player))
-                //        this.homePieces[inversePlayer(player)]++; // Current player moved piece back to starting area
+                if(W[nrow][ncol] == inversePlayer(player))
+                        this.homePieces[inversePlayer(player)]++; // Current player moved piece back to starting area
 
                 this.B[orow][ocol] = EMP;
                 if(W[orow][ocol] == player)
                         this.homePieces[player]--; // A piece already placed at home has been moved, the slot is now empty
                 // Decomment for anti spoiling victory condition
-                //if(W[orow][ocol] == inversePlayer(player))
-                //        this.homePieces[inversePlayer(player)]--; // Current player moved piece out of starting area
+                if(W[orow][ocol] == inversePlayer(player))
+                        this.homePieces[inversePlayer(player)]--; // Current player moved piece out of starting area
 
                 this.P[player].move(oldpiece,newpiece); // Change the position of the oldpiece in the Pieces datastructure
 
@@ -309,20 +308,38 @@ public class Board {
 
         private void checkWin() {
                 // Decomment for anti spoiling victory condition
-                /*if(this.homePieces[this.currentPlayer] == this.numOfPieces) { // player n destination area is filled with pieces, check if at least one of them has value n
+                if(this.homePieces[this.currentPlayer] == this.numOfPieces) { // player n destination area is filled with pieces, check if at least one of them has value n
                         int checkWinValue = checkWinning();
                         if (checkWinValue == this.currentPlayer) {
                                 this.currentState  = this.gameState[this.currentPlayer]; // Current player wins
                         }
                 }
                 else
-                        this.currentState  = GameState.OPEN;                     // Match is still open*/
+                        this.currentState  = GameState.OPEN;                     // Match is still open
 
-                if (this.homePieces[this.currentPlayer] == this.numOfPieces) {
+                /*if (this.homePieces[this.currentPlayer] == this.numOfPieces) {
                         this.currentState  = this.gameState[this.currentPlayer]; // Current player wins
                 }
                 else
-                        this.currentState  = GameState.OPEN;    
+                        this.currentState  = GameState.OPEN;    */
+        }
+
+        //check special rules
+        private boolean isValidSpecial(Piece originalPiece, Piece destinationPiece) {
+                int row = destinationPiece.getRow();
+                int col = destinationPiece.getCol();
+
+                if (row >= 0 && row < this.rows && col >= 0 && col < this.cols && this.B[row][col] != NIL) {
+                        //return true;
+                        
+                        // 1. A piece can't return to its starting area after leaving it
+                        // 2. A piece inside the goal area can't leave it
+                        // 3. A piece can't stay in the starting area of another player that is not its opposite
+                        if (validSpace(originalPiece.getRow(), originalPiece.getCol(), destinationPiece.getRow(), destinationPiece.getCol()))
+                                return true;
+                }
+
+                return false;
         }
 
         private LinkedList<Piece> validJumps(Piece originalPiece, Piece destinationPiece, boolean checkingSpecialHopCondition) {
@@ -331,66 +348,54 @@ public class Board {
                         B[destinationPiece.getRow()][destinationPiece.getCol()] = MRK;
                         L.add(destinationPiece);
 
-                        /*if (column > 3) {
-                                //Left
-                                if (board.MainBoard[row][column - 2] != Board.NOV && isPlayingPiece(row, column - 2)) {
-                                        if (board.MainBoard[row][column - 4] != Board.NOV) {
-                                        if (validSpace(originalRow, originalColumn, row, column - 4))
-                                                validHops(originalRow, originalColumn, row, column - 4, player, false);
-                                        else if (board.MainBoard[row][column - 4] == Board.EMP && !checkingSpecialHopCondition) //empty otherwise jumps over present player pieces
-                                                validHops(originalRow, originalColumn, row, column - 4, player, true);
-                                        }
-                                }
-                        }*/
-
                         Piece p;
 
                         p = destinationPiece.left();
                         if(this.isValid(p) && this.isTaken(p)) {
                                 if (this.isValidSpecial(destinationPiece, p.left()))
                                         L.addAll(this.validJumps(destinationPiece, p.left(), false));
-                                //else if (!this.isTaken(p.left()) && !checkingSpecialHopCondition)
-                                //        L.addAll(this.validJumps(destinationPiece, p.left(), true));
+                                else if (this.isValid(p.left()) && !this.isTaken(p.left()) && !checkingSpecialHopCondition)
+                                        L.addAll(this.validJumps(destinationPiece, p.left(), true));
                         }
 
                         p = destinationPiece.right();
                         if(this.isValid(p) && this.isTaken(p)) {
                                 if (this.isValidSpecial(destinationPiece, p.right()))
                                         L.addAll(this.validJumps(destinationPiece, p.right(), false));
-                                //else if (!this.isTaken(p.right()) && !checkingSpecialHopCondition)
-                                //        L.addAll(this.validJumps(destinationPiece, p.right(), true));
+                                else if (this.isValid(p.right()) && !this.isTaken(p.right()) && !checkingSpecialHopCondition)
+                                        L.addAll(this.validJumps(destinationPiece, p.right(), true));
                         }
 
                         p = destinationPiece.upLeft();
                         if(this.isValid(p) && this.isTaken(p)) {
                                 if (this.isValidSpecial(destinationPiece, p.upLeft()))
                                         L.addAll(this.validJumps(destinationPiece, p.upLeft(), false));
-                                //else if (!this.isTaken(p.upLeft()) && !checkingSpecialHopCondition)
-                                //        L.addAll(this.validJumps(destinationPiece, p.upLeft(), true));
+                                else if (this.isValid(p.upLeft()) && !this.isTaken(p.upLeft()) && !checkingSpecialHopCondition)
+                                        L.addAll(this.validJumps(destinationPiece, p.upLeft(), true));
                         }
 
                         p = destinationPiece.upRight();
                         if(this.isValid(p) && this.isTaken(p))  {
                                 if (this.isValidSpecial(destinationPiece, p.upRight()))
                                         L.addAll(this.validJumps(destinationPiece, p.upRight(), false));
-                                //else if (!this.isTaken(p.upRight()) && !checkingSpecialHopCondition)
-                                //        L.addAll(this.validJumps(destinationPiece, p.upRight(), true));
+                                else if (this.isValid(p.upRight()) && !this.isTaken(p.upRight()) && !checkingSpecialHopCondition)
+                                        L.addAll(this.validJumps(destinationPiece, p.upRight(), true));
                         }
 
                         p = destinationPiece.downLeft();
                         if(this.isValid(p) && this.isTaken(p)) {
                                 if (this.isValidSpecial(destinationPiece, p.downLeft()))
                                         L.addAll(this.validJumps(destinationPiece, p.downLeft(), false));
-                                //else if (!this.isTaken(p.downLeft()) && !checkingSpecialHopCondition)
-                                //        L.addAll(this.validJumps(destinationPiece, p.downLeft(), true));
+                                else if (this.isValid(p.downLeft()) && !this.isTaken(p.downLeft()) && !checkingSpecialHopCondition)
+                                        L.addAll(this.validJumps(destinationPiece, p.downLeft(), true));
                         }
 
                         p = destinationPiece.downRight();
                         if(this.isValid(p) && this.isTaken(p)) {
                                 if (this.isValidSpecial(destinationPiece, p.downRight()))
                                         L.addAll(this.validJumps(destinationPiece, p.downRight(), false)); 
-                                //else if (!this.isTaken(p.downRight()) && !checkingSpecialHopCondition)
-                                //        L.addAll(this.validJumps(destinationPiece, p.downRight(), true));
+                                else if (this.isValid(p.downRight()) && !this.isTaken(p.downRight()) && !checkingSpecialHopCondition)
+                                        L.addAll(this.validJumps(destinationPiece, p.downRight(), true));
                         }
 
                 }
@@ -446,25 +451,6 @@ public class Board {
                         B[piece.getRow()][piece.getCol()] = player;
                 }
                 return L;
-        }
-
-
-        //check special rules
-        private boolean isValidSpecial(Piece originalPiece, Piece destinationPiece) {
-                int row = destinationPiece.getRow();
-                int col = destinationPiece.getCol();
-
-                if (row >= 0 && row < this.rows && col >= 0 && col < this.cols && this.B[row][col] != NIL) {
-                        //return true;
-                        
-                        // 1. A piece can't return to its starting area after leaving it
-                        // 2. A piece inside the goal area can't leave it
-                        // 3. A piece can't stay in the starting area of another player that is not its opposite
-                        if (validSpace(originalPiece.getRow(), originalPiece.getCol(), destinationPiece.getRow(), destinationPiece.getCol()))
-                                return true;
-                }
-
-                return false;
         }
 
         public Piece[] getPlayerPieces(int player) throws IllegalArgumentException {
