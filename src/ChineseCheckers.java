@@ -21,6 +21,7 @@ public class ChineseCheckers {
 		System.err.println("Usage: ChineseCheckers <Num of Pieces> <TurnLimit>");
 	}
 
+        //test random moves
         private static Piece getRandomPiece(Board B) {
                 int player = B.getCurrentPlayer();
                 Piece P[] = B.getPlayerPieces(player);
@@ -58,46 +59,32 @@ public class ChineseCheckers {
         private static GameState minimaxab(Board B, int alpha, int beta, int turnLimit, HashMap<Long,Stat> T) throws IllegalStateException {
                 //System.out.println(B.toString());
 
+                //transposition table, avoid taking paths explored previously
                 long key = B.hashValue();
                 Stat currentStat = T.getOrDefault(key, new Stat(GameState.OPEN, 0));
 
-                currentStat.count++;
-                if (currentStat.count == 2) {
+                currentStat.count++; //updates reference
+                if (currentStat.count >= 2) {
                         return currentStat.state;
                 }
-                else {
-                        T.put(key, currentStat);
-                }
 
-                if(turnLimit == 0) {
-                        currentStat.state = GameState.DRAW;
-                        T.put(key, currentStat);
+                if(turnLimit == 0) { //turn limit reached
                         return GameState.DRAW;
                 }
                 else if (B.getCurrentState() != GameState.OPEN) {
                         currentStat.state = B.getCurrentState();
-                        T.put(key, currentStat);
+                        //T.put(key, currentStat);
                         return B.getCurrentState();
                 } 
                 else if(B.getCurrentPlayer() == 1) {
                         Integer score = Integer.MIN_VALUE;
-                        /*for(Piece p: orderPlayerPieces(B, 1)) {
-                                for(Piece q : orderPieceMoves(B, p, 1)) {
-                                        B.playMove(p,q);
-                                        score = Math.max(score,minimaxab(B,alpha,beta,turnLimit-1,T).toInt());
-                                        B.unplayMove();
-                                        alpha = Math.max(alpha,score);
-                                        if(beta <= alpha)
-                                                break;
-                                }
-                        }*/
 
                         for (CheckersMove move : moveOrderingEvaluation(B, Board.PL1, T)){
                                 B.playMove(move.start,move.dest);
                                 GameState state = minimaxab(B,alpha,beta,turnLimit-1,T);
                                 B.unplayMove();
 
-                                if (state == GameState.OPEN)
+                                if (state == GameState.OPEN) //previously reached position saved in transposition table, ignore results if not end state
                                         continue;
                                 score = Math.max(score,state.toInt());
 
@@ -106,21 +93,11 @@ public class ChineseCheckers {
                                         break;
                         }
                         
-                        currentStat.count--;
-                        T.put(key, currentStat);
+                        //currentStat.count--;
+                        //T.put(key, currentStat);
                         return GameState.fromInt(score);
                 } else {
                         Integer score = Integer.MAX_VALUE;
-                        /*for(Piece p: orderPlayerPieces(B, 2)) {
-                                for(Piece q : orderPieceMoves(B, p, 2)) {
-                                        B.playMove(p,q);
-                                        score = Math.min(score,minimaxab(B,alpha,beta,turnLimit-1,T).toInt());
-                                        B.unplayMove();
-                                        beta = Math.min(beta,score);
-                                        if(beta <= alpha)
-                                                break;
-                                }
-                        }*/
 
                         for (CheckersMove move : moveOrderingEvaluation(B, Board.PL2, T)){
                                 B.playMove(move.start,move.dest);
@@ -136,22 +113,10 @@ public class ChineseCheckers {
                                         break;
                         }
 
-                        currentStat.count--;
-                        T.put(key, currentStat);
+                        //currentStat.count--;
+                        //T.put(key, currentStat);
                         return GameState.fromInt(score);
                 }
-        }
-
-        private static ArrayList<Piece> orderPlayerPieces(Board B, int player) {
-                ArrayList<Piece> playerPieces = new ArrayList<>(Arrays.asList(B.getPlayerPieces(player)));;
-                playerPieces.sort(Comparator.comparingInt(p -> B.distanceToGoal(p, player)));
-                return playerPieces;
-        }
-
-        private static ArrayList<Piece> orderPieceMoves(Board B, Piece piece, int player) {
-                ArrayList<Piece> pieceMoves = B.validMoves(piece);
-                pieceMoves.sort(Comparator.comparingInt(p -> B.distanceToGoal(p, player)));
-                return pieceMoves;
         }
 
         private static void analyzeGameTree(Board B, int turnLimit) {
@@ -170,6 +135,8 @@ public class ChineseCheckers {
                                 System.out.println("Execution Time: " + ((System.currentTimeMillis() - moveExecutionStartTime) / 1000) + " seconds\n");
                                 score = Math.max(score,state.toInt());
                                 B.unplayMove();        
+
+                                T.clear();
                         }
                 System.out.println("\nFinal result: " + GameState.fromInt(score));
         }
@@ -182,12 +149,16 @@ public class ChineseCheckers {
 
                 rand = new Random();
 
+                /*
+                   int numPlayers  = Integer.parseInt(args[1]);     
+                   int numOfPieces  = Integer.parseInt(args[1]);
+                   int turnLimit    = Integer.parseInt(args[2]);
+                 */
+
                 int numOfPieces  = Integer.parseInt(args[0]);
                 int turnLimit    = Integer.parseInt(args[1]);
 
                 Board B = new Board(numOfPieces);
-
-                
                 //randomMatch(B,100);
 
                 System.out.println("Starting Board\n" + B);
@@ -233,33 +204,34 @@ public class ChineseCheckers {
 
                                 B.playMove(startPiece, destPiece);
                                 
-                                /*long key = B.hashValue();
-                                Stat currentStat = T.getOrDefault(key, new Stat(GameState.OPEN, 0));
-
-                                currentStat.count++;
-                                if (currentStat.count == 2) {
-                                        evaluationScore = GameState.DRAW.toInt();
+                                long key = B.hashValue();
+                                Stat currentStat = T.get(key);
+                                if (currentStat != null) {
+                                        int count = currentStat.count;
+                                        count++;
+                                        if (count >= 2) {
+                                                //avoid exploring previously selected paths
+                                                evaluationScore = GameState.DRAW.toInt();
+                                        }
                                 }
                                 else {
                                         evaluationScore = moveEvaluation(B, player);
-                                }*/
+                                }
 
-                                evaluationScore = moveEvaluation(B, player);
+                                //evaluationScore = moveEvaluation(B, player);
 
                                 nextMoves.add(new CheckersMove(startPiece, destPiece, evaluationScore));
-
                                 B.unplayMove();
                         }
                 }
 
                 nextMoves.sort((a, b) -> Integer.compare(b.score, a.score)); //sort moves by highest score first
-
                 return nextMoves;
         }
 
         public static int moveEvaluation(Board B, int player){ //for maxn
                 int score = 0;
-                if (B.getCurrentState() != GameState.OPEN) {
+                if (B.getCurrentState() != GameState.OPEN) { //assign max score if leads to victory, min score if leads to loss
                         switch (B.getCurrentState()){
                                 case WIN1:
                                         if (player == Board.PL1)
@@ -274,6 +246,9 @@ public class ChineseCheckers {
                                         else
                                                 score = Integer.MIN_VALUE;
                                         break;
+
+                                default:
+                                        break;
                         }
                         return score;
                 }
@@ -281,7 +256,7 @@ public class ChineseCheckers {
                 ArrayList<Piece> playerPieces = new ArrayList<>(Arrays.asList(B.getPlayerPieces(player)));;
                 int limit = 1000;
 
-                for (Piece piece : playerPieces) {
+                for (Piece piece : playerPieces) { //less distance from goal -> higher score -> move gets more priority
                         score += (limit - B.distanceToGoal(piece, player));
                 }
                 return score;
@@ -315,6 +290,19 @@ public class ChineseCheckers {
                 }
 
                 return GameState.fromInt(B.getCurrentPlayer());
+        }
+
+        //old move ordering that doesn't take account of jumps and overall best move to get every piece closer to the goal and not just the one in front
+        private static ArrayList<Piece> orderPlayerPieces(Board B, int player) {
+                ArrayList<Piece> playerPieces = new ArrayList<>(Arrays.asList(B.getPlayerPieces(player)));;
+                playerPieces.sort(Comparator.comparingInt(p -> B.distanceToGoal(p, player)));
+                return playerPieces;
+        }
+
+        private static ArrayList<Piece> orderPieceMoves(Board B, Piece piece, int player) {
+                ArrayList<Piece> pieceMoves = B.validMoves(piece);
+                pieceMoves.sort(Comparator.comparingInt(p -> B.distanceToGoal(p, player)));
+                return pieceMoves;
         }
 
         //ex. for 3 players we have PL1, PL3, PL4, convert Player to their index based on how many players are playing and not their piece value, avoid going out of bounds of array made with length of player count

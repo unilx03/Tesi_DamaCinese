@@ -64,7 +64,6 @@ public class Board {
                 {NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL}
         };
 
-
         // Board with 6 pieces per player
         static private int[][] B6 = {
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
@@ -140,8 +139,6 @@ public class Board {
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL}
         };
-
-
         
         private int[][]     B; // Game Board: changes dynamically
         private int[][]     W; // Winning Positions: static
@@ -186,6 +183,8 @@ public class Board {
                 this.moveHist      = new LinkedList<BoardHist>();
 
                 this.setupHash();
+
+                //setupPresetBoard(); //fixed starting board
         }
 
         public int get(int row, int col) {
@@ -258,6 +257,7 @@ public class Board {
                 this.B[nrow][ncol] = player;
                 if(W[nrow][ncol] == player)
                         this.homePieces[player]++; // A piece has been moved at home
+
                 // Decomment for anti spoiling victory condition
                 if(W[nrow][ncol] == inversePlayer(player))
                         this.homePieces[inversePlayer(player)]++; // Current player moved piece back to starting area
@@ -265,6 +265,7 @@ public class Board {
                 this.B[orow][ocol] = EMP;
                 if(W[orow][ocol] == player)
                         this.homePieces[player]--; // A piece already placed at home has been moved, the slot is now empty
+
                 // Decomment for anti spoiling victory condition
                 if(W[orow][ocol] == inversePlayer(player))
                         this.homePieces[inversePlayer(player)]--; // Current player moved piece out of starting area
@@ -289,8 +290,7 @@ public class Board {
                 this.move(oldpiece,newpiece);
                 this.moveHist.push(new BoardHist(oldpiece,newpiece,this.currentPlayer));
                 checkWin();
-                this.currentPlayer = this.currentPlayer % numOfPlayers + 1;
-                //this.currentPlayer = findNextPlayer(currentPlayer, numOfPlayers); for n players, also works for 2
+                this.currentPlayer = findNextPlayer(currentPlayer, numOfPlayers); //for n players, also works for 2
 
                 return this.currentState;
         }
@@ -354,7 +354,7 @@ public class Board {
                         if(this.isValid(p) && this.isTaken(p)) {
                                 if (this.isValidSpecial(destinationPiece, p.left()))
                                         L.addAll(this.validJumps(destinationPiece, p.left(), false));
-                                else if (this.isValid(p.left()) && !this.isTaken(p.left()) && !checkingSpecialHopCondition)
+                                else if (this.isValid(p.left()) && !this.isTaken(p.left()) && !checkingSpecialHopCondition) //if player enters an invalid area for traversal, the destination of the jump can be valid
                                         L.addAll(this.validJumps(destinationPiece, p.left(), true));
                         }
 
@@ -473,7 +473,6 @@ public class Board {
         public GameState getCurrentState() {
                 return this.currentState;
         }
-
         
         private void setupHash() {
                 // Setup the random generator seed by using the hash values of the board
@@ -494,6 +493,7 @@ public class Board {
                 return this.hash;
         }
 
+        //distance from the edge of each player's area
         public int distanceToGoal(Piece piece, int player) throws IllegalStateException {
 		Piece goalTarget;
                 int areaRows = getStartingAreaRows();
@@ -557,6 +557,18 @@ public class Board {
                         case PL2:
                                 return PL1;
 
+                        case PL3:
+                                return PL5;
+
+                        case PL4:
+                                return PL6;
+
+                        case PL5:
+                                return PL3;
+
+                        case PL6:
+                                return PL4;
+
                         default:
                                 throw new IllegalStateException("Invalid player index");
                 }
@@ -567,7 +579,6 @@ public class Board {
                 // (Board piece) winner is corresponding player
 
                 // Victory condition: if player i goal spaced is filled and there's at least one piece of the player i, the player i wins
-
                 int trackOwn = 0;
                 int trackOpponent = 0; //opposite player that stays in its initial area
                 int rowCount = getStartingAreaRows();
@@ -633,15 +644,15 @@ public class Board {
                         //Player 3 check if pieces are in Player 5 area
                         for (int row = 0; row < rowCount; row++) {
                                 for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
-                                int rowIndex = this.rows - 1 - rowCount - row;
-                                int colIndex = this.cols - 1 - startCol[row] - (colIncrease * 2);
+                                        int rowIndex = this.rows - 1 - rowCount - row;
+                                        int colIndex = this.cols - 1 - startCol[row] - (colIncrease * 2);
 
-                                if (B[rowIndex][colIndex] == Board.PL3) {
-                                        trackOwn++;
-                                }
-                                else if (B[rowIndex][colIndex] == Board.PL5) {
-                                        trackOpponent++;
-                                }
+                                        if (B[rowIndex][colIndex] == Board.PL3) {
+                                                trackOwn++;
+                                        }
+                                        else if (B[rowIndex][colIndex] == Board.PL5) {
+                                                trackOpponent++;
+                                        }
                                 }
                                 sideRepetition--;
                         }
@@ -663,15 +674,15 @@ public class Board {
                         //Player 6 check if pieces are in Player 4 area
                         for (int row = 0; row < 1 + rowCount; row++) {
                                 for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
-                                int rowIndex = rowCount + row;
-                                int colIndex = this.cols - 1 - startCol[row] - (colIncrease * 2);
+                                        int rowIndex = rowCount + row;
+                                        int colIndex = this.cols - 1 - startCol[row] - (colIncrease * 2);
 
-                                if (B[rowIndex][colIndex] == Board.PL6) {
-                                        trackOwn++;
-                                }
-                                else if (B[rowIndex][colIndex] == Board.PL4) {
-                                        trackOpponent++;
-                                }
+                                        if (B[rowIndex][colIndex] == Board.PL6) {
+                                                trackOwn++;
+                                        }
+                                        else if (B[rowIndex][colIndex] == Board.PL4) {
+                                                trackOpponent++;
+                                        }
                                 }
                                 sideRepetition--;
                         }
@@ -693,15 +704,15 @@ public class Board {
                         //Player 4 check if pieces are in Player 6 area
                         for (int row = 0; row < rowCount; row++) {
                                 for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
-                                int rowIndex = this.rows - 1 - rowCount - row;
-                                int colIndex = startCol[row] + (colIncrease * 2);
+                                        int rowIndex = this.rows - 1 - rowCount - row;
+                                        int colIndex = startCol[row] + (colIncrease * 2);
 
-                                if (B[rowIndex][colIndex] == Board.PL4) {
-                                        trackOwn++;
-                                }
-                                else if (B[rowIndex][colIndex] == Board.PL6) {
-                                        trackOpponent++;
-                                }
+                                        if (B[rowIndex][colIndex] == Board.PL4) {
+                                                trackOwn++;
+                                        }
+                                        else if (B[rowIndex][colIndex] == Board.PL6) {
+                                                trackOpponent++;
+                                        }
                                 }
                                 sideRepetition--;
                         }
@@ -723,15 +734,15 @@ public class Board {
                         //Player 5 check if pieces are in Player 3 area
                         for (int row = 0; row < rowCount; row++) {
                                 for (int colIncrease = 0; colIncrease < sideRepetition; colIncrease++) {
-                                int rowIndex = rowCount + row;
-                                int colIndex = startCol[row] + (colIncrease * 2);
+                                        int rowIndex = rowCount + row;
+                                        int colIndex = startCol[row] + (colIncrease * 2);
 
-                                if (B[rowIndex][colIndex] == Board.PL5) {
-                                        trackOwn++;
-                                }
-                                else if (B[rowIndex][colIndex] == Board.PL3) {
-                                        trackOpponent++;
-                                }
+                                        if (B[rowIndex][colIndex] == Board.PL5) {
+                                                trackOwn++;
+                                        }
+                                        else if (B[rowIndex][colIndex] == Board.PL3) {
+                                                trackOpponent++;
+                                        }
                                 }
                                 sideRepetition--;
                         }
@@ -987,5 +998,9 @@ public class Board {
                         break;
                 }
                 return (currentPlayer + 1) % 6;
+        }
+
+        void setupPresetBoard(){
+                playMove(new Piece(4, 3), new Piece(3, 2));
         }
 }
