@@ -23,18 +23,18 @@ public class Board {
         // Board with 1 piece per player
         static private int[][] B1 = {
                 {NIL, NIL, NIL, PL2, NIL, NIL, NIL},
-                {EMP, NIL, EMP, NIL, EMP, NIL, EMP},
+                {PL3, NIL, EMP, NIL, EMP, NIL, PL4},
                 {NIL, EMP, NIL, EMP, NIL, EMP, NIL},
-                {EMP, NIL, EMP, NIL, EMP, NIL, EMP},
+                {PL6, NIL, EMP, NIL, EMP, NIL, PL5},
                 {NIL, NIL, NIL, PL1, NIL, NIL, NIL}
         };
 
         // Board with 1 piece per player indicating winning positions
         static final private int[][] W1 = {
                 {NIL, NIL, NIL, PL1, NIL, NIL, NIL},
-                {EMP, NIL, EMP, NIL, EMP, NIL, EMP},
+                {PL5, NIL, EMP, NIL, EMP, NIL, PL6},
                 {NIL, EMP, NIL, EMP, NIL, EMP, NIL},
-                {EMP, NIL, EMP, NIL, EMP, NIL, EMP},
+                {PL4, NIL, EMP, NIL, EMP, NIL, PL3},
                 {NIL, NIL, NIL, PL2, NIL, NIL, NIL}
         };
         
@@ -42,11 +42,11 @@ public class Board {
         static private int[][] B3 = {
                 {NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, PL2, NIL, PL2, NIL, NIL, NIL, NIL, NIL},
-                {EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP},
-                {NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL},
+                {PL3, NIL, PL3, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL4, NIL, PL4},
+                {NIL, PL3, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL4, NIL},
                 {NIL, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, NIL},
-                {NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL},
-                {EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP},
+                {NIL, PL6, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL5, NIL},
+                {PL6, NIL, PL6, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL5, NIL, PL5},
                 {NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL}
         };
@@ -55,11 +55,11 @@ public class Board {
         static private int[][] W3 = {
                 {NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL},
-                {EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP},
-                {NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL},
+                {PL5, NIL, PL5, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL6, NIL, PL6},
+                {NIL, PL5, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL6, NIL},
                 {NIL, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, NIL},
-                {NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL},
-                {EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP},
+                {NIL, PL4, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL3, NIL},
+                {PL4, NIL, PL4, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL3, NIL, PL3},
                 {NIL, NIL, NIL, NIL, NIL, PL2, NIL, PL2, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL}
         };
@@ -69,13 +69,13 @@ public class Board {
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, PL2, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
-                {EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP},
-                {NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL},
-                {NIL, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, NIL},
+                {PL3, NIL, PL3, NIL, PL3, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL4, NIL, PL4, NIL, PL4},
+                {NIL, PL3, NIL, PL3, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL4, NIL, PL4, NIL},
+                {NIL, NIL, PL3, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL4, NIL, NIL},
                 {NIL, NIL, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, NIL, NIL},
-                {NIL, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, NIL},
-                {NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL},
-                {EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP},
+                {NIL, NIL, PL6, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL5, NIL, NIL},
+                {NIL, PL6, NIL, PL6, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL5, NIL, PL5, NIL},
+                {PL6, NIL, PL6, NIL, PL6, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL5, NIL, PL5, NIL, PL5},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL}
@@ -86,13 +86,13 @@ public class Board {
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
-                {EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP},
-                {NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL},
-                {NIL, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, NIL},
+                {PL5, NIL, PL5, NIL, PL5, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL6, NIL, PL6, NIL, PL6},
+                {NIL, PL5, NIL, PL5, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL6, NIL, PL6, NIL},
+                {NIL, NIL, PL5, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL6, NIL, NIL},
                 {NIL, NIL, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, NIL, NIL},
-                {NIL, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, NIL},
-                {NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL},
-                {EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP},
+                {NIL, NIL, PL4, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL3, NIL, NIL},
+                {NIL, PL4, NIL, PL4, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL3, NIL, PL3, NIL},
+                {PL4, NIL, PL4, NIL, PL4, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL3, NIL, PL3, NIL, PL3},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, PL2, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL}
@@ -104,15 +104,15 @@ public class Board {
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, PL2, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, PL2, NIL, PL2, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
-                {EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP},
-                {NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL},
-                {NIL, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, NIL},
-                {NIL, NIL, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, NIL, NIL},
+                {PL3, NIL, PL3, NIL, PL3, NIL, PL3, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL4, NIL, PL4, NIL, PL4, NIL, PL4},
+                {NIL, PL3, NIL, PL3, NIL, PL3, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL4, NIL, PL4, NIL, PL4, NIL},
+                {NIL, NIL, PL3, NIL, PL3, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL4, NIL, PL4, NIL, NIL},
+                {NIL, NIL, NIL, PL3, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL4, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, NIL, NIL, NIL},
-                {NIL, NIL, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, NIL, NIL},
-                {NIL, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, NIL},
-                {NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL},
-                {EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP},
+                {NIL, NIL, NIL, PL6, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL5, NIL, NIL, NIL},
+                {NIL, NIL, PL6, NIL, PL6, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL5, NIL, PL5, NIL, NIL},
+                {NIL, PL6, NIL, PL6, NIL, PL6, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL5, NIL, PL5, NIL, PL5, NIL},
+                {PL6, NIL, PL6, NIL, PL6, NIL, PL6, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL5, NIL, PL5, NIL, PL5, NIL, PL5},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
@@ -125,15 +125,15 @@ public class Board {
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
-                {EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP},
-                {NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL},
-                {NIL, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, NIL},
-                {NIL, NIL, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, NIL, NIL},
+                {PL5, NIL, PL5, NIL, PL5, NIL, PL5, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL6, NIL, PL6, NIL, PL6, NIL, PL6},
+                {NIL, PL5, NIL, PL5, NIL, PL5, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL6, NIL, PL6, NIL, PL6, NIL},
+                {NIL, NIL, PL5, NIL, PL5, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL6, NIL, PL6, NIL, NIL},
+                {NIL, NIL, NIL, PL5, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL6, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, NIL, NIL, NIL},
-                {NIL, NIL, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, NIL, NIL},
-                {NIL, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, NIL},
-                {NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL},
-                {EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP},
+                {NIL, NIL, NIL, PL4, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL3, NIL, NIL, NIL},
+                {NIL, NIL, PL4, NIL, PL4, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL3, NIL, PL3, NIL, NIL},
+                {NIL, PL4, NIL, PL4, NIL, PL4, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL3, NIL, PL3, NIL, PL3, NIL},
+                {PL4, NIL, PL4, NIL, PL4, NIL, PL4, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL3, NIL, PL3, NIL, PL3, NIL, PL3},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, PL2, NIL, PL2, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, PL2, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
@@ -160,7 +160,7 @@ public class Board {
 
         private int homePieces[]; // Counts how many non-empty pieces have been placed at home for each player, initialized to number of pieces
 
-        public Board(int numOfPieces) throws IllegalArgumentException {
+        public Board(int numPlayers, int numOfPieces) throws IllegalArgumentException {
                 switch(numOfPieces) {
                         case 1:  B = B1;  W = W1;  break;
                         case 3:  B = B3;  W = W3;  break;
@@ -168,7 +168,7 @@ public class Board {
                         case 10: B = B10; W = W10; break;
                         default: throw new IllegalArgumentException("Only 1,3,6 or 10 pieces per player allowed");
                 }
-                this.numOfPlayers = 2;
+                this.numOfPlayers = numPlayers;
                 this.numOfPieces  = numOfPieces;
                 playerSetup(this.numOfPlayers,this.numOfPieces);
                 this.currentPlayer = PL1;
@@ -177,9 +177,14 @@ public class Board {
                 this.cols          = B[0].length;
                 this.homePieces    = new int[this.numOfPlayers+1];
                 // Decomment for anti spoiling victory condition
-                for (int i = 1; i < this.numOfPlayers + 1; i++)
+                for (int i = 1; i <= this.numOfPlayers; i++)
                         this.homePieces[i] = this.numOfPieces;
-                this.gameState     = new GameState[]{GameState.OPEN,GameState.WIN1,GameState.WIN2};
+
+                if (numOfPlayers == 2)
+                        this.gameState     = new GameState[]{GameState.OPEN,GameState.WIN1,GameState.WIN2};
+                else
+                        this.gameState     = new GameState[]{GameState.OPEN,GameState.WINP1,GameState.WINP2,GameState.WINP3,GameState.WINP4,GameState.WINP5,GameState.WINP6};
+
                 this.moveHist      = new LinkedList<BoardHist>();
 
                 this.setupHash();
@@ -201,10 +206,44 @@ public class Board {
                 for(int i = 1; i <= numOfPlayers; i++)
                         this.P[i] = new Pieces(numOfPieces);
 
+                int[] playerIndex = getPlayerIndexList();
+
                 for(int i = 0; i < this.B.length; i++)
-                        for(int j = 0; j < this.B[i].length; j++)
-                                if(this.B[i][j] >= 1 && this.B[i][j] <= numOfPlayers)
-                                        this.P[B[i][j]].add(i,j); // Setup pieces list for each player
+                        for(int j = 0; j < this.B[i].length; j++) {
+                                int cellValue = this.B[i][j];
+
+                                if (contains(playerIndex, cellValue)) {
+                                        this.P[ChineseCheckers.getPlayerIndex(cellValue, numOfPlayers) + 1].add(i, j); // assign piece to correct player
+                                } else if (cellValue != NIL) {
+                                        this.B[i][j] = EMP; // mark as empty
+                                }
+                        }
+        }
+
+        private int[] getPlayerIndexList()  throws IllegalArgumentException {
+                switch (numOfPlayers){
+                        case 2:
+                                return new int[]{PL1, PL2};
+
+                        case 3:
+                                return new int[]{PL1, PL3, PL4};
+
+                        case 4:
+                                return new int[]{PL1, PL3, PL2, PL5};
+
+                        case 6:
+                                return new int[]{PL1, PL6, PL3, PL2, PL4, PL5};
+
+                        default:
+                                throw new IllegalArgumentException("Invalid player count");
+                }
+        }
+
+        private boolean contains(int[] arr, int val) {
+                for (int x : arr) {
+                        if (x == val) return true;
+                }
+                return false;
         }
 
         @Override
@@ -216,6 +255,10 @@ public class Board {
                                         case NIL: S += " "; break;
                                         case PL1: S += "1"; break;
                                         case PL2: S += "2"; break;
+                                        case PL3: S += "3"; break;
+                                        case PL4: S += "4"; break;
+                                        case PL5: S += "5"; break;
+                                        case PL6: S += "6"; break;
                                         case EMP: S += "*"; break;
                                 }
                         S = S + "\n";
@@ -259,18 +302,22 @@ public class Board {
                         this.homePieces[player]++; // A piece has been moved at home
 
                 // Decomment for anti spoiling victory condition
-                if(W[nrow][ncol] == inversePlayer(player))
-                        this.homePieces[inversePlayer(player)]++; // Current player moved piece back to starting area
+                if (numOfPlayers != 3) { //in 3 player game players don't reach an opposite player destination area
+                        if(W[nrow][ncol] == inversePlayer(player))
+                                this.homePieces[inversePlayer(player)]++; // Current player moved piece back to starting area
+                }
 
                 this.B[orow][ocol] = EMP;
                 if(W[orow][ocol] == player)
                         this.homePieces[player]--; // A piece already placed at home has been moved, the slot is now empty
 
                 // Decomment for anti spoiling victory condition
-                if(W[orow][ocol] == inversePlayer(player))
-                        this.homePieces[inversePlayer(player)]--; // Current player moved piece out of starting area
+                if (numOfPlayers != 3) {
+                        if(W[orow][ocol] == inversePlayer(player))
+                                this.homePieces[inversePlayer(player)]--; // Current player moved piece out of starting area
+                }
 
-                this.P[player].move(oldpiece,newpiece); // Change the position of the oldpiece in the Pieces datastructure
+                this.P[ChineseCheckers.getPlayerIndex(this.B[nrow][ncol], numOfPlayers) + 1].move(oldpiece,newpiece); // Change the position of the oldpiece in the Pieces datastructure
 
                 this.hash ^= this.H[orow][ocol]*this.B[orow][ocol];
                 this.hash ^= this.H[nrow][ncol]*this.B[nrow][ncol]; 
@@ -286,7 +333,7 @@ public class Board {
                         throw new IllegalArgumentException(oldpiece + " piece does not belong to player " + currentPlayer);
                 if(!isFree(newpiece))
                         throw new IllegalArgumentException(newpiece + " is not an empty position");
-         
+                
                 this.move(oldpiece,newpiece);
                 this.moveHist.push(new BoardHist(oldpiece,newpiece,this.currentPlayer));
                 checkWin();
@@ -308,7 +355,7 @@ public class Board {
 
         private void checkWin() {
                 // Decomment for anti spoiling victory condition
-                if(this.homePieces[this.currentPlayer] == this.numOfPieces) { // player n destination area is filled with pieces, check if at least one of them has value n
+                if(this.homePieces[ChineseCheckers.getPlayerIndex(this.currentPlayer, numOfPlayers) + 1] == this.numOfPieces) { // player n destination area is filled with pieces, check if at least one of them has value n
                         int checkWinValue = checkWinning();
                         if (checkWinValue == this.currentPlayer) {
                                 this.currentState  = this.gameState[this.currentPlayer]; // Current player wins
@@ -454,13 +501,13 @@ public class Board {
         }
 
         public Piece[] getPlayerPieces(int player) throws IllegalArgumentException {
-                if(player < PL1 || player > PL2)
+                if(player < PL1 || player > PL6)
                         throw new IllegalArgumentException("Player " + player + " does not exist");
                 
                 Piece[] P = new Piece[this.numOfPieces];
                 
                 int i = 0;
-                for(Piece p : this.P[player])
+                for(Piece p : this.P[ChineseCheckers.getPlayerIndex(player, numOfPlayers) + 1])
                         P[i++] = new Piece(p);
 
                 return P;
@@ -472,6 +519,10 @@ public class Board {
 
         public GameState getCurrentState() {
                 return this.currentState;
+        }
+
+        public int getNumPlayers(){
+                return this.numOfPlayers;
         }
         
         private void setupHash() {
@@ -999,7 +1050,7 @@ public class Board {
                 }
                 return (currentPlayer + 1) % 6;
         }
-
+        
         void setupPresetBoard(){
                 playMove(new Piece(4, 3), new Piece(3, 2));
         }

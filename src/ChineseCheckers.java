@@ -130,35 +130,42 @@ public class ChineseCheckers {
 
                                 B.playMove(p,q);
                                 System.out.println("Evaluating Player" + currPlayer + "'s move: piece from " + p + " to " + q + "\n" + B);
-                                GameState state = minimaxab(B,Integer.MIN_VALUE,Integer.MAX_VALUE,turnLimit,T);
+
+                                GameState state = GameState.OPEN;
+                                if (B.getNumPlayers() == 2) {
+                                        state = minimaxab(B,Integer.MIN_VALUE,Integer.MAX_VALUE,turnLimit,T);
+                                        score = Math.max(score,state.toInt());
+                                }
+                                else {
+                                        int[] scores = new int[B.getNumPlayers()];
+                                        for (int i = 0; i < B.getNumPlayers(); i++) {
+                                                scores[i] = Integer.MIN_VALUE;
+                                        }
+
+                                        state = maxN(B, scores, turnLimit, T);
+                                }
+
                                 System.out.println("Result: " + state);
                                 System.out.println("Execution Time: " + ((System.currentTimeMillis() - moveExecutionStartTime) / 1000) + " seconds\n");
-                                score = Math.max(score,state.toInt());
-                                B.unplayMove();        
-
+                                B.unplayMove();   
                                 T.clear();
                         }
                 System.out.println("\nFinal result: " + GameState.fromInt(score));
         }
 
         public static void main(String[] args) {
-                if (args.length != 2) {
+                if (args.length != 3) {
                         printUsage();
                         System.exit(0);
                 }
 
                 rand = new Random();
 
-                /*
-                   int numPlayers  = Integer.parseInt(args[1]);     
-                   int numOfPieces  = Integer.parseInt(args[1]);
-                   int turnLimit    = Integer.parseInt(args[2]);
-                 */
+                int numPlayers  = Integer.parseInt(args[0]);     
+                int numOfPieces  = Integer.parseInt(args[1]);
+                int turnLimit    = Integer.parseInt(args[2]);
 
-                int numOfPieces  = Integer.parseInt(args[0]);
-                int turnLimit    = Integer.parseInt(args[1]);
-
-                Board B = new Board(numOfPieces);
+                Board B = new Board(numPlayers, numOfPieces);
                 //randomMatch(B,100);
 
                 System.out.println("Starting Board\n" + B);
@@ -247,6 +254,48 @@ public class ChineseCheckers {
                                                 score = Integer.MIN_VALUE;
                                         break;
 
+                                case WINP1:
+                                        if (player == Board.PL1)
+                                                score = Integer.MAX_VALUE;
+                                        else
+                                                score = Integer.MIN_VALUE;
+                                        break;
+
+                                case WINP2:
+                                        if (player == Board.PL2)
+                                                score = Integer.MAX_VALUE;
+                                        else
+                                                score = Integer.MIN_VALUE;
+                                        break;
+
+                                case WINP3:
+                                        if (player == Board.PL3)
+                                                score = Integer.MAX_VALUE;
+                                        else
+                                                score = Integer.MIN_VALUE;
+                                        break;
+
+                                case WINP4:
+                                        if (player == Board.PL4)
+                                                score = Integer.MAX_VALUE;
+                                        else
+                                                score = Integer.MIN_VALUE;
+                                        break;
+
+                                case WINP5:
+                                        if (player == Board.PL5)
+                                                score = Integer.MAX_VALUE;
+                                        else
+                                                score = Integer.MIN_VALUE;
+                                        break;
+
+                                case WINP6:
+                                        if (player == Board.PL6)
+                                                score = Integer.MAX_VALUE;
+                                        else
+                                                score = Integer.MIN_VALUE;
+                                        break;
+
                                 default:
                                         break;
                         }
@@ -263,33 +312,49 @@ public class ChineseCheckers {
         }
 
         //Method for n players
-        private static GameState maxN(Board B, int alpha, int beta, int turnLimit) throws IllegalStateException {
-                // get number of players
-                int numberOfPlayers = 6;
+        private static GameState maxN(Board B, int[] scores, int turnLimit, HashMap<Long,Stat> T) throws IllegalStateException {
+                //System.out.println(B.toString());
+                
+                //transposition table, avoid taking paths explored previously
+                long key = B.hashValue();
+                Stat currentStat = T.getOrDefault(key, new Stat(GameState.OPEN, 0));
 
-                if(turnLimit == 0)
-                        return GameState.DRAW;
-                else if (B.getCurrentState() != GameState.OPEN) {
-                        return B.getCurrentState();
-                } else {
-                        int[] score = new int[numberOfPlayers];
-                        for (int i = 0; i < numberOfPlayers; i++){
-                                score[i] = Integer.MIN_VALUE;
-                        }
-
-                        for(Piece p: orderPlayerPieces(B, B.getCurrentPlayer())) {
-                                for(Piece q : orderPieceMoves(B, p, 1)) {
-                                        B.playMove(p,q);
-                                        score[getPlayerIndex(B.getCurrentPlayer(), numberOfPlayers)] = Math.max(score[getPlayerIndex(B.getCurrentPlayer(), numberOfPlayers)],maxN(B,alpha,beta,turnLimit-1).toInt());
-                                        B.unplayMove();
-                                        alpha = Math.max(alpha,score[getPlayerIndex(B.getCurrentPlayer(), numberOfPlayers)]);
-                                        if(beta <= alpha)
-                                                break;
-                                }
-                        }
+                currentStat.count++; //updates reference
+                if (currentStat.count >= 2) {
+                        return currentStat.state;
                 }
 
-                return GameState.fromInt(B.getCurrentPlayer());
+                if(turnLimit == 0) { //turn limit reached
+                        return GameState.DRAW;
+                }
+                else if (B.getCurrentState() != GameState.OPEN) {
+                        currentStat.state = B.getCurrentState();
+                        //T.put(key, currentStat);
+                        return B.getCurrentState();
+                } 
+                else {
+                        for (CheckersMove move : moveOrderingEvaluation(B, B.getCurrentPlayer(), T)){
+                                B.playMove(move.start,move.dest);
+                                GameState state = maxN(B,scores,turnLimit-1,T);
+                                B.unplayMove();
+
+                                if (state == GameState.OPEN) //previously reached position saved in transposition table, ignore results if not end state
+                                        continue;
+                                
+                                int childScore = state.toInt();
+                                if (childScore == B.getCurrentPlayer())
+                                        childScore *= 10; //bigger score for winningPlayer
+                                else if (childScore != GameState.DRAW.toInt())
+                                        childScore *= -1; //penalise other player win
+
+                                scores[getPlayerIndex(B.getCurrentPlayer(), B.getNumPlayers())] = 
+                                        Math.max(scores[getPlayerIndex(B.getCurrentPlayer(), B.getNumPlayers())], childScore);
+                        }
+                        
+                        //currentStat.count--;
+                        //T.put(key, currentStat);
+                        return GameState.fromInt(scores[getPlayerIndex(B.getCurrentPlayer(), B.getNumPlayers())]);
+                }
         }
 
         //old move ordering that doesn't take account of jumps and overall best move to get every piece closer to the goal and not just the one in front

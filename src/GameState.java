@@ -2,7 +2,14 @@ public enum GameState {
         OPEN(null),
         DRAW(0),
         WIN1(1),
-        WIN2(-1);
+        WIN2(-1),
+
+        WINP1(1),
+        WINP2(2),
+        WINP3(3),
+        WINP4(4),
+        WINP5(5),
+        WINP6(6);
 
         private final Integer intId; 
 
