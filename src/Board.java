@@ -176,7 +176,7 @@ public class Board {
                 this.rows          = B.length;
                 this.cols          = B[0].length;
                 this.homePieces    = new int[this.numOfPlayers+1];
-                // Decomment for anti spoiling victory condition
+                // Count pieces in destination area for special win condition
                 for (int i = 1; i <= this.numOfPlayers; i++)
                         this.homePieces[i] = this.numOfPieces;
 
@@ -188,8 +188,7 @@ public class Board {
                 this.moveHist      = new LinkedList<BoardHist>();
 
                 this.setupHash();
-
-                //setupPresetBoard(); //fixed starting board
+                //setupPresetBoard(); //starting board with set moves
         }
 
         public int get(int row, int col) {
@@ -206,8 +205,8 @@ public class Board {
                 for(int i = 1; i <= numOfPlayers; i++)
                         this.P[i] = new Pieces(numOfPieces);
 
+                // adapted setup for n players, nothing changes for 2
                 int[] playerIndex = getPlayerIndexList();
-
                 for(int i = 0; i < this.B.length; i++)
                         for(int j = 0; j < this.B[i].length; j++) {
                                 int cellValue = this.B[i][j];
@@ -301,7 +300,7 @@ public class Board {
                 if(W[nrow][ncol] == player)
                         this.homePieces[player]++; // A piece has been moved at home
 
-                // Decomment for anti spoiling victory condition
+                // Check movement inside opposite destination area
                 if (numOfPlayers != 3) { //in 3 player game players don't reach an opposite player destination area
                         if(W[nrow][ncol] == inversePlayer(player))
                                 this.homePieces[inversePlayer(player)]++; // Current player moved piece back to starting area
@@ -311,13 +310,14 @@ public class Board {
                 if(W[orow][ocol] == player)
                         this.homePieces[player]--; // A piece already placed at home has been moved, the slot is now empty
 
-                // Decomment for anti spoiling victory condition
+                // Check movement outside opposite destination area
                 if (numOfPlayers != 3) {
                         if(W[orow][ocol] == inversePlayer(player))
                                 this.homePieces[inversePlayer(player)]--; // Current player moved piece out of starting area
                 }
 
-                this.P[ChineseCheckers.getPlayerIndex(this.B[nrow][ncol], numOfPlayers) + 1].move(oldpiece,newpiece); // Change the position of the oldpiece in the Pieces datastructure
+                // Change the position of the oldpiece in the Pieces datastructure
+                this.P[ChineseCheckers.getPlayerIndex(this.B[nrow][ncol], numOfPlayers) + 1].move(oldpiece,newpiece);
 
                 this.hash ^= this.H[orow][ocol]*this.B[orow][ocol];
                 this.hash ^= this.H[nrow][ncol]*this.B[nrow][ncol]; 
@@ -354,7 +354,7 @@ public class Board {
         }
 
         private void checkWin() {
-                // Decomment for anti spoiling victory condition
+                // A player wins if the destination area is filled with pieces and at least one is a player piece
                 if(this.homePieces[ChineseCheckers.getPlayerIndex(this.currentPlayer, numOfPlayers) + 1] == this.numOfPieces) { // player n destination area is filled with pieces, check if at least one of them has value n
                         int checkWinValue = checkWinning();
                         if (checkWinValue == this.currentPlayer) {
@@ -975,7 +975,7 @@ public class Board {
                 return false;
         }
 
-        // Method for n players
+        // Find next player after move, adapted for n players in different configurations
         public int findNextPlayer(int currentPlayer, int numOfPlayers){
                 switch (currentPlayer){
                 case Board.PL1:
@@ -1052,6 +1052,7 @@ public class Board {
         }
         
         void setupPresetBoard(){
-                playMove(new Piece(4, 3), new Piece(3, 2));
+                playMove(new Piece(8, 6), new Piece(6, 4));
+                playMove(new Piece(1, 7), new Piece(2, 6));
         }
 }

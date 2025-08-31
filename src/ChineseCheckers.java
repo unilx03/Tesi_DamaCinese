@@ -9,16 +9,13 @@ import java.lang.IllegalStateException;
 
 public class ChineseCheckers {
     private static Random rand;
-    private static boolean VERBOSE = false;
-
     private static long moveExecutionStartTime = 0;
-    private static long lastLogTime;
 
 	private ChineseCheckers() {
 	}
 
 	private static void printUsage() {
-		System.err.println("Usage: ChineseCheckers <Num of Pieces> <TurnLimit>");
+		System.err.println("Usage: ChineseCheckers <Num of Players> <Num of Pieces> <TurnLimit>");
 	}
 
         //test random moves
@@ -72,8 +69,8 @@ public class ChineseCheckers {
                         return GameState.DRAW;
                 }
                 else if (B.getCurrentState() != GameState.OPEN) {
+                        //updates state, board end state already calculated if state is reached again
                         currentStat.state = B.getCurrentState();
-                        //T.put(key, currentStat);
                         return B.getCurrentState();
                 } 
                 else if(B.getCurrentPlayer() == 1) {
@@ -81,7 +78,8 @@ public class ChineseCheckers {
 
                         for (CheckersMove move : moveOrderingEvaluation(B, Board.PL1, T)){
                                 B.playMove(move.start,move.dest);
-                                GameState state = minimaxab(B,alpha,beta,turnLimit-1,T);
+                                GameState state = GameState.OPEN;
+                                state = minimaxab(B,alpha,beta,turnLimit-1,T);
                                 B.unplayMove();
 
                                 if (state == GameState.OPEN) //previously reached position saved in transposition table, ignore results if not end state
@@ -93,15 +91,14 @@ public class ChineseCheckers {
                                         break;
                         }
                         
-                        //currentStat.count--;
-                        //T.put(key, currentStat);
                         return GameState.fromInt(score);
                 } else {
                         Integer score = Integer.MAX_VALUE;
 
                         for (CheckersMove move : moveOrderingEvaluation(B, Board.PL2, T)){
                                 B.playMove(move.start,move.dest);
-                                GameState state = minimaxab(B,alpha,beta,turnLimit-1,T);
+                                GameState state = GameState.OPEN;
+                                state = minimaxab(B,alpha,beta,turnLimit-1,T);
                                 B.unplayMove();
 
                                 if (state == GameState.OPEN)
@@ -113,8 +110,6 @@ public class ChineseCheckers {
                                         break;
                         }
 
-                        //currentStat.count--;
-                        //T.put(key, currentStat);
                         return GameState.fromInt(score);
                 }
         }
@@ -209,6 +204,7 @@ public class ChineseCheckers {
                         for (Piece destPiece : pieceMoves){
                                 int evaluationScore = 0;
 
+                                //play move to evaluate score of the resulting board
                                 B.playMove(startPiece, destPiece);
                                 
                                 long key = B.hashValue();
@@ -217,15 +213,15 @@ public class ChineseCheckers {
                                         int count = currentStat.count;
                                         count++;
                                         if (count >= 2) {
-                                                //avoid exploring previously selected paths
+                                                //push down priority of previously selected paths
                                                 evaluationScore = GameState.DRAW.toInt();
                                         }
                                 }
                                 else {
                                         evaluationScore = moveEvaluation(B, player);
+                                        //Decomment to cutoff previously explored path completely
+                                        //nextMoves.add(new CheckersMove(startPiece, destPiece, evaluationScore));
                                 }
-
-                                //evaluationScore = moveEvaluation(B, player);
 
                                 nextMoves.add(new CheckersMove(startPiece, destPiece, evaluationScore));
                                 B.unplayMove();
@@ -329,13 +325,13 @@ public class ChineseCheckers {
                 }
                 else if (B.getCurrentState() != GameState.OPEN) {
                         currentStat.state = B.getCurrentState();
-                        //T.put(key, currentStat);
                         return B.getCurrentState();
                 } 
                 else {
                         for (CheckersMove move : moveOrderingEvaluation(B, B.getCurrentPlayer(), T)){
                                 B.playMove(move.start,move.dest);
-                                GameState state = maxN(B,scores,turnLimit-1,T);
+                                GameState state = GameState.OPEN;
+                                state = maxN(B,scores,turnLimit-1,T);
                                 B.unplayMove();
 
                                 if (state == GameState.OPEN) //previously reached position saved in transposition table, ignore results if not end state
@@ -350,9 +346,7 @@ public class ChineseCheckers {
                                 scores[getPlayerIndex(B.getCurrentPlayer(), B.getNumPlayers())] = 
                                         Math.max(scores[getPlayerIndex(B.getCurrentPlayer(), B.getNumPlayers())], childScore);
                         }
-                        
-                        //currentStat.count--;
-                        //T.put(key, currentStat);
+
                         return GameState.fromInt(scores[getPlayerIndex(B.getCurrentPlayer(), B.getNumPlayers())]);
                 }
         }
