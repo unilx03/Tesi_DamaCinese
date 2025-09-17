@@ -1054,5 +1054,15 @@ public class Board {
         void setupPresetBoard(){
                 playMove(new Piece(8, 6), new Piece(6, 4));
                 playMove(new Piece(1, 7), new Piece(2, 6));
+                playMove(new Piece(7, 7), new Piece(6, 6));
+                playMove(new Piece(1, 5), new Piece(3, 7));
+                playMove(new Piece(7, 5), new Piece(5, 7));
+                playMove(new Piece(0, 6), new Piece(1, 7));
+                playMove(new Piece(6, 4), new Piece(5, 5));
+                playMove(new Piece(2, 6), new Piece(3, 5));
+                playMove(new Piece(6, 6), new Piece(2, 6));
+                playMove(new Piece(3, 5), new Piece(4, 4));
+                playMove(new Piece(5, 7), new Piece(3, 9));
+                playMove(new Piece(1, 7), new Piece(5, 7));
         }
 }

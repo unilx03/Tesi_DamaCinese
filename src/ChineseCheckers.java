@@ -54,14 +54,23 @@ public class ChineseCheckers {
 
         // Minimax with alpha-beta pruning 
         private static GameState minimaxab(Board B, int alpha, int beta, int turnLimit, HashMap<Long,Stat> T) throws IllegalStateException {
-                //System.out.println(B.toString());
+                Metrics.nodes++;
 
                 //transposition table, avoid taking paths explored previously
                 long key = B.hashValue();
-                Stat currentStat = T.getOrDefault(key, new Stat(GameState.OPEN, 0));
+                Stat currentStat = T.get(key);
+                if (currentStat == null) {
+                        //System.out.println(B.toString()); //print unique boards
+
+                        // create and store immediately so subsequent revisits see the same object
+                        currentStat = new Stat(GameState.OPEN, 0);
+                        T.put(key, currentStat);
+                        Metrics.ttStored++;
+                }
 
                 currentStat.count++; //updates reference
                 if (currentStat.count >= 2) {
+                        Metrics.ttHits++;
                         return currentStat.state;
                 }
 
@@ -70,6 +79,7 @@ public class ChineseCheckers {
                 }
                 else if (B.getCurrentState() != GameState.OPEN) {
                         //updates state, board end state already calculated if state is reached again
+                        Metrics.leafNodes++;
                         currentStat.state = B.getCurrentState();
                         return B.getCurrentState();
                 } 
@@ -87,8 +97,10 @@ public class ChineseCheckers {
                                 score = Math.max(score,state.toInt());
 
                                 alpha = Math.max(alpha,score);
-                                if(beta <= alpha)
+                                if(beta <= alpha) {
+                                        Metrics.cutoffs++;
                                         break;
+                                }
                         }
                         
                         return GameState.fromInt(score);
@@ -106,8 +118,10 @@ public class ChineseCheckers {
                                 score = Math.min(score,state.toInt());
 
                                 beta = Math.min(beta,score);
-                                if(beta <= alpha)
+                                if(beta <= alpha) {
+                                        Metrics.cutoffs++;
                                         break;
+                                }
                         }
 
                         return GameState.fromInt(score);
@@ -117,11 +131,37 @@ public class ChineseCheckers {
         private static void analyzeGameTree(Board B, int turnLimit) {
                 Integer score = Integer.MIN_VALUE;
                 HashMap<Long,Stat> T = new HashMap<>();
-                int currPlayer = B.getCurrentPlayer();
+                
+                
+                moveExecutionStartTime = System.currentTimeMillis();
+                Metrics.reset();
 
+                GameState state = GameState.OPEN;
+                if (B.getNumPlayers() == 2) {
+                        state = minimaxab(B,Integer.MIN_VALUE,Integer.MAX_VALUE,turnLimit,T);
+                        score = Math.max(score,state.toInt());
+                }
+                else {
+                        int[] scores = new int[B.getNumPlayers()];
+                        for (int i = 0; i < B.getNumPlayers(); i++) {
+                                scores[i] = Integer.MIN_VALUE;
+                        }
+
+                        state = maxN(B, scores, turnLimit, T);
+                }
+
+                System.out.println("Result: " + state);
+                metricsReport(moveExecutionStartTime);
+
+                T.clear();
+                
+
+                /*
+                int currPlayer = B.getCurrentPlayer();
                 for(Piece p : B.getPlayerPieces(currPlayer))
                         for(Piece q : B.validMoves(p)) {
                                 moveExecutionStartTime = System.currentTimeMillis();
+                                Metrics.reset();
 
                                 B.playMove(p,q);
                                 System.out.println("Evaluating Player" + currPlayer + "'s move: piece from " + p + " to " + q + "\n" + B);
@@ -141,11 +181,13 @@ public class ChineseCheckers {
                                 }
 
                                 System.out.println("Result: " + state);
-                                System.out.println("Execution Time: " + ((System.currentTimeMillis() - moveExecutionStartTime) / 1000) + " seconds\n");
+                                metricsReport(moveExecutionStartTime);
+
                                 B.unplayMove();   
                                 T.clear();
-                        }
+                }
                 System.out.println("\nFinal result: " + GameState.fromInt(score));
+                */
         }
 
         public static void main(String[] args) {
@@ -163,10 +205,23 @@ public class ChineseCheckers {
                 Board B = new Board(numPlayers, numOfPieces);
                 //randomMatch(B,100);
 
+                System.out.println("Number of Players: " + numPlayers);
+                System.out.println("Number of Pieces: " + numOfPieces);
+                System.out.println("Turn Limit: " + turnLimit);
                 System.out.println("Starting Board\n" + B);
                 analyzeGameTree(B,turnLimit);
-
 	}
+
+        public static void metricsReport(long startTime) {
+                long endTime = System.currentTimeMillis();
+
+                long milliSeconds = endTime - startTime; //milliseconds
+                System.out.println("Execution Time: " + milliSeconds + " ms");
+                System.out.println("Nodes visited: " + Metrics.nodes);
+                System.out.println("TT stored: " + Metrics.ttStored + "  TT hits: " + Metrics.ttHits);
+                System.out.println("Leaf nodes: " + Metrics.leafNodes);
+                System.out.println("Alpha-beta cutoffs: " + Metrics.cutoffs + "\n");
+        }
 
         private static class Stat {
                 GameState state;
@@ -180,6 +235,18 @@ public class ChineseCheckers {
                 @Override
                 public String toString() {
                     return "[" + this.state + "," + this.count + "]";
+                }
+        }
+
+        public static class Metrics {
+                public static long nodes = 0;            // total nodes visited (minimaxab entries)
+                public static long ttHits = 0;           // transposition table early returns (count>=2)
+                public static long ttStored = 0;         // number of unique positions stored in TT
+                public static long leafNodes = 0;       // turnLimit==0 or terminal state leafs
+                public static long cutoffs = 0;         // number of alpha-beta cutoffs (breaks)
+
+                public static void reset() {
+                        nodes = ttHits = ttStored = leafNodes = cutoffs = 0;
                 }
         }
 
@@ -309,14 +376,24 @@ public class ChineseCheckers {
 
         //Method for n players
         private static GameState maxN(Board B, int[] scores, int turnLimit, HashMap<Long,Stat> T) throws IllegalStateException {
+                Metrics.nodes++;
                 //System.out.println(B.toString());
                 
                 //transposition table, avoid taking paths explored previously
                 long key = B.hashValue();
-                Stat currentStat = T.getOrDefault(key, new Stat(GameState.OPEN, 0));
+                Stat currentStat = T.get(key);
+                if (currentStat == null) {
+                        //System.out.println(B.toString()); //print unique boards
+
+                        // create and store immediately so subsequent revisits see the same object
+                        currentStat = new Stat(GameState.OPEN, 0);
+                        T.put(key, currentStat);
+                        Metrics.ttStored++;
+                }
 
                 currentStat.count++; //updates reference
                 if (currentStat.count >= 2) {
+                        Metrics.ttHits++;
                         return currentStat.state;
                 }
 
@@ -324,6 +401,7 @@ public class ChineseCheckers {
                         return GameState.DRAW;
                 }
                 else if (B.getCurrentState() != GameState.OPEN) {
+                        Metrics.leafNodes++;
                         currentStat.state = B.getCurrentState();
                         return B.getCurrentState();
                 } 
