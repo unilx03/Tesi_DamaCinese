@@ -11,8 +11,7 @@ public class ChineseCheckers {
     private static Random rand;
     private static long moveExecutionStartTime = 0;
 
-	private ChineseCheckers() {
-	}
+	private ChineseCheckers() {}
 
 	private static void printUsage() {
 		System.err.println("Usage: ChineseCheckers <Num of Players> <Num of Pieces> <TurnLimit>");
@@ -146,7 +145,6 @@ public class ChineseCheckers {
                         for (int i = 0; i < B.getNumPlayers(); i++) {
                                 scores[i] = Integer.MIN_VALUE;
                         }
-
                         state = maxN(B, scores, turnLimit, T);
                 }
 
@@ -287,10 +285,10 @@ public class ChineseCheckers {
                                 else {
                                         evaluationScore = moveEvaluation(B, player);
                                         //Decomment to cutoff previously explored path completely
-                                        //nextMoves.add(new CheckersMove(startPiece, destPiece, evaluationScore));
+                                        nextMoves.add(new CheckersMove(startPiece, destPiece, evaluationScore));
                                 }
 
-                                nextMoves.add(new CheckersMove(startPiece, destPiece, evaluationScore));
+                                //nextMoves.add(new CheckersMove(startPiece, destPiece, evaluationScore));
                                 B.unplayMove();
                         }
                 }

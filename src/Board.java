@@ -1,5 +1,3 @@
-// https://www.youtube.com/watch?v=kVEAfbecmo0&t=57s
-// https://www.youtube.com/watch?v=BCEWFFThPgM
 import java.lang.IllegalArgumentException;
 import java.lang.IllegalStateException;
 import java.util.Deque;

@@ -1,0 +1,21 @@
+Number of Players: 2
+Number of Pieces: 3
+Turn Limit: 3000
+Starting Board
+      2      
+     2 2     
+* * * * * * *
+ * * * * * * 
+  * * * * *  
+ * * * * * * 
+* * * * * * *
+     1 1     
+      1      
+
+Result: WIN1
+Execution Time: 10542 ms
+Nodes visited: 3775306
+TT stored: 3464515  TT hits: 310791
+Leaf nodes: 38055
+Alpha-beta cutoffs: 1470770
+
