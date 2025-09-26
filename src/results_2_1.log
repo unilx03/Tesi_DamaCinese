@@ -1,6 +1,6 @@
 Number of Players: 2
 Number of Pieces: 1
-Turn Limit: 251
+Turn Limit: 300
 Starting Board
    2   
 * * * *
@@ -8,10 +8,31 @@ Starting Board
 * * * *
    1   
 
+Evaluating Player1's move: piece from [4,3] to [3,2]
+   2   
+* * * *
+ * * * 
+* 1 * *
+   *   
+
 Result: WIN1
-Execution Time: 4 ms
-Nodes visited: 62
-TT stored: 55  TT hits: 7
+Execution Time: 13 ms
+Nodes visited: 60
+TT stored: 53  TT hits: 7
 Leaf nodes: 12
 Alpha-beta cutoffs: 20
+
+Evaluating Player1's move: piece from [4,3] to [3,4]
+   2   
+* * * *
+ * * * 
+* * 1 *
+   *   
+
+Result: WIN2
+Execution Time: 2 ms
+Nodes visited: 66
+TT stored: 51  TT hits: 15
+Leaf nodes: 10
+Alpha-beta cutoffs: 12
 

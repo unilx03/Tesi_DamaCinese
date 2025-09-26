@@ -1,6 +1,6 @@
 Number of Players: 2
 Number of Pieces: 3
-Turn Limit: 3000
+Turn Limit: 300
 Starting Board
       2      
      2 2     
@@ -12,10 +12,111 @@ Starting Board
      1 1     
       1      
 
+Evaluating Player1's move: piece from [7,5] to [6,4]
+      2      
+     2 2     
+* * * * * * *
+ * * * * * * 
+  * * * * *  
+ * * * * * * 
+* * 1 * * * *
+     * 1     
+      1      
+
 Result: WIN1
-Execution Time: 10542 ms
-Nodes visited: 3775306
-TT stored: 3464515  TT hits: 310791
-Leaf nodes: 38055
-Alpha-beta cutoffs: 1470770
+Execution Time: 9224 ms
+Nodes visited: 3506476
+TT stored: 3435721  TT hits: 70755
+Leaf nodes: 30811
+Alpha-beta cutoffs: 1162821
+
+Evaluating Player1's move: piece from [7,5] to [6,6]
+      2      
+     2 2     
+* * * * * * *
+ * * * * * * 
+  * * * * *  
+ * * * * * * 
+* * * 1 * * *
+     * 1     
+      1      
+
+Result: WIN1
+Execution Time: 8068 ms
+Nodes visited: 3497308
+TT stored: 3427862  TT hits: 69446
+Leaf nodes: 30345
+Alpha-beta cutoffs: 1051345
+
+Evaluating Player1's move: piece from [7,7] to [6,6]
+      2      
+     2 2     
+* * * * * * *
+ * * * * * * 
+  * * * * *  
+ * * * * * * 
+* * * 1 * * *
+     1 *     
+      1      
+
+Result: WIN1
+Execution Time: 9774 ms
+Nodes visited: 3532661
+TT stored: 3455255  TT hits: 77406
+Leaf nodes: 30340
+Alpha-beta cutoffs: 1514250
+
+Evaluating Player1's move: piece from [7,7] to [6,8]
+      2      
+     2 2     
+* * * * * * *
+ * * * * * * 
+  * * * * *  
+ * * * * * * 
+* * * * 1 * *
+     1 *     
+      1      
+
+Result: WIN1
+Execution Time: 8774 ms
+Nodes visited: 3502150
+TT stored: 3432871  TT hits: 69279
+Leaf nodes: 29702
+Alpha-beta cutoffs: 1184163
+
+Evaluating Player1's move: piece from [8,6] to [6,4]
+      2      
+     2 2     
+* * * * * * *
+ * * * * * * 
+  * * * * *  
+ * * * * * * 
+* * 1 * * * *
+     1 1     
+      *      
+
+Result: WIN1
+Execution Time: 6486 ms
+Nodes visited: 3476816
+TT stored: 3408050  TT hits: 68766
+Leaf nodes: 32910
+Alpha-beta cutoffs: 652940
+
+Evaluating Player1's move: piece from [8,6] to [6,8]
+      2      
+     2 2     
+* * * * * * *
+ * * * * * * 
+  * * * * *  
+ * * * * * * 
+* * * * 1 * *
+     1 1     
+      *      
+
+Result: WIN1
+Execution Time: 8247 ms
+Nodes visited: 3498016
+TT stored: 3428476  TT hits: 69540
+Leaf nodes: 30311
+Alpha-beta cutoffs: 1138645
 

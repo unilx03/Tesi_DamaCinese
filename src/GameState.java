@@ -4,12 +4,12 @@ public enum GameState {
         WIN1(1),
         WIN2(-1),
 
-        WINP1(1),
-        WINP2(2),
-        WINP3(3),
-        WINP4(4),
-        WINP5(5),
-        WINP6(6);
+        WINP1(10),
+        WINP2(20),
+        WINP3(30),
+        WINP4(40),
+        WINP5(50),
+        WINP6(60);
 
         private final Integer intId; 
 

@@ -16,7 +16,13 @@ public class Board {
         public final static int PL5 = 5; // Player5 (lower right)
         public final static int PL6 = 6; // Player6 (lower left)
         public final static int EMP = 7; // Empty
-        public final static int MRK = 8; // Marked
+
+        public final static int MRK1 = 8; // Marked1
+        public final static int MRK2 = 9; // Marked1
+        public final static int MRK3 = 10; // Marked1
+        public final static int MRK4 = 11; // Marked1
+        public final static int MRK5 = 12; // Marked1
+        public final static int MRK6 = 13; // Marked1
 
         // Board with 1 piece per player
         static private int[][] B1 = {
@@ -296,22 +302,22 @@ public class Board {
 
                 this.B[nrow][ncol] = player;
                 if(W[nrow][ncol] == player)
-                        this.homePieces[player]++; // A piece has been moved at home
+                        this.homePieces[ChineseCheckers.getPlayerIndex(player, numOfPlayers) + 1]++; // A piece has been moved at home
 
                 // Check movement inside opposite destination area
                 if (numOfPlayers != 3) { //in 3 player game players don't reach an opposite player destination area
                         if(W[nrow][ncol] == inversePlayer(player))
-                                this.homePieces[inversePlayer(player)]++; // Current player moved piece back to starting area
+                                this.homePieces[ChineseCheckers.getPlayerIndex(inversePlayer(player), numOfPlayers) + 1]++; // Current player moved piece back to starting area
                 }
 
                 this.B[orow][ocol] = EMP;
                 if(W[orow][ocol] == player)
-                        this.homePieces[player]--; // A piece already placed at home has been moved, the slot is now empty
+                        this.homePieces[ChineseCheckers.getPlayerIndex(player, numOfPlayers) + 1]--; // A piece already placed at home has been moved, the slot is now empty
 
                 // Check movement outside opposite destination area
                 if (numOfPlayers != 3) {
                         if(W[orow][ocol] == inversePlayer(player))
-                                this.homePieces[inversePlayer(player)]--; // Current player moved piece out of starting area
+                                this.homePieces[ChineseCheckers.getPlayerIndex(inversePlayer(player), numOfPlayers) + 1]--; // Current player moved piece out of starting area
                 }
 
                 // Change the position of the oldpiece in the Pieces datastructure
@@ -351,11 +357,20 @@ public class Board {
                 this.move(h.newpiece,h.oldpiece);
         }
 
+        public void skipMove(){ //forced to change to next player when no legal moves are available
+                this.currentPlayer = findNextPlayer(currentPlayer, numOfPlayers);
+        }
+
         private void checkWin() {
                 // A player wins if the destination area is filled with pieces and at least one is a player piece
                 if(this.homePieces[ChineseCheckers.getPlayerIndex(this.currentPlayer, numOfPlayers) + 1] == this.numOfPieces) { // player n destination area is filled with pieces, check if at least one of them has value n
                         int checkWinValue = checkWinning();
-                        if (checkWinValue == this.currentPlayer) {
+                        //System.out.println(checkWinValue + " current: " + this.currentPlayer);
+                        /*if (checkWinValue == this.currentPlayer) {
+                                System.out.println(checkWinValue + " WINS");
+                                this.currentState  = this.gameState[this.currentPlayer]; // Current player wins
+                        }*/
+                        if (checkWinValue != 0) {
                                 this.currentState  = this.gameState[this.currentPlayer]; // Current player wins
                         }
                 }
@@ -387,10 +402,35 @@ public class Board {
                 return false;
         }
 
+        private int getPlayerMarked(){
+                switch (currentPlayer){
+                        case PL1:
+                                return MRK1;
+
+                        case PL2:
+                                return MRK2;
+                                
+                        case PL3:
+                                return MRK3;
+
+                        case PL4:
+                                return MRK4;
+
+                        case PL5:
+                                return MRK5;
+
+                        case PL6:
+                                return MRK6;
+
+                        default:
+                                throw new IllegalStateException("Invalid player piece");
+                }
+        }
+
         private LinkedList<Piece> validJumps(Piece originalPiece, Piece destinationPiece, boolean checkingSpecialHopCondition) {
                 LinkedList<Piece> L = new LinkedList<>();
                 if(this.isValidSpecial(originalPiece, destinationPiece) && this.isFree(destinationPiece)) {
-                        B[destinationPiece.getRow()][destinationPiece.getCol()] = MRK;
+                        B[destinationPiece.getRow()][destinationPiece.getCol()] = getPlayerMarked();
                         L.add(destinationPiece);
 
                         Piece p;
@@ -458,7 +498,7 @@ public class Board {
 
                 if(this.isValidSpecial(originalPiece, destinationPiece)) {
                         if(this.isFree(destinationPiece)) {
-                                B[destinationPiece.getRow()][destinationPiece.getCol()] = MRK;
+                                B[destinationPiece.getRow()][destinationPiece.getCol()] = getPlayerMarked();
                                 L.add(destinationPiece);
                         } else if(this.isTaken(destinationPiece)) {
                                 switch(direction) {
@@ -479,7 +519,7 @@ public class Board {
                 ArrayList<Piece> L = new ArrayList<>();
                 if(this.isValid(piece) && !this.isFree(piece)) {
                         int player = B[piece.getRow()][piece.getCol()];
-                        B[piece.getRow()][piece.getCol()] = MRK;
+                        B[piece.getRow()][piece.getCol()] = getPlayerMarked();
 
                         Piece originalPiece = new Piece(piece);
 
@@ -911,16 +951,20 @@ public class Board {
                                 if (newPieceType != NIL) {
                                         // PL1, PL3, PL4 cannot enter other starting and goal area (PL1 -> PL2, PL3 -> PL5, PL4 -> PL6)
                                         if ((checkPieceInsideZone(newRow, newColumn, PL1) ||
-                                                checkPieceInsideZone(newRow, newColumn, PL2)) && oldPieceType != PL1)
-                                                return false;
+                                                checkPieceInsideZone(newRow, newColumn, PL2)))
+                                                        if (oldPieceType != PL1 && oldPieceType != MRK1)
+                                                                return false;
+                                                
 
                                         if ((checkPieceInsideZone(newRow, newColumn, PL3) ||
-                                        checkPieceInsideZone(newRow, newColumn, PL5)) && oldPieceType != PL3)
-                                                return false;
+                                        checkPieceInsideZone(newRow, newColumn, PL5)))
+                                                if (oldPieceType != PL3 && oldPieceType != MRK3)
+                                                        return false;
 
                                         if ((checkPieceInsideZone(newRow, newColumn, PL4) ||
-                                        checkPieceInsideZone(newRow, newColumn, PL6)) && oldPieceType != PL4)
-                                                return false;
+                                        checkPieceInsideZone(newRow, newColumn, PL6)))
+                                                if (oldPieceType != PL4 && oldPieceType != MRK4)
+                                                        return false;
 
                                         return true;
                                 } 
@@ -929,19 +973,21 @@ public class Board {
                         case 4:
                                 if (newPieceType != NIL) {
                                         // PL1, PL2, PL3, PL5 cannot enter other starting and goal area (PL1 -> PL2, PL3 -> PL5), cannot enter PL2 and PL4
-                                        if (checkPieceInsideZone(newRow, newColumn, PL2) ||
-                                                checkPieceInsideZone(newRow, newColumn, PL4))
+                                        if (checkPieceInsideZone(newRow, newColumn, PL4) ||
+                                                checkPieceInsideZone(newRow, newColumn, PL6))
                                                 return false;
                                         
                                         if ((checkPieceInsideZone(newRow, newColumn, PL1) ||
-                                                checkPieceInsideZone(newRow, newColumn, PL2)) && 
-                                                (oldPieceType != PL1 || oldPieceType != PL2))
-                                                return false;
+                                                checkPieceInsideZone(newRow, newColumn, PL2)))
+                                                if (oldPieceType != PL1 && oldPieceType != MRK1 &&
+                                                    oldPieceType != PL2 && oldPieceType != MRK2)
+                                                        return false;
 
                                         if ((checkPieceInsideZone(newRow, newColumn, PL3) ||
-                                                checkPieceInsideZone(newRow, newColumn, PL5)) && 
-                                                (oldPieceType != PL3 || oldPieceType != PL5))
-                                                return false;
+                                                checkPieceInsideZone(newRow, newColumn, PL5)))
+                                                if (oldPieceType != PL3 && oldPieceType != MRK3 &&
+                                                    oldPieceType != PL5 && oldPieceType != MRK5)
+                                                        return false;
 
                                         return true;
                                 } 
@@ -951,19 +997,22 @@ public class Board {
                                 if (newPieceType != NIL) {
                                         // Pieces cannot enter other starting and goal area
                                         if ((checkPieceInsideZone(newRow, newColumn, PL1) ||
-                                                checkPieceInsideZone(newRow, newColumn, PL2)) && 
-                                                (oldPieceType != PL1 || oldPieceType != PL2))
-                                                return false;
+                                                checkPieceInsideZone(newRow, newColumn, PL2)))
+                                                if (oldPieceType != PL1 && oldPieceType != MRK1 &&
+                                                    oldPieceType != PL2 && oldPieceType != MRK2)
+                                                        return false;
 
                                         if ((checkPieceInsideZone(newRow, newColumn, PL3) ||
-                                                checkPieceInsideZone(newRow, newColumn, PL5)) && 
-                                                (oldPieceType != PL3 || oldPieceType != PL5))
-                                                return false;
+                                                checkPieceInsideZone(newRow, newColumn, PL5)))
+                                                if (oldPieceType != PL3 && oldPieceType != MRK3 &&
+                                                    oldPieceType != PL5 && oldPieceType != MRK5)
+                                                        return false;
 
                                         if ((checkPieceInsideZone(newRow, newColumn, PL4) ||
-                                                checkPieceInsideZone(newRow, newColumn, PL6)) && 
-                                                (oldPieceType != PL4 || oldPieceType != PL6))
-                                                return false;
+                                                checkPieceInsideZone(newRow, newColumn, PL6)))
+                                                if (oldPieceType != PL4 && oldPieceType != MRK4 &&
+                                                    oldPieceType != PL6 && oldPieceType != MRK6)
+                                                        return false;
 
                                         return true;
                                 } 
