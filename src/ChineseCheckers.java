@@ -22,7 +22,7 @@ public class ChineseCheckers {
                 System.err.println("Multiplayer configuration (optional, default to maxn): paranoid or maxn ");
 	}
 
-                private static void analyzeGameTree(Board B, int turnLimit, String multiplayerConfiguration) {
+        private static void analyzeGameTree(Board B, int turnLimit, String multiplayerConfiguration) {
                 //Integer score = Integer.MIN_VALUE;
                 HashMap<Long,Stat> T = new HashMap<>();
                 HashMap<Long,StatN> TN = new HashMap<>();
@@ -442,9 +442,10 @@ public class ChineseCheckers {
                                         continue;
 
                                 int stateValue = state.toInt();
-                                if (stateValue > GameState.WIN1.toInt()){ //is opponent win, negative value
+                                if (stateValue >= GameState.WINP1.toInt()){ //is opponent win, negative value
                                         stateValue *= -1;
                                 }
+
                                 if (stateValue > score){
                                         score = stateValue;
                                 }
@@ -455,7 +456,8 @@ public class ChineseCheckers {
                                         break;
                                 }
                         }
-                        
+                        if (score < 0)
+                                score *= -1;
                         return GameState.fromInt(score);
                 } 
                 else {
@@ -482,7 +484,7 @@ public class ChineseCheckers {
                                         continue;
 
                                 int stateValue = state.toInt();
-                                if (stateValue > GameState.WIN1.toInt()){ //is opponent win, negative value
+                                if (stateValue > GameState.WINP1.toInt()){ //is opponent win, negative value
                                         stateValue *= -1;
                                 }
 
@@ -496,7 +498,8 @@ public class ChineseCheckers {
                                         break;
                                 }
                         }
-
+                        if (score < 0)
+                                score *= -1;
                         return GameState.fromInt(score);
                 }
         }

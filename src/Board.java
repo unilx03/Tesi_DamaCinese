@@ -32,15 +32,6 @@ public class Board {
                 {PL6, NIL, EMP, NIL, EMP, NIL, PL5},
                 {NIL, NIL, NIL, PL1, NIL, NIL, NIL}
         };
-
-        // Board with 1 piece per player indicating winning positions
-        static final private byte[][] W1 = {
-                {NIL, NIL, NIL, PL1, NIL, NIL, NIL},
-                {PL5, NIL, EMP, NIL, EMP, NIL, PL6},
-                {NIL, EMP, NIL, EMP, NIL, EMP, NIL},
-                {PL4, NIL, EMP, NIL, EMP, NIL, PL3},
-                {NIL, NIL, NIL, PL2, NIL, NIL, NIL}
-        };
         
         // Board with 3 pieces per player
         static private byte[][] B3 = {
@@ -53,19 +44,6 @@ public class Board {
                 {PL6, NIL, PL6, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL5, NIL, PL5},
                 {NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL}
-        };
-
-        // Board with 3 pieces per player indicating winning positions
-        static private byte[][] W3 = {
-                {NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL},
-                {NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL},
-                {PL5, NIL, PL5, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL6, NIL, PL6},
-                {NIL, PL5, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL6, NIL},
-                {NIL, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, NIL},
-                {NIL, PL4, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL3, NIL},
-                {PL4, NIL, PL4, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL3, NIL, PL3},
-                {NIL, NIL, NIL, NIL, NIL, PL2, NIL, PL2, NIL, NIL, NIL, NIL, NIL},
-                {NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL}
         };
 
         // Board with 6 pieces per player
@@ -83,23 +61,6 @@ public class Board {
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL}
-        };
-
-        // Board with 6 pieces per player indicating winning positions
-        static private byte[][] W6 = {
-                {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
-                {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
-                {NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
-                {PL5, NIL, PL5, NIL, PL5, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL6, NIL, PL6, NIL, PL6},
-                {NIL, PL5, NIL, PL5, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL6, NIL, PL6, NIL},
-                {NIL, NIL, PL5, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL6, NIL, NIL},
-                {NIL, NIL, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, NIL, NIL},
-                {NIL, NIL, PL4, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL3, NIL, NIL},
-                {NIL, PL4, NIL, PL4, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL3, NIL, PL3, NIL},
-                {PL4, NIL, PL4, NIL, PL4, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL3, NIL, PL3, NIL, PL3},
-                {NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, PL2, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
-                {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
-                {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL}
         };
 
         // Board with 10 pieces per player
@@ -122,31 +83,8 @@ public class Board {
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL}
         };
-
-        // Board with 10 pieces per player indicating winning positions
-        static private byte[][] W10 = {
-                {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
-                {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
-                {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
-                {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
-                {PL5, NIL, PL5, NIL, PL5, NIL, PL5, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL6, NIL, PL6, NIL, PL6, NIL, PL6},
-                {NIL, PL5, NIL, PL5, NIL, PL5, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL6, NIL, PL6, NIL, PL6, NIL},
-                {NIL, NIL, PL5, NIL, PL5, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL6, NIL, PL6, NIL, NIL},
-                {NIL, NIL, NIL, PL5, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL6, NIL, NIL, NIL},
-                {NIL, NIL, NIL, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, NIL, NIL, NIL},
-                {NIL, NIL, NIL, PL4, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL3, NIL, NIL, NIL},
-                {NIL, NIL, PL4, NIL, PL4, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL3, NIL, PL3, NIL, NIL},
-                {NIL, PL4, NIL, PL4, NIL, PL4, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL3, NIL, PL3, NIL, PL3, NIL},
-                {PL4, NIL, PL4, NIL, PL4, NIL, PL4, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL3, NIL, PL3, NIL, PL3, NIL, PL3},
-                {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, PL2, NIL, PL2, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
-                {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, PL2, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
-                {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
-                {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL}
-        };
         
         private byte[][]     B; // Game Board: changes dynamically
-        private byte[][]     W; // Winning Positions: static
-        //private int[][]     I; // Initial Position as copy of B: static, take track of starting area reference
 
         private Pieces[]    P; // Location of the pieces of each player
         private int         numOfPlayers;
@@ -166,10 +104,10 @@ public class Board {
 
         public Board(int numPlayers, int numOfPieces) throws IllegalArgumentException {
                 switch(numOfPieces) {
-                        case 1:  B = B1;  W = W1;  break;
-                        case 3:  B = B3;  W = W3;  break;
-                        case 6:  B = B6;  W = W6;  break; 
-                        case 10: B = B10; W = W10; break;
+                        case 1:  B = B1;  break;
+                        case 3:  B = B3;  break;
+                        case 6:  B = B6;  break; 
+                        case 10: B = B10; break;
                         default: throw new IllegalArgumentException("Only 1,3,6 or 10 pieces per player allowed");
                 }
                 this.numOfPlayers = numPlayers;
@@ -179,23 +117,6 @@ public class Board {
                 this.currentState  = GameState.OPEN;
                 this.rows          = B.length;
                 this.cols          = B[0].length;
-                /*this.homePieces    = new int[this.numOfPlayers+1];
-
-                // Count pieces in destination area for special win condition
-                if (ChineseCheckers.toolConfiguration.toInt() >= Configuration.SPECIAL_RULES.toInt())
-                {
-                        if (numOfPlayers != 3) {
-                                for (int i = 1; i <= this.numOfPlayers; i++)
-                                        this.homePieces[i] = this.numOfPieces;
-                        }
-                        else {
-                                this.homePieces  = new int[7];
-                                for (int i = 1; i <= this.numOfPlayers; i++)
-                                        this.homePieces[i] = this.numOfPieces;
-                                for (int i = 4; i <= 6; i++)
-                                        this.homePieces[i] = 0;
-                        }
-                }*/
 
                 if (numOfPlayers == 2)
                         this.gameState     = new GameState[]{GameState.OPEN,GameState.WIN1,GameState.WIN2};
@@ -314,37 +235,7 @@ public class Board {
                 this.hash ^= this.H[nrow][ncol]*this.B[nrow][ncol];
 
                 this.B[nrow][ncol] = player;
-                //if(W[nrow][ncol] == player)
-                //        this.homePieces[ChineseCheckers.getPlayerIndex(player, numOfPlayers) + 1]++; // A piece has been moved at home
-
-                // Check movement inside opposite destination area
-                /*if (ChineseCheckers.toolConfiguration.toInt() >= Configuration.SPECIAL_RULES.toInt())
-                {
-                        if (numOfPlayers != 3) { //in 3 player game fill inverse home space
-                                if(W[nrow][ncol] == inversePlayer(player))
-                                        this.homePieces[ChineseCheckers.getPlayerIndex(inversePlayer(player), numOfPlayers) + 1]++; // Current player moved piece back to starting area
-                        }
-                        else {
-                                System.out.println("alert invert: " + inversePlayer(player));
-                                System.out.println("alert win: " + W[nrow][ncol]);
-                                System.out.println("alert position: " + nrow + " " + ncol);
-                                if(W[nrow][ncol] == inversePlayer(player))
-                                        this.homePieces[ChineseCheckers.getPlayerIndex(player, numOfPlayers) + 1 + 3]++; // Current player moved piece back to starting area
-                        }
-                }*/
-
                 this.B[orow][ocol] = EMP;
-                //if(W[orow][ocol] == player)
-                //        this.homePieces[ChineseCheckers.getPlayerIndex(player, numOfPlayers) + 1]--; // A piece already placed at home has been moved, the slot is now empty
-
-                // Check movement outside opposite destination area
-                if (ChineseCheckers.toolConfiguration.toInt() >= Configuration.SPECIAL_RULES.toInt())
-                /*{
-                        if (numOfPlayers != 3) { //in 3 player game players don't need to update opposite player
-                                if(W[orow][ocol] == inversePlayer(player))
-                                        this.homePieces[ChineseCheckers.getPlayerIndex(inversePlayer(player), numOfPlayers) + 1]--; // Current player moved piece out of starting area
-                        }
-                }*/
 
                 // Change the position of the oldpiece in the Pieces datastructure
                 this.P[ChineseCheckers.getPlayerIndex(this.B[nrow][ncol], numOfPlayers) + 1].move(oldpiece,newpiece);
@@ -353,17 +244,7 @@ public class Board {
                 this.hash ^= this.H[nrow][ncol]*this.B[nrow][ncol]; 
         }
 
-        public GameState playMove(Piece oldpiece, Piece newpiece) throws IllegalArgumentException { 
-                // For debugging only: can be commented for speeding-up the execution
-                /*if(!isValid(oldpiece))
-                        throw new IllegalArgumentException(oldpiece + " is not a valid position");
-                if(!isValid(newpiece))
-                        throw new IllegalArgumentException(newpiece + " is not a valid position");
-                if(!belongsToCurrentPlayer(oldpiece))
-                        throw new IllegalArgumentException(oldpiece + " piece does not belong to player " + currentPlayer);
-                if(!isFree(newpiece))
-                        throw new IllegalArgumentException(newpiece + " is not an empty position");*/
-                
+        public GameState playMove(Piece oldpiece, Piece newpiece) throws IllegalArgumentException {         
                 this.move(oldpiece,newpiece);
                 this.moveHist.push(new BoardHist(oldpiece,newpiece,this.currentPlayer));
                 checkWin();
@@ -393,36 +274,6 @@ public class Board {
                         //System.out.println(checkWinValue);
                         this.currentState  = this.gameState[checkWinValue]; // Current player wins
                 }
-
-                /*
-                if (ChineseCheckers.toolConfiguration.toInt() >= Configuration.SPECIAL_RULES.toInt())
-                {
-                         // player n destination area (inversePlayer) is filled with pieces, check if at least one of them has value n
-                        if (numOfPlayers != 3) {
-                                if(this.homePieces[ChineseCheckers.getPlayerIndex(inversePlayer(this.currentPlayer), numOfPlayers) + 1] == this.numOfPieces) {
-                                        int checkWinValue = checkWinning();
-                                        if (checkWinValue != 0) {
-                                                this.currentState  = this.gameState[this.currentPlayer]; // Current player wins
-                                        }
-                                }
-                        }
-                        else {
-                                System.out.println(this.currentPlayer);
-                                System.out.println(ChineseCheckers.getPlayerIndex(this.currentPlayer, numOfPlayers) + 1 + 3);
-                                System.out.println(this.homePieces[ChineseCheckers.getPlayerIndex(this.currentPlayer, numOfPlayers) + 1]);
-                                System.out.println(this.homePieces[ChineseCheckers.getPlayerIndex(this.currentPlayer, numOfPlayers) + 1 + 3]);
-                                if(this.homePieces[ChineseCheckers.getPlayerIndex(this.currentPlayer, numOfPlayers) + 1 + 3] == this.numOfPieces) {
-                                        System.out.println("checking win");
-                                        
-                                }
-                        }
-                }
-                else {
-                        if(this.homePieces[this.currentPlayer] == this.numOfPieces)
-                                this.currentState  = this.gameState[this.currentPlayer]; // Current player wins
-                        else
-                                this.currentState  = GameState.OPEN;                     // Match is still open
-                }*/
         }
 
         //check special rules
@@ -763,8 +614,16 @@ public class Board {
                         }
                 }
 
-                if ((trackOwn + trackOpponent) == this.numOfPieces && trackOwn > 0) {
-                        return PL1;
+                if (ChineseCheckers.toolConfiguration.toInt() >= Configuration.SPECIAL_RULES.toInt())
+                {
+                        if ((trackOwn + trackOpponent) == this.numOfPieces && trackOwn > 0) {
+                                return PL1;
+                        }
+                }
+                else {
+                        if (trackOwn == this.numOfPieces) {
+                                return PL1;
+                        }
                 }
 
                 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -790,8 +649,16 @@ public class Board {
                                 }
                         }
 
-                        if ((trackOwn + trackOpponent) == this.numOfPieces && trackOwn > 0) {
-                                return Board.PL2;
+                        if (ChineseCheckers.toolConfiguration.toInt() >= Configuration.SPECIAL_RULES.toInt())
+                        {
+                                if ((trackOwn + trackOpponent) == this.numOfPieces && trackOwn > 0) {
+                                        return PL2;
+                                }
+                        }
+                        else {
+                                if (trackOwn == this.numOfPieces) {
+                                        return PL2;
+                                }
                         }
                 }
 
@@ -821,8 +688,16 @@ public class Board {
                                 sideRepetition--;
                         }
 
-                        if ((trackOwn + trackOpponent) == this.numOfPieces && trackOwn > 0) {
-                                return Board.PL3;
+                        if (ChineseCheckers.toolConfiguration.toInt() >= Configuration.SPECIAL_RULES.toInt())
+                        {
+                                if ((trackOwn + trackOpponent) == this.numOfPieces && trackOwn > 0) {
+                                        return PL3;
+                                }
+                        }
+                        else {
+                                if (trackOwn == this.numOfPieces) {
+                                        return PL3;
+                                }
                         }
                 }
 
@@ -851,8 +726,16 @@ public class Board {
                                 sideRepetition--;
                         }
 
-                        if ((trackOwn + trackOpponent) == this.numOfPieces && trackOwn > 0) {
-                                return Board.PL6;
+                        if (ChineseCheckers.toolConfiguration.toInt() >= Configuration.SPECIAL_RULES.toInt())
+                        {
+                                if ((trackOwn + trackOpponent) == this.numOfPieces && trackOwn > 0) {
+                                        return PL6;
+                                }
+                        }
+                        else {
+                                if (trackOwn == this.numOfPieces) {
+                                        return PL6;
+                                }
                         }
                 }
 
@@ -881,8 +764,16 @@ public class Board {
                                 sideRepetition--;
                         }
 
-                        if ((trackOwn + trackOpponent) == this.numOfPieces && trackOwn > 0) {
-                                return Board.PL4;
+                        if (ChineseCheckers.toolConfiguration.toInt() >= Configuration.SPECIAL_RULES.toInt())
+                        {
+                                if ((trackOwn + trackOpponent) == this.numOfPieces && trackOwn > 0) {
+                                        return PL4;
+                                }
+                        }
+                        else {
+                                if (trackOwn == this.numOfPieces) {
+                                        return PL4;
+                                }
                         }
                 }
 
@@ -911,8 +802,16 @@ public class Board {
                                 sideRepetition--;
                         }
 
-                        if ((trackOwn + trackOpponent) == this.numOfPieces && trackOwn > 0) {
-                                return Board.PL5;
+                        if (ChineseCheckers.toolConfiguration.toInt() >= Configuration.SPECIAL_RULES.toInt())
+                        {
+                                if ((trackOwn + trackOpponent) == this.numOfPieces && trackOwn > 0) {
+                                        return PL5;
+                                }
+                        }
+                        else {
+                                if (trackOwn == this.numOfPieces) {
+                                        return PL5;
+                                }
                         }
                 }
 
