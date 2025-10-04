@@ -8,24 +8,24 @@ import java.util.Arrays;
 
 public class Board {
 
-        public final static int NIL = 0; // Not usable 
-        public final static int PL1 = 1; // Player1 (lower center)
-        public final static int PL2 = 2; // Player2 (upper center)
-        public final static int PL3 = 3; // Player3 (upper left)
-        public final static int PL4 = 4; // Player4 (upper right)
-        public final static int PL5 = 5; // Player5 (lower right)
-        public final static int PL6 = 6; // Player6 (lower left)
-        public final static int EMP = 7; // Empty
+        public final static byte NIL = 0; // Not usable 
+        public final static byte PL1 = 1; // Player1 (lower center)
+        public final static byte PL2 = 2; // Player2 (upper center)
+        public final static byte PL3 = 3; // Player3 (upper left)
+        public final static byte PL4 = 4; // Player4 (upper right)
+        public final static byte PL5 = 5; // Player5 (lower right)
+        public final static byte PL6 = 6; // Player6 (lower left)
+        public final static byte EMP = 7; // Empty
 
-        public final static int MRK1 = 8; // Marked1
-        public final static int MRK2 = 9; // Marked1
-        public final static int MRK3 = 10; // Marked1
-        public final static int MRK4 = 11; // Marked1
-        public final static int MRK5 = 12; // Marked1
-        public final static int MRK6 = 13; // Marked1
+        public final static byte MRK1 = 8; // Marked1
+        public final static byte MRK2 = 9; // Marked1
+        public final static byte MRK3 = 10; // Marked1
+        public final static byte MRK4 = 11; // Marked1
+        public final static byte MRK5 = 12; // Marked1
+        public final static byte MRK6 = 13; // Marked1
 
         // Board with 1 piece per player
-        static private int[][] B1 = {
+        static private byte[][] B1 = {
                 {NIL, NIL, NIL, PL2, NIL, NIL, NIL},
                 {PL3, NIL, EMP, NIL, EMP, NIL, PL4},
                 {NIL, EMP, NIL, EMP, NIL, EMP, NIL},
@@ -34,7 +34,7 @@ public class Board {
         };
 
         // Board with 1 piece per player indicating winning positions
-        static final private int[][] W1 = {
+        static final private byte[][] W1 = {
                 {NIL, NIL, NIL, PL1, NIL, NIL, NIL},
                 {PL5, NIL, EMP, NIL, EMP, NIL, PL6},
                 {NIL, EMP, NIL, EMP, NIL, EMP, NIL},
@@ -43,7 +43,7 @@ public class Board {
         };
         
         // Board with 3 pieces per player
-        static private int[][] B3 = {
+        static private byte[][] B3 = {
                 {NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, PL2, NIL, PL2, NIL, NIL, NIL, NIL, NIL},
                 {PL3, NIL, PL3, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL4, NIL, PL4},
@@ -56,7 +56,7 @@ public class Board {
         };
 
         // Board with 3 pieces per player indicating winning positions
-        static private int[][] W3 = {
+        static private byte[][] W3 = {
                 {NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL},
                 {PL5, NIL, PL5, NIL, EMP, NIL, EMP, NIL, EMP, NIL, PL6, NIL, PL6},
@@ -69,7 +69,7 @@ public class Board {
         };
 
         // Board with 6 pieces per player
-        static private int[][] B6 = {
+        static private byte[][] B6 = {
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, PL2, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
@@ -86,7 +86,7 @@ public class Board {
         };
 
         // Board with 6 pieces per player indicating winning positions
-        static private int[][] W6 = {
+        static private byte[][] W6 = {
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
@@ -103,7 +103,7 @@ public class Board {
         };
 
         // Board with 10 pieces per player
-        static private int[][] B10 = {
+        static private byte[][] B10 = {
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, PL2, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
@@ -124,7 +124,7 @@ public class Board {
         };
 
         // Board with 10 pieces per player indicating winning positions
-        static private int[][] W10 = {
+        static private byte[][] W10 = {
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL1, NIL, PL1, NIL, PL1, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL},
@@ -144,8 +144,8 @@ public class Board {
                 {NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, PL2, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL, NIL}
         };
         
-        private int[][]     B; // Game Board: changes dynamically
-        private int[][]     W; // Winning Positions: static
+        private byte[][]     B; // Game Board: changes dynamically
+        private byte[][]     W; // Winning Positions: static
         //private int[][]     I; // Initial Position as copy of B: static, take track of starting area reference
 
         private Pieces[]    P; // Location of the pieces of each player
@@ -162,7 +162,7 @@ public class Board {
         public final int rows;
         public final int cols;
 
-        private int homePieces[]; // Counts how many non-empty pieces have been placed at home for each player, initialized to number of pieces
+        //private int homePieces[]; // Counts how many non-empty pieces have been placed at home for each player, initialized to number of pieces
 
         public Board(int numPlayers, int numOfPieces) throws IllegalArgumentException {
                 switch(numOfPieces) {
@@ -179,10 +179,23 @@ public class Board {
                 this.currentState  = GameState.OPEN;
                 this.rows          = B.length;
                 this.cols          = B[0].length;
-                this.homePieces    = new int[this.numOfPlayers+1];
+                /*this.homePieces    = new int[this.numOfPlayers+1];
+
                 // Count pieces in destination area for special win condition
-                for (int i = 1; i <= this.numOfPlayers; i++)
-                        this.homePieces[i] = this.numOfPieces;
+                if (ChineseCheckers.toolConfiguration.toInt() >= Configuration.SPECIAL_RULES.toInt())
+                {
+                        if (numOfPlayers != 3) {
+                                for (int i = 1; i <= this.numOfPlayers; i++)
+                                        this.homePieces[i] = this.numOfPieces;
+                        }
+                        else {
+                                this.homePieces  = new int[7];
+                                for (int i = 1; i <= this.numOfPlayers; i++)
+                                        this.homePieces[i] = this.numOfPieces;
+                                for (int i = 4; i <= 6; i++)
+                                        this.homePieces[i] = 0;
+                        }
+                }*/
 
                 if (numOfPlayers == 2)
                         this.gameState     = new GameState[]{GameState.OPEN,GameState.WIN1,GameState.WIN2};
@@ -295,30 +308,43 @@ public class Board {
         private void move(Piece oldpiece, Piece newpiece) {
                 int orow = oldpiece.getRow(), nrow = newpiece.getRow();
                 int ocol = oldpiece.getCol(), ncol = newpiece.getCol();
-                int player = this.B[orow][ocol];
+                byte player = this.B[orow][ocol];
 
                 this.hash ^= this.H[orow][ocol]*this.B[orow][ocol];
                 this.hash ^= this.H[nrow][ncol]*this.B[nrow][ncol];
 
                 this.B[nrow][ncol] = player;
-                if(W[nrow][ncol] == player)
-                        this.homePieces[ChineseCheckers.getPlayerIndex(player, numOfPlayers) + 1]++; // A piece has been moved at home
+                //if(W[nrow][ncol] == player)
+                //        this.homePieces[ChineseCheckers.getPlayerIndex(player, numOfPlayers) + 1]++; // A piece has been moved at home
 
                 // Check movement inside opposite destination area
-                if (numOfPlayers != 3) { //in 3 player game players don't reach an opposite player destination area
-                        if(W[nrow][ncol] == inversePlayer(player))
-                                this.homePieces[ChineseCheckers.getPlayerIndex(inversePlayer(player), numOfPlayers) + 1]++; // Current player moved piece back to starting area
-                }
+                /*if (ChineseCheckers.toolConfiguration.toInt() >= Configuration.SPECIAL_RULES.toInt())
+                {
+                        if (numOfPlayers != 3) { //in 3 player game fill inverse home space
+                                if(W[nrow][ncol] == inversePlayer(player))
+                                        this.homePieces[ChineseCheckers.getPlayerIndex(inversePlayer(player), numOfPlayers) + 1]++; // Current player moved piece back to starting area
+                        }
+                        else {
+                                System.out.println("alert invert: " + inversePlayer(player));
+                                System.out.println("alert win: " + W[nrow][ncol]);
+                                System.out.println("alert position: " + nrow + " " + ncol);
+                                if(W[nrow][ncol] == inversePlayer(player))
+                                        this.homePieces[ChineseCheckers.getPlayerIndex(player, numOfPlayers) + 1 + 3]++; // Current player moved piece back to starting area
+                        }
+                }*/
 
                 this.B[orow][ocol] = EMP;
-                if(W[orow][ocol] == player)
-                        this.homePieces[ChineseCheckers.getPlayerIndex(player, numOfPlayers) + 1]--; // A piece already placed at home has been moved, the slot is now empty
+                //if(W[orow][ocol] == player)
+                //        this.homePieces[ChineseCheckers.getPlayerIndex(player, numOfPlayers) + 1]--; // A piece already placed at home has been moved, the slot is now empty
 
                 // Check movement outside opposite destination area
-                if (numOfPlayers != 3) {
-                        if(W[orow][ocol] == inversePlayer(player))
-                                this.homePieces[ChineseCheckers.getPlayerIndex(inversePlayer(player), numOfPlayers) + 1]--; // Current player moved piece out of starting area
-                }
+                if (ChineseCheckers.toolConfiguration.toInt() >= Configuration.SPECIAL_RULES.toInt())
+                /*{
+                        if (numOfPlayers != 3) { //in 3 player game players don't need to update opposite player
+                                if(W[orow][ocol] == inversePlayer(player))
+                                        this.homePieces[ChineseCheckers.getPlayerIndex(inversePlayer(player), numOfPlayers) + 1]--; // Current player moved piece out of starting area
+                        }
+                }*/
 
                 // Change the position of the oldpiece in the Pieces datastructure
                 this.P[ChineseCheckers.getPlayerIndex(this.B[nrow][ncol], numOfPlayers) + 1].move(oldpiece,newpiece);
@@ -329,14 +355,14 @@ public class Board {
 
         public GameState playMove(Piece oldpiece, Piece newpiece) throws IllegalArgumentException { 
                 // For debugging only: can be commented for speeding-up the execution
-                if(!isValid(oldpiece))
+                /*if(!isValid(oldpiece))
                         throw new IllegalArgumentException(oldpiece + " is not a valid position");
                 if(!isValid(newpiece))
                         throw new IllegalArgumentException(newpiece + " is not a valid position");
                 if(!belongsToCurrentPlayer(oldpiece))
                         throw new IllegalArgumentException(oldpiece + " piece does not belong to player " + currentPlayer);
                 if(!isFree(newpiece))
-                        throw new IllegalArgumentException(newpiece + " is not an empty position");
+                        throw new IllegalArgumentException(newpiece + " is not an empty position");*/
                 
                 this.move(oldpiece,newpiece);
                 this.moveHist.push(new BoardHist(oldpiece,newpiece,this.currentPlayer));
@@ -362,26 +388,41 @@ public class Board {
         }
 
         private void checkWin() {
-                // A player wins if the destination area is filled with pieces and at least one is a player piece
-                if(this.homePieces[ChineseCheckers.getPlayerIndex(this.currentPlayer, numOfPlayers) + 1] == this.numOfPieces) { // player n destination area is filled with pieces, check if at least one of them has value n
-                        int checkWinValue = checkWinning();
-                        //System.out.println(checkWinValue + " current: " + this.currentPlayer);
-                        /*if (checkWinValue == this.currentPlayer) {
-                                System.out.println(checkWinValue + " WINS");
-                                this.currentState  = this.gameState[this.currentPlayer]; // Current player wins
-                        }*/
-                        if (checkWinValue != 0) {
-                                this.currentState  = this.gameState[this.currentPlayer]; // Current player wins
+                int checkWinValue = checkWinning();
+                if (checkWinValue != 0) {
+                        //System.out.println(checkWinValue);
+                        this.currentState  = this.gameState[checkWinValue]; // Current player wins
+                }
+
+                /*
+                if (ChineseCheckers.toolConfiguration.toInt() >= Configuration.SPECIAL_RULES.toInt())
+                {
+                         // player n destination area (inversePlayer) is filled with pieces, check if at least one of them has value n
+                        if (numOfPlayers != 3) {
+                                if(this.homePieces[ChineseCheckers.getPlayerIndex(inversePlayer(this.currentPlayer), numOfPlayers) + 1] == this.numOfPieces) {
+                                        int checkWinValue = checkWinning();
+                                        if (checkWinValue != 0) {
+                                                this.currentState  = this.gameState[this.currentPlayer]; // Current player wins
+                                        }
+                                }
+                        }
+                        else {
+                                System.out.println(this.currentPlayer);
+                                System.out.println(ChineseCheckers.getPlayerIndex(this.currentPlayer, numOfPlayers) + 1 + 3);
+                                System.out.println(this.homePieces[ChineseCheckers.getPlayerIndex(this.currentPlayer, numOfPlayers) + 1]);
+                                System.out.println(this.homePieces[ChineseCheckers.getPlayerIndex(this.currentPlayer, numOfPlayers) + 1 + 3]);
+                                if(this.homePieces[ChineseCheckers.getPlayerIndex(this.currentPlayer, numOfPlayers) + 1 + 3] == this.numOfPieces) {
+                                        System.out.println("checking win");
+                                        
+                                }
                         }
                 }
-                else
-                        this.currentState  = GameState.OPEN;                     // Match is still open
-
-                /*if (this.homePieces[this.currentPlayer] == this.numOfPieces) {
-                        this.currentState  = this.gameState[this.currentPlayer]; // Current player wins
-                }
-                else
-                        this.currentState  = GameState.OPEN;    */
+                else {
+                        if(this.homePieces[this.currentPlayer] == this.numOfPieces)
+                                this.currentState  = this.gameState[this.currentPlayer]; // Current player wins
+                        else
+                                this.currentState  = GameState.OPEN;                     // Match is still open
+                }*/
         }
 
         //check special rules
@@ -390,19 +431,23 @@ public class Board {
                 int col = destinationPiece.getCol();
 
                 if (row >= 0 && row < this.rows && col >= 0 && col < this.cols && this.B[row][col] != NIL) {
-                        //return true;
-                        
-                        // 1. A piece can't return to its starting area after leaving it
-                        // 2. A piece inside the goal area can't leave it
-                        // 3. A piece can't stay in the starting area of another player that is not its opposite
-                        if (validSpace(originalPiece.getRow(), originalPiece.getCol(), destinationPiece.getRow(), destinationPiece.getCol()))
+                        if (ChineseCheckers.toolConfiguration.toInt() >= Configuration.SPECIAL_RULES.toInt())
+                        {
+                                // 1. A piece can't return to its starting area after leaving it
+                                // 2. A piece inside the goal area can't leave it
+                                // 3. A piece can't stay in the starting area of another player that is not its opposite
+                                if (validSpace(originalPiece.getRow(), originalPiece.getCol(), destinationPiece.getRow(), destinationPiece.getCol()))
+                                        return true;
+                                }
+                        else {
                                 return true;
+                        }
                 }
 
                 return false;
         }
 
-        private int getPlayerMarked(){
+        private byte getPlayerMarked(){
                 switch (currentPlayer){
                         case PL1:
                                 return MRK1;
@@ -439,48 +484,78 @@ public class Board {
                         if(this.isValid(p) && this.isTaken(p)) {
                                 if (this.isValidSpecial(destinationPiece, p.left()))
                                         L.addAll(this.validJumps(destinationPiece, p.left(), false));
-                                else if (this.isValid(p.left()) && !this.isTaken(p.left()) && !checkingSpecialHopCondition) //if player enters an invalid area for traversal, the destination of the jump can be valid
-                                        L.addAll(this.validJumps(destinationPiece, p.left(), true));
+                                else {
+                                        if (ChineseCheckers.toolConfiguration.toInt() >= Configuration.SPECIAL_RULES.toInt())
+                                        {             
+                                                if (this.isValid(p.left()) && !this.isTaken(p.left()) && !checkingSpecialHopCondition) //if player enters an invalid area for traversal, the destination of the jump can be valid
+                                                        L.addAll(this.validJumps(destinationPiece, p.left(), true));
+                                        }
+                                }
                         }
 
                         p = destinationPiece.right();
                         if(this.isValid(p) && this.isTaken(p)) {
                                 if (this.isValidSpecial(destinationPiece, p.right()))
                                         L.addAll(this.validJumps(destinationPiece, p.right(), false));
-                                else if (this.isValid(p.right()) && !this.isTaken(p.right()) && !checkingSpecialHopCondition)
-                                        L.addAll(this.validJumps(destinationPiece, p.right(), true));
+                                else {
+                                        if (ChineseCheckers.toolConfiguration.toInt() >= Configuration.SPECIAL_RULES.toInt())
+                                        {             
+                                                if (this.isValid(p.right()) && !this.isTaken(p.right()) && !checkingSpecialHopCondition)
+                                                        L.addAll(this.validJumps(destinationPiece, p.right(), true));
+                                        }
+                                }
                         }
 
                         p = destinationPiece.upLeft();
                         if(this.isValid(p) && this.isTaken(p)) {
                                 if (this.isValidSpecial(destinationPiece, p.upLeft()))
                                         L.addAll(this.validJumps(destinationPiece, p.upLeft(), false));
-                                else if (this.isValid(p.upLeft()) && !this.isTaken(p.upLeft()) && !checkingSpecialHopCondition)
-                                        L.addAll(this.validJumps(destinationPiece, p.upLeft(), true));
+                                else {
+                                        if (ChineseCheckers.toolConfiguration.toInt() >= Configuration.SPECIAL_RULES.toInt())
+                                        {             
+                                                if (this.isValid(p.upLeft()) && !this.isTaken(p.upLeft()) && !checkingSpecialHopCondition)
+                                                        L.addAll(this.validJumps(destinationPiece, p.upLeft(), true));
+                                        }
+                                }
                         }
 
                         p = destinationPiece.upRight();
                         if(this.isValid(p) && this.isTaken(p))  {
                                 if (this.isValidSpecial(destinationPiece, p.upRight()))
                                         L.addAll(this.validJumps(destinationPiece, p.upRight(), false));
-                                else if (this.isValid(p.upRight()) && !this.isTaken(p.upRight()) && !checkingSpecialHopCondition)
-                                        L.addAll(this.validJumps(destinationPiece, p.upRight(), true));
+                                else {
+                                        if (ChineseCheckers.toolConfiguration.toInt() >= Configuration.SPECIAL_RULES.toInt())
+                                        {             
+                                                if (this.isValid(p.upRight()) && !this.isTaken(p.upRight()) && !checkingSpecialHopCondition)
+                                                        L.addAll(this.validJumps(destinationPiece, p.upRight(), true));
+                                        }
+                                }
                         }
 
                         p = destinationPiece.downLeft();
                         if(this.isValid(p) && this.isTaken(p)) {
                                 if (this.isValidSpecial(destinationPiece, p.downLeft()))
                                         L.addAll(this.validJumps(destinationPiece, p.downLeft(), false));
-                                else if (this.isValid(p.downLeft()) && !this.isTaken(p.downLeft()) && !checkingSpecialHopCondition)
-                                        L.addAll(this.validJumps(destinationPiece, p.downLeft(), true));
+                                else {
+                                        if (ChineseCheckers.toolConfiguration.toInt() >= Configuration.SPECIAL_RULES.toInt())
+                                        {             
+                                                if (this.isValid(p.downLeft()) && !this.isTaken(p.downLeft()) && !checkingSpecialHopCondition)
+                                                        L.addAll(this.validJumps(destinationPiece, p.downLeft(), true));
+                                        }
+                                }
                         }
 
                         p = destinationPiece.downRight();
                         if(this.isValid(p) && this.isTaken(p)) {
                                 if (this.isValidSpecial(destinationPiece, p.downRight()))
                                         L.addAll(this.validJumps(destinationPiece, p.downRight(), false)); 
-                                else if (this.isValid(p.downRight()) && !this.isTaken(p.downRight()) && !checkingSpecialHopCondition)
-                                        L.addAll(this.validJumps(destinationPiece, p.downRight(), true));
+                                else {
+                                        if (ChineseCheckers.toolConfiguration.toInt() >= Configuration.SPECIAL_RULES.toInt())
+                                        {             
+                                                if (this.isValid(p.downRight()) && !this.isTaken(p.downRight()) && !checkingSpecialHopCondition)
+                                                        L.addAll(this.validJumps(destinationPiece, p.downRight(), true));
+                                        }
+                                }
                         }
 
                 }
@@ -518,7 +593,7 @@ public class Board {
         public ArrayList<Piece> validMoves(Piece piece) {
                 ArrayList<Piece> L = new ArrayList<>();
                 if(this.isValid(piece) && !this.isFree(piece)) {
-                        int player = B[piece.getRow()][piece.getCol()];
+                        byte player = B[piece.getRow()][piece.getCol()];
                         B[piece.getRow()][piece.getCol()] = getPlayerMarked();
 
                         Piece originalPiece = new Piece(piece);
