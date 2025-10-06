@@ -79,7 +79,8 @@ public class ChineseCheckers {
                 System.out.println("Number of Players: " + numPlayers);
                 System.out.println("Number of Pieces: " + numOfPieces);
                 System.out.println("Turn Limit: " + turnLimit);
-                System.out.println("Search Algorithm: " + multiplayerConfiguration);
+                if (numPlayers > 2)
+                        System.out.println("Search Algorithm: " + multiplayerConfiguration);
                 System.out.println("Starting Board\n" + B);
                 analyzeGameTree(B,turnLimit, multiplayerConfiguration);
 	}

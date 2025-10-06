@@ -26,7 +26,7 @@ run: all
 		$(JAVA) -Xmx2G $(MAIN) 4 3 8 0 maxn > results_4_3_0base_maxn.log 2>&1 && \
 		$(JAVA) -Xmx2G $(MAIN) 6 3 6 0 maxn > results_6_3_0base_maxn.log 2>&1 && \
 		\
-		$(JAVA) -Xmx4G $(MAIN) 2 6 5 0 > results_2_6_0base.log 2>&1 && \
+		$(JAVA) -Xmx4G $(MAIN) 2 6 12 0 > results_2_6_0base.log 2>&1 && \
 		\
 		$(JAVA) -Xmx1G $(MAIN) 2 1 20 1 > results_2_1_1tables.log 2>&1 && \
 		$(JAVA) -Xmx4G $(MAIN) 2 3 20 1 > results_2_3_1tables.log 2>&1 && \
@@ -45,7 +45,7 @@ run: all
 		$(JAVA) -Xmx4G $(MAIN) 4 3 12 1 maxn > results_4_3_1tables_maxn.log 2>&1 && \
 		$(JAVA) -Xmx4G $(MAIN) 6 3 12 1 maxn > results_6_3_1tables_maxn.log 2>&1 && \
 		\
-		$(JAVA) -Xmx4G $(MAIN) 2 6 5 1 > results_2_6_1tables.log 2>&1 && \
+		$(JAVA) -Xmx4G $(MAIN) 2 6 12 1 > results_2_6_1tables.log 2>&1 && \
 		\
 		$(JAVA) -Xmx1G $(MAIN) 2 1 20 2 > results_2_1_2specialRules.log 2>&1 && \
 		$(JAVA) -Xmx4G $(MAIN) 2 3 20 2 > results_2_3_2specialRules.log 2>&1 && \
@@ -64,7 +64,7 @@ run: all
 		$(JAVA) -Xmx4G $(MAIN) 4 3 12 2 maxn > results_4_3_2specialRules_maxn.log 2>&1 && \
 		$(JAVA) -Xmx4G $(MAIN) 6 3 12 2 maxn > results_6_3_2specialRules_maxn.log 2>&1 && \
 		\
-		$(JAVA) -Xmx4G $(MAIN) 2 6 5 2 > results_2_6_2specialRules.log 2>&1 && \
+		$(JAVA) -Xmx4G $(MAIN) 2 6 12 2 > results_2_6_2specialRules.log 2>&1 && \
 		\
 		$(JAVA) -Xmx1G $(MAIN) 2 1 20 3 > results_2_1_3moveOrdering.log 2>&1 && \
 		$(JAVA) -Xmx4G $(MAIN) 2 3 20 3 > results_2_3_3moveOrdering.log 2>&1 && \
@@ -83,7 +83,7 @@ run: all
 		$(JAVA) -Xmx4G $(MAIN) 4 3 12 3 maxn > results_4_3_3moveOrdering_maxn.log 2>&1 && \
 		$(JAVA) -Xmx4G $(MAIN) 6 3 12 3 maxn > results_6_3_3moveOrdering_maxn.log 2>&1 && \
 		\
-		$(JAVA) -Xmx4G $(MAIN) 2 6 5 3 > results_2_6_3moveOrdering.log 2>&1 \
+		$(JAVA) -Xmx4G $(MAIN) 2 6 12 3 > results_2_6_3moveOrdering.log 2>&1 \
 	' &
 
 clean:
