@@ -19,12 +19,12 @@ run: all
 		$(JAVA) -Xmx1G $(MAIN) 4 1 20 0 maxn > results_4_1_0base_maxn.log 2>&1 && \
 		$(JAVA) -Xmx1G $(MAIN) 6 1 18 0 maxn > results_6_1_0base_maxn.log 2>&1 && \
 		\
-		$(JAVA) -Xmx2G $(MAIN) 3 3 9 0 paranoid > results_3_3_0base_paranoid.log 2>&1 && \
-		$(JAVA) -Xmx2G $(MAIN) 4 3 8 0 paranoid > results_4_3_0base_paranoid.log 2>&1 && \
-		$(JAVA) -Xmx2G $(MAIN) 6 3 6 0 paranoid > results_6_3_0base_paranoid.log 2>&1 && \
-		$(JAVA) -Xmx2G $(MAIN) 3 3 9 0 maxn > results_3_3_0base_maxn.log 2>&1 && \
-		$(JAVA) -Xmx2G $(MAIN) 4 3 8 0 maxn > results_4_3_0base_maxn.log 2>&1 && \
-		$(JAVA) -Xmx2G $(MAIN) 6 3 6 0 maxn > results_6_3_0base_maxn.log 2>&1 && \
+		$(JAVA) -Xmx2G $(MAIN) 3 3 12 0 paranoid > results_3_3_0base_paranoid.log 2>&1 && \
+		$(JAVA) -Xmx2G $(MAIN) 4 3 12 0 paranoid > results_4_3_0base_paranoid.log 2>&1 && \
+		$(JAVA) -Xmx2G $(MAIN) 6 3 12 0 paranoid > results_6_3_0base_paranoid.log 2>&1 && \
+		$(JAVA) -Xmx2G $(MAIN) 3 3 12 0 maxn > results_3_3_0base_maxn.log 2>&1 && \
+		$(JAVA) -Xmx2G $(MAIN) 4 3 12 0 maxn > results_4_3_0base_maxn.log 2>&1 && \
+		$(JAVA) -Xmx2G $(MAIN) 6 3 12 0 maxn > results_6_3_0base_maxn.log 2>&1 && \
 		\
 		$(JAVA) -Xmx4G $(MAIN) 2 6 12 0 > results_2_6_0base.log 2>&1 && \
 		\
@@ -83,7 +83,27 @@ run: all
 		$(JAVA) -Xmx4G $(MAIN) 4 3 12 3 maxn > results_4_3_3moveOrdering_maxn.log 2>&1 && \
 		$(JAVA) -Xmx4G $(MAIN) 6 3 12 3 maxn > results_6_3_3moveOrdering_maxn.log 2>&1 && \
 		\
-		$(JAVA) -Xmx4G $(MAIN) 2 6 12 3 > results_2_6_3moveOrdering.log 2>&1 \
+		$(JAVA) -Xmx4G $(MAIN) 2 6 12 3 > results_2_6_3moveOrdering.log 2>&1 && \
+		\
+		$(JAVA) -Xmx1G $(MAIN) 2 1 20 3 > results_2_1_3moveOrdering_extended.log 2>&1 && \
+		$(JAVA) -Xmx4G $(MAIN) 2 3 50 3 > results_2_3_3moveOrdering_extended.log 2>&1 && \
+		\
+		$(JAVA) -Xmx4G $(MAIN) 3 1 45 3 paranoid > results_3_1_3moveOrdering_paranoid_extended.log 2>&1 && \
+		$(JAVA) -Xmx4G $(MAIN) 4 1 44 3 paranoid > results_4_1_3moveOrdering_paranoid_extended.log 2>&1 && \
+		$(JAVA) -Xmx4G $(MAIN) 6 1 42 3 paranoid > results_6_1_3moveOrdering_paranoid_extended.log 2>&1 && \
+		$(JAVA) -Xmx4G $(MAIN) 3 1 45 3 maxn > results_3_1_3moveOrdering_maxn_extended.log 2>&1 && \
+		$(JAVA) -Xmx4G $(MAIN) 4 1 44 3 maxn > results_4_1_3moveOrdering_maxn_extended.log 2>&1 && \
+		$(JAVA) -Xmx4G $(MAIN) 6 1 42 3 maxn > results_6_1_3moveOrdering_maxn_extended.log 2>&1 && \
+		\
+		$(JAVA) -Xmx80G $(MAIN) 3 3 30 3 paranoid > results_3_3_3moveOrdering_paranoid_extended.log 2>&1 && \
+		$(JAVA) -Xmx80G $(MAIN) 4 3 20 3 paranoid > results_4_3_3moveOrdering_paranoid_extended.log 2>&1 && \
+		$(JAVA) -Xmx80G $(MAIN) 6 3 18 3 paranoid > results_6_3_3moveOrdering_paranoid_extended.log 2>&1 && \
+		$(JAVA) -Xmx80G $(MAIN) 3 3 30 3 maxn > results_3_3_3moveOrdering_maxn_extended.log 2>&1 && \
+		$(JAVA) -Xmx80G $(MAIN) 4 3 20 3 maxn > results_4_3_3moveOrdering_maxn_extended.log 2>&1 && \
+		$(JAVA) -Xmx80G $(MAIN) 6 3 18 3 maxn > results_6_3_3moveOrdering_maxn_extended.log 2>&1 && \
+		\
+		$(JAVA) -Xmx80G $(MAIN) 2 6 18 3 > results_2_6_3moveOrdering_extended.log 2>&1 && \
+		$(JAVA) -Xmx80G $(MAIN) 2 10 12 3 > results_2_10_3moveOrdering_extended.log 2>&1 \
 	' &
 
 clean:
