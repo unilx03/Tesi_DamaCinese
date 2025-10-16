@@ -97,7 +97,7 @@ public class ChineseCheckers {
                 else
                         System.out.println("Immediate cutoffs: " + Metrics.cutoffs);
 
-                if (toolConfiguration.toInt() > Configuration.TABLES.toInt())
+                if (toolConfiguration.toInt() >= Configuration.TABLES.toInt())
                         System.out.println("TT stored: " + Metrics.ttStored + "  TT hits: " + Metrics.ttHits);
 
                 System.out.println("\n");
@@ -121,7 +121,6 @@ public class ChineseCheckers {
                                 T.put(key, currentStat);
                                 Metrics.ttStored++;
                         }
-                
 
                         currentStat.count++; //updates reference
                         if (currentStat.count >= 2) {
